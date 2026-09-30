@@ -1,0 +1,3954 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Sprint Review — Meridian PJM</title>
+<script src="https://accounts.google.com/gsi/client" async defer></script>
+<link rel="stylesheet" href="shared/pjm.css">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+<style>
+/* ===== SPRINT REVIEW (Linear) ===== */
+.srx-wrap{--purple:#5C26FF;--purple-light:#8A5CFF;--green:#10b981;--amber:#f59e0b;--red:#ef4444;--blue:#3b82f6;--slate:#64748b;--line:#e5e7eb;--line2:#f0f2f5}
+.srx-hdrow{display:flex;flex-wrap:wrap;align-items:flex-end;justify-content:space-between;gap:14px;margin-bottom:8px}
+.srx-hdrow .srx-eyebrow{font-size:11px;font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:var(--purple)}
+.srx-hdrow h2{font-size:22px;font-weight:700;margin:2px 0 0}
+.srx-hdrow .srx-sub{font-size:13px;color:var(--muted);margin-top:3px}
+.srx-ctrls{display:flex;align-items:center;gap:10px}
+.srx-pill{display:inline-flex;align-items:center;gap:6px;font-size:11px;font-weight:600;padding:5px 11px;border-radius:999px;background:#f1edff;border:1px solid #e2d9ff;color:#4A1ECC}
+.srx-sel{appearance:none;font:inherit;font-size:13px;font-weight:600;color:var(--text);background:var(--card);border:1px solid var(--border);border-radius:9px;padding:8px 30px 8px 13px;cursor:pointer;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.dev/2000/svg' width='10' height='6' viewBox='0 0 10 6'%3E%3Cpath d='M1 1l4 4 4-4' stroke='%236b7280' fill='none' stroke-width='1.5'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 11px center}
+
+.srx-sectitle{margin:26px 0 12px;display:flex;align-items:baseline;gap:10px}
+.srx-sectitle h3{font-size:15px;font-weight:700;margin:0}
+.srx-sectitle .srx-hint{font-size:12px;color:var(--muted)}
+
+.srx-kpis{display:grid;grid-template-columns:repeat(6,1fr);gap:12px}
+@media(max-width:1000px){.srx-kpis{grid-template-columns:repeat(3,1fr)}}
+@media(max-width:560px){.srx-kpis{grid-template-columns:repeat(2,1fr)}}
+.srx-kpi{background:var(--card);border:1px solid var(--border);border-radius:12px;padding:15px;position:relative;overflow:hidden;box-shadow:0 1px 3px rgba(0,0,0,.04)}
+.srx-kpi::before{content:"";position:absolute;left:0;top:0;bottom:0;width:4px;background:var(--slate)}
+.srx-kpi.p::before{background:var(--purple)}.srx-kpi.g::before{background:var(--green)}.srx-kpi.a::before{background:var(--amber)}.srx-kpi.r::before{background:var(--red)}.srx-kpi.b::before{background:var(--blue)}
+.srx-kpi .l{font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:.04em;color:var(--muted)}
+.srx-kpi .v{font-size:27px;font-weight:800;margin-top:5px;line-height:1}
+.srx-kpi .f{font-size:11.5px;color:var(--muted);margin-top:4px}
+
+.srx-g2{display:grid;grid-template-columns:1.35fr 1fr;gap:14px}
+.srx-g2b{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-top:14px}
+@media(max-width:900px){.srx-g2,.srx-g2b{grid-template-columns:1fr}}
+.srx-card{background:var(--card);border:1px solid var(--border);border-radius:12px;padding:16px;box-shadow:0 1px 3px rgba(0,0,0,.04)}
+.srx-card h4{font-size:13px;font-weight:700;margin:0}
+.srx-card .cs{font-size:11.5px;color:var(--muted);margin:2px 0 10px}
+.srx-cbox{position:relative;height:250px}
+.srx-cbox.tall{height:300px}
+
+.srx-projgrid{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+@media(max-width:900px){.srx-projgrid{grid-template-columns:1fr}}
+.srx-proj{background:var(--card);border:1px solid var(--border);border-radius:12px;padding:16px;box-shadow:0 1px 3px rgba(0,0,0,.04)}
+.srx-proj.empty{opacity:.72}
+.srx-ptop{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:10px}
+.srx-pname{font-weight:700;font-size:14.5px;display:flex;align-items:center;gap:8px}
+.srx-prtag{font-size:10px;font-weight:700;padding:2px 7px;border-radius:6px;background:#f1edff;color:#4A1ECC}
+.srx-pct{font-weight:800;font-size:15px}
+.srx-bar{height:9px;border-radius:6px;background:var(--line2);overflow:hidden;display:flex;margin:8px 0 10px}
+.srx-bar i{display:block;height:100%}
+.sg-done{background:var(--green)}.sg-test{background:var(--blue)}.sg-prog{background:var(--purple-light)}.sg-todo{background:#cbd0dc}.sg-blk{background:var(--red)}.sg-can{background:#b9bcc7}
+.srx-pstats{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin:4px 0;text-align:center}
+.srx-pstats .n{font-weight:800;font-size:17px}.srx-pstats .t{font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:.03em}
+.srx-details{margin-top:10px;border-top:1px solid var(--line2);padding-top:8px}
+.srx-details summary{cursor:pointer;font-size:12px;font-weight:600;color:var(--purple);list-style:none}
+.srx-details summary::-webkit-details-marker{display:none}
+.srx-details summary:before{content:"▸ "}.srx-details[open] summary:before{content:"▾ "}
+.srx-tbl{width:100%;border-collapse:collapse;margin-top:8px;font-size:12px}
+.srx-tbl th,.srx-tbl td{text-align:left;padding:6px 8px;border-bottom:1px solid var(--line2);vertical-align:top}
+.srx-tbl th{font-size:10.5px;text-transform:uppercase;letter-spacing:.04em;color:var(--muted);font-weight:600}
+.srx-tbl td.k{white-space:nowrap;font-weight:600}
+.srx-badge{display:inline-block;font-size:10px;font-weight:600;padding:2px 7px;border-radius:6px;white-space:nowrap}
+.bd-done{background:#dff5e8;color:#0a7a44}.bd-prog{background:#efe9ff;color:#5b21b6}.bd-test{background:#e3edff;color:#1e40af}.bd-todo{background:#eef0f4;color:#475569}.bd-blk{background:#fde3e6;color:#b3182b}.bd-can{background:#f0f1f4;color:#6b7280}
+.srx-note{background:#fff8e9;border:1px solid #f3e2b5;border-radius:10px;padding:11px 14px;font-size:12.5px;color:#6b5514;margin-top:6px}
+.srx-note b{color:#5a4610}
+.srx-foot{color:var(--muted);font-size:11.5px;margin-top:26px;border-top:1px solid var(--border);padding-top:14px}
+</style>
+
+<style id="demoBannerCss">
+#pjmDemoBanner{position:fixed;top:0;left:0;right:0;z-index:99999;background:#8A5CFF;color:#fff;
+ font:600 12px/1.4 system-ui,-apple-system,Segoe UI,sans-serif;padding:7px 44px 7px 16px;text-align:center;
+ letter-spacing:.2px;box-shadow:0 1px 6px rgba(0,0,0,.18)}
+#pjmDemoBanner a{color:#fff;text-decoration:underline}
+#pjmDemoBanner button{position:absolute;right:10px;top:4px;background:none;border:none;color:#fff;
+ font-size:17px;line-height:1;cursor:pointer;padding:4px}
+body.has-demo-banner{padding-top:30px}
+</style>
+<script id="pjmDemoMode">
+/* ===== PUBLIC DEMO BUILD =====
+   All data in this build is fictional. No credentials ship with it and no
+   outbound calls to third-party APIs are permitted. */
+(function(){
+  window.PJM_DEMO = true;
+  var BLOCK = /(api\.linear\.app|api\.github\.com|graphql|googleapis\.com|slack\.com|atlassian\.net)/i;
+  var of = window.fetch;
+  window.fetch = function(input){
+    var u = (typeof input === 'string') ? input : (input && input.url) || '';
+    if (BLOCK.test(u)) {
+      console.info('[demo] blocked outbound call:', u);
+      return Promise.resolve(new Response(JSON.stringify({data:null,demo:true}),
+        {status:200, headers:{'Content-Type':'application/json'}}));
+    }
+    return of.apply(this, arguments);
+  };
+  var ox = window.XMLHttpRequest && window.XMLHttpRequest.prototype.open;
+  if (ox) window.XMLHttpRequest.prototype.open = function(m,u){
+    if (BLOCK.test(String(u))) { console.info('[demo] blocked XHR:', u); u = 'data:application/json,{}'; }
+    return ox.apply(this, [m,u].concat([].slice.call(arguments,2)));
+  };
+  document.addEventListener('DOMContentLoaded', function(){
+    if (sessionStorage.getItem('pjmDemoBannerHidden')) return;
+    var b = document.createElement('div');
+    b.id = 'pjmDemoBanner';
+    b.innerHTML = 'DEMO BUILD \u2014 every person, project, ticket and meeting below is fictional. ' +
+                  'Live integrations are disabled in this build.' +
+                  '<button title="Dismiss" onclick="this.parentNode.remove();' +
+                  'document.body.classList.remove(\'has-demo-banner\');' +
+                  'sessionStorage.setItem(\'pjmDemoBannerHidden\',\'1\')">&times;</button>';
+    document.body.appendChild(b);
+    document.body.classList.add('has-demo-banner');
+  });
+})();
+</script>
+</head>
+<body>
+<div id="loginOverlay"><div class="login-box"><div class="login-logo">⬡</div><h2>Meridian PJM</h2><p>Sign in with your Meridian account to continue.</p><div id="googleSignInBtn"></div><div id="loginError"></div></div></div>
+<div id="pjmSidebarContainer"></div>
+<div class="pjm-main">
+
+<!-- MAIN CONTENT -->
+<div class="main">
+  <div class="srx-wrap" id="srApp">
+    <div class="srx-hdrow">
+      <div>
+        <div class="srx-eyebrow">Meridian · Linear · Cycle-based</div>
+        <h2>Sprint Review</h2>
+        <div class="srx-sub" id="srSub">Loading…</div>
+      </div>
+      <div class="srx-ctrls">
+        <span class="srx-pill" id="srWin"></span>
+        <select class="srx-sel" id="srSel"></select>
+      </div>
+    </div>
+
+    <div class="srx-sectitle"><h3>Portfolio summary</h3><span class="srx-hint" id="srPortHint"></span></div>
+    <div class="srx-kpis" id="srKpis"></div>
+
+        <div class="srx-sectitle"><h3>How the sprint went</h3><span class="srx-hint">Sprint Plan projects only</span></div>
+    <div class="srx-g2">
+      <div class="srx-card"><h4>Delivery by project</h4><div class="cs">Committed vs delivered this sprint - Sprint Plan projects.</div><div class="srx-cbox tall"><canvas id="cProj"></canvas></div></div>
+      <div class="srx-card"><h4>Velocity trend</h4><div class="cs">Delivered per sprint across Sprint Plan projects.</div><div class="srx-cbox tall"><canvas id="cVel"></canvas></div></div>
+    </div>
+    <div class="srx-g2b">
+      <div class="srx-card"><h4>Status distribution</h4><div class="cs">Where the committed work ended up.</div><div class="srx-cbox"><canvas id="cStatus"></canvas></div></div>
+      <div class="srx-card"><h4>Team workload - delivered vs carried</h4><div class="cs">Top contributors by issues assigned in these projects.</div><div class="srx-cbox"><canvas id="cTeam"></canvas></div></div>
+    </div>
+
+    <div class="srx-sectitle"><h3>By project / squad</h3><span class="srx-hint">Sprint Plan projects, in priority order</span></div>
+    <div id="srBreakNote"></div>
+    <div class="srx-projgrid" id="srProjGrid"></div>
+    <div id="srCoverage"></div>
+
+        <div class="srx-foot" id="srFoot"></div>
+  </div>
+</div>
+
+</div><!-- /.pjm-main -->
+
+<script>
+/* ===== EMBEDDED LINEAR SNAPSHOT ===== */
+window.SR_DATA = {
+ "generatedAt": "2026-09-12T00:00:00.000Z",
+ "sprints": [
+  {
+   "cnum": 9,
+   "sprintNo": 19,
+   "starts": "2026-08-30T22:00:00.000Z",
+   "ends": "2026-09-13T22:00:00.000Z",
+   "current": true,
+   "teams": [
+    "Meridian",
+    "COBALT",
+    "FORGE"
+   ],
+   "hist": [
+    {
+     "team": "Meridian",
+     "issueCountHistory": [
+      509,
+      525,
+      539,
+      547,
+      579,
+      579,
+      579,
+      583,
+      623,
+      655,
+      721
+     ],
+     "completedIssueCountHistory": [
+      4,
+      23,
+      35,
+      41,
+      89,
+      89,
+      89,
+      88,
+      115,
+      132,
+      153
+     ]
+    },
+    {
+     "team": "COBALT",
+     "issueCountHistory": [
+      88,
+      88,
+      88,
+      88,
+      88,
+      88,
+      88,
+      88,
+      88,
+      88,
+      88
+     ],
+     "completedIssueCountHistory": [
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0
+     ]
+    },
+    {
+     "team": "FORGE",
+     "issueCountHistory": [
+      72,
+      73,
+      73,
+      73,
+      73,
+      73,
+      73,
+      74,
+      89,
+      89,
+      89
+     ],
+     "completedIssueCountHistory": [
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      1,
+      35,
+      35,
+      36
+     ]
+    }
+   ],
+   "projects": [
+    {
+     "name": "Meridian Marketplace Lite",
+     "issues": [
+      {
+       "id": "MER-190",
+       "title": "Implement pagination on the results table",
+       "status": "In Progress",
+       "statusType": "started",
+       "assignee": "alina.rowe@meridian.dev",
+       "url": "https://linear.example.com/demo/issue/MER-190/implement-pagination-on-the-results-table"
+      },
+      {
+       "id": "MER-194",
+       "title": "Fix bulk select behaviour",
+       "status": "System Testing",
+       "statusType": "started",
+       "assignee": "marcus.vidal@meridian.dev",
+       "url": "https://linear.example.com/demo/issue/MER-194/fix-bulk-select-behaviour"
+      },
+      {
+       "id": "MER-204",
+       "title": "Add duplicate detection on import",
+       "status": "In Progress",
+       "statusType": "started",
+       "assignee": "nadia.o@meridian.dev",
+       "url": "https://linear.example.com/demo/issue/MER-204/add-duplicate-detection-on-import"
+      },
+      {
+       "id": "MER-205",
+       "title": "Update empty state for the filters panel",
+       "status": "In Progress",
+       "statusType": "started",
+       "assignee": "tomas.berg@meridian.dev",
+       "url": "https://linear.example.com/demo/issue/MER-205/update-empty-state-for-the-filters-panel"
+      }
+     ]
+    },
+    {
+     "name": "ATLAS",
+     "issues": [
+      {
+       "id": "MER-1001",
+       "title": "Refactor column widths on narrow screens",
+       "status": "Dev Completed",
+       "statusType": "started",
+       "assignee": "priya.anand@northgate.dev",
+       "url": "https://linear.example.com/demo/issue/MER-1001/refactor-column-widths-on-narrow-screens"
+      },
+      {
+       "id": "MER-1002",
+       "title": "Investigate rate limit handling in the client",
+       "status": "Dev Completed",
+       "statusType": "started",
+       "assignee": "rohan.desai@northgate.dev",
+       "url": "https://linear.example.com/demo/issue/MER-1002/investigate-rate-limit-handling-in-the-client"
+      },
+      {
+       "id": "MER-1003",
+       "title": "Remove retry logic on the sync job",
+       "status": "Dev Completed",
+       "statusType": "started",
+       "assignee": "elena.marsh@meridian.dev",
+       "url": "https://linear.example.com/demo/issue/MER-1003/remove-retry-logic-on-the-sync-job"
+      },
+      {
+       "id": "MER-1214",
+       "title": "Improve timezone handling in the scheduler",
+       "status": "In Progress",
+       "statusType": "started",
+       "assignee": "kwame.b@northgate.dev",
+       "url": "https://linear.example.com/demo/issue/MER-1214/improve-timezone-handling-in-the-scheduler"
+      },
+      {
+       "id": "MER-1215",
+       "title": "Migrate breadcrumb on the detail page",
+       "status": "Dev Completed",
+       "statusType": "started",
+       "assignee": "sofia.l@meridian.dev",
+       "url": "https://linear.example.com/demo/issue/MER-1215/migrate-breadcrumb-on-the-detail-page"
+      },
+      {
+       "id": "MER-1216",
+       "title": "Validate validation on the date range picker",
+       "status": "Dev Completed",
+       "statusType": "started",
+       "assignee": "arjun.nair@northgate.dev",
+       "url": "https://linear.example.com/demo/issue/MER-1216/validate-validation-on-the-date-range-picker"
+      },
+      {
+       "id": "MER-1217",
+       "title": "Implement caching for the lookup endpoint",
+       "status": "Dev Completed",
+       "statusType": "started",
+       "assignee": "hana.sato@northgate.dev",
+       "url": "https://linear.example.com/demo/issue/MER-1217/implement-caching-for-the-lookup-endpoint"
+      },
+      {
+       "id": "MER-1218",
+       "title": "Fix CSV export column headers",
+       "status": "Dev Completed",
+       "statusType": "started",
+       "assignee": "daniel.okafor@meridian.dev",
+       "url": "https://linear.example.com/demo/issue/MER-1218/fix-csv-export-column-headers"
+      },
+      {
+       "id": "MER-1409",
+       "title": "Add tooltip copy on the summary cards",
+       "status": "System Testing",
+       "statusType": "started",
+       "assignee": "freya.nilsen@meridian.dev",
+       "url": "https://linear.example.com/demo/issue/MER-1409/add-tooltip-copy-on-the-summary-cards"
+      },
+      {
+       "id": "MER-1410",
+       "title": "Update audit log entry on delete",
+       "status": "Dev Completed",
+       "statusType": "started",
+       "assignee": "ravi.menon@northgate.dev",
+       "url": "https://linear.example.com/demo/issue/MER-1410/update-audit-log-entry-on-delete"
+      },
+      {
+       "id": "MER-1411",
+       "title": "Refactor status badge colour mapping",
+       "status": "Dev Completed",
+       "statusType": "started",
+       "assignee": "clara.bennett@meridian.dev",
+       "url": "https://linear.example.com/demo/issue/MER-1411/refactor-status-badge-colour-mapping"
+      },
+      {
+       "id": "MER-1521",
+       "title": "Investigate sort order in the list view",
+       "status": "In Progress",
+       "statusType": "started",
+       "assignee": "idris.khan@northgate.dev",
+       "url": "https://linear.example.com/demo/issue/MER-1521/investigate-sort-order-in-the-list-view"
+      },
+      {
+       "id": "MER-1522",
+       "title": "Remove keyboard navigation in the modal",
+       "status": "Ready to Release",
+       "statusType": "started",
+       "assignee": "mei.chen@northgate.dev",
+       "url": "https://linear.example.com/demo/issue/MER-1522/remove-keyboard-navigation-in-the-modal"
+      },
+      {
+       "id": "MER-1523",
+       "title": "Improve session timeout warning",
+       "status": "Ready to Release",
+       "statusType": "started",
+       "assignee": "oscar.duarte@meridian.dev",
+       "url": "https://linear.example.com/demo/issue/MER-1523/improve-session-timeout-warning"
+      },
+      {
+       "id": "MER-1524",
+       "title": "Migrate error toast on failed save",
+       "status": "Ready to Release",
+       "statusType": "started",
+       "assignee": "lena.petrova@northgate.dev",
+       "url": "https://linear.example.com/demo/issue/MER-1524/migrate-error-toast-on-failed-save"
+      },
+      {
+       "id": "MER-1525",
+       "title": "Validate loading skeleton for the chart",
+       "status": "Ready to Release",
+       "statusType": "started",
+       "assignee": "samir.haddad@northgate.dev",
+       "url": "https://linear.example.com/demo/issue/MER-1525/validate-loading-skeleton-for-the-chart"
+      },
+      {
+       "id": "MER-1526",
+       "title": "Implement pagination on the results table",
+       "status": "Ready to Release",
+       "statusType": "started",
+       "assignee": "grace.mwangi@meridian.dev",
+       "url": "https://linear.example.com/demo/issue/MER-1526/implement-pagination-on-the-results-table"
+      },
+      {
+       "id": "MER-1527",
+       "title": "Fix bulk select behaviour",
+       "status": "Ready to Release",
+       "statusType": "started",
+       "assignee": "theo.almeida@northgate.dev",
+       "url": "https://linear.example.com/demo/issue/MER-1527/fix-bulk-select-behaviour"
+      },
+      {
+       "id": "MER-1528",
+       "title": "Add duplicate detection on import",
+       "status": "Ready to Release",
+       "statusType": "started",
+       "assignee": "jonas.weber@meridian.dev",
+       "url": "https://linear.example.com/demo/issue/MER-1528/add-duplicate-detection-on-import"
+      },
+      {
+       "id": "MER-1529",
+       "title": "Update empty state for the filters panel",
+       "status": "Ready to Release",
+       "statusType": "started",
+       "assignee": "ines.ferreira@northgate.dev",
+       "url": "https://linear.example.com/demo/issue/MER-1529/update-empty-state-for-the-filters-panel"
+      },
+      {
+       "id": "MER-1530",
+       "title": "Refactor column widths on narrow screens",
+       "status": "Ready to Release",
+       "statusType": "started",
+       "assignee": "alina.rowe@meridian.dev",
+       "url": "https://linear.example.com/demo/issue/MER-1530/refactor-column-widths-on-narrow-screens"
+      },
+      {
+       "id": "MER-1531",
+       "title": "Investigate rate limit handling in the client",
+       "status": "Ready to Release",
+       "statusType": "started",
+       "assignee": "marcus.vidal@meridian.dev",
+       "url": "https://linear.example.com/demo/issue/MER-1531/investigate-rate-limit-handling-in-the-client"
+      },
+      {
+       "id": "MER-1532",
+       "title": "Remove retry logic on the sync job",
+       "status": "Ready to Release",
+       "statusType": "started",
+       "assignee": "nadia.o@meridian.dev",
+       "url": "https://linear.example.com/demo/issue/MER-1532/remove-retry-logic-on-the-sync-job"
+      },
+      {
+       "id": "MER-1764",
+       "title": "Improve timezone handling in the scheduler",
+       "status": "Dev Completed",
+       "statusType": "started",
+       "assignee": "tomas.berg@meridian.dev",
+       "url": "https://linear.example.com/demo/issue/MER-1764/improve-timezone-handling-in-the-scheduler"
+      },
+      {
+       "id": "MER-1765",
+       "title": "Migrate breadcrumb on the detail page",
+       "status": "Dev Completed",
+       "statusType": "started",
+       "assignee": "priya.anand@northgate.dev",
+       "url": "https://linear.example.com/demo/issue/MER-1765/migrate-breadcrumb-on-the-detail-page"
+      },
+      {
+       "id": "MER-1766",
+       "title": "Validate validation on the date range picker",
+       "status": "Dev Completed",
+       "statusType": "started",
+       "assignee": "rohan.desai@northgate.dev",
+       "url": "https://linear.example.com/demo/issue/MER-1766/validate-validation-on-the-date-range-picker"
+      },
+      {
+       "id": "MER-1767",
+       "title": "Implement caching for the lookup endpoint",
+       "status": "Dev Completed",
+       "statusType": "started",
+       "assignee": "elena.marsh@meridian.dev",
+       "url": "https://linear.example.com/demo/issue/MER-1767/implement-caching-for-the-lookup-endpoint"
+      },
+      {
+       "id": "MER-1768",
+       "title": "Fix CSV export column headers",
+       "status": "Dev Completed",
+       "statusType": "started",
+       "assignee": "kwame.b@northgate.dev",
+       "url": "https://linear.example.com/demo/issue/MER-1768/fix-csv-export-column-headers"
+      },
+      {
+       "id": "MER-1788",
+       "title": "Add tooltip copy on the summary cards",
+       "status": "Ready to Release",
+       "statusType": "started",
+       "assignee": "sofia.l@meridian.dev",
+       "url": "https://linear.example.com/demo/issue/MER-1788/add-tooltip-copy-on-the-summary-cards"
+      },
+      {
+       "id": "MER-1791",
+       "title": "Update audit log entry on delete",
+       "status": "Ready to Release",
+       "statusType": "started",
+       "assignee": "arjun.nair@northgate.dev",
+       "url": "https://linear.example.com/demo/issue/MER-1791/update-audit-log-entry-on-delete"
+      },
+      {
+       "id": "MER-1796",
+       "title": "Refactor status badge colour mapping",
+       "status": "Ready to Release",
+       "statusType": "started",
+       "assignee": "hana.sato@northgate.dev",
+       "url": "https://linear.example.com/demo/issue/MER-1796/refactor-status-badge-colour-mapping"
+      },
+      {
+       "id": "MER-1797",
+       "title": "Investigate sort order in the list view",
+       "status": "Ready to Release",
+       "statusType": "started",
+       "assignee": "daniel.okafor@meridian.dev",
+       "url": "https://linear.example.com/demo/issue/MER-1797/investigate-sort-order-in-the-list-view"
+      },
+      {
+       "id": "MER-1798",
+       "title": "Remove keyboard navigation in the modal",
+       "status": "Ready to Release",
+       "statusType": "started",
+       "assignee": "freya.nilsen@meridian.dev",
+       "url": "https://linear.example.com/demo/issue/MER-1798/remove-keyboard-navigation-in-the-modal"
+      },
+      {
+       "id": "MER-1799",
+       "title": "Improve session timeout warning",
+       "status": "In Progress",
+       "statusType": "started",
+       "assignee": "ravi.menon@northgate.dev",
+       "url": "https://linear.example.com/demo/issue/MER-1799/improve-session-timeout-warning"
+      },
+      {
+       "id": "MER-1801",
+       "title": "Migrate error toast on failed save",
+       "status": "In Progress",
+       "statusType": "started",
+       "assignee": "clara.bennett@meridian.dev",
+       "url": "https://linear.example.com/demo/issue/MER-1801/migrate-error-toast-on-failed-save"
+      },
+      {
+       "id": "MER-1803",
+       "title": "Validate loading skeleton for the chart",
+       "status": "Dev Completed",
+       "statusType": "started",
+       "assignee": "idris.khan@northgate.dev",
+       "url": "https://linear.example.com/demo/issue/MER-1803/validate-loading-skeleton-for-the-chart"
+      },
+      {
+       "id": "MER-1810",
+       "title": "Implement pagination on the results table",
+       "status": "Ready to Release",
+       "statusType": "started",
+       "assignee": "mei.chen@northgate.dev",
+       "url": "https://linear.example.com/demo/issue/MER-1810/implement-pagination-on-the-results-table"
+      },
+      {
+       "id": "MER-1812",
+       "title": "Fix bulk select behaviour",
+       "status": "Ready to Release",
+       "statusType": "started",
+       "assignee": "oscar.duarte@meridian.dev",
+       "url": "https://linear.example.com/demo/issue/MER-1812/fix-bulk-select-behaviour"
+      },
+      {
+       "id": "MER-1814",
+       "title": "Add duplicate detection on import",
+       "status": "Ready to Release",
+       "statusType": "started",
+       "assignee": "lena.petrova@northgate.dev",
+       "url": "https://linear.example.com/demo/issue/MER-1814/add-duplicate-detection-on-import"
+      },
+      {
+       "id": "MER-1815",
+       "title": "Update empty state for the filters panel",
+       "status": "Ready to Release",
+       "statusType": "started",
+       "assignee": "samir.haddad@northgate.dev",
+       "url": "https://linear.example.com/demo/issue/MER-1815/update-empty-state-for-the-filters-panel"
+      },
+      {
+       "id": "MER-1816",
+       "title": "Refactor column widths on narrow screens",
+       "status": "Ready to Release",
+       "statusType": "started",
+       "assignee": "grace.mwangi@meridian.dev",
+       "url": "https://linear.example.com/demo/issue/MER-1816/refactor-column-widths-on-narrow-screens"
+      },
+      {
+       "id": "MER-1817",
+       "title": "Investigate rate limit handling in the client",
+       "status": "Ready to Release",
+       "statusType": "started",
+       "assignee": "theo.almeida@northgate.dev",
+       "url": "https://linear.example.com/demo/issue/MER-1817/investigate-rate-limit-handling-in-the-client"
+      },
+      {
+       "id": "MER-1820",
+       "title": "Remove retry logic on the sync job",
+       "status": "Ready to Release",
+       "statusType": "started",
+       "assignee": "jonas.weber@meridian.dev",
+       "url": "https://linear.example.com/demo/issue/MER-1820/remove-retry-logic-on-the-sync-job"
+      },
+      {
+       "id": "MER-1821",
+       "title": "Improve timezone handling in the scheduler",
+       "status": "Ready to Release",
+       "statusType": "started",
+       "assignee": "ines.ferreira@northgate.dev",
+       "url": "https://linear.example.com/demo/issue/MER-1821/improve-timezone-handling-in-the-scheduler"
+      },
+      {
+       "id": "MER-1824",
+       "title": "Migrate breadcrumb on the detail page",
+       "status": "Ready to Release",
+       "statusType": "started",
+       "assignee": "alina.rowe@meridian.dev",
+       "url": "https://linear.example.com/demo/issue/MER-1824/migrate-breadcrumb-on-the-detail-page"
+      },
+      {
+       "id": "MER-1826",
+       "title": "Validate validation on the date range picker",
+       "status": "Ready to Release",
+       "statusType": "started",
+       "assignee": "marcus.vidal@meridian.dev",
+       "url": "https://linear.example.com/demo/issue/MER-1826/validate-validation-on-the-date-range-picker"
+      },
+      {
+       "id": "MER-1842",
+       "title": "Implement caching for the lookup endpoint",
+       "status": "Ready to Release",
+       "statusType": "started",
+       "assignee": "nadia.o@meridian.dev",
+       "url": "https://linear.example.com/demo/issue/MER-1842/implement-caching-for-the-lookup-endpoint"
+      },
+      {
+       "id": "MER-1843",
+       "title": "Fix CSV export column headers",
+       "status": "Ready to Release",
+       "statusType": "started",
+       "assignee": "tomas.berg@meridian.dev",
+       "url": "https://linear.example.com/demo/issue/MER-1843/fix-csv-export-column-headers"
+      },
+      {
+       "id": "MER-1844",
+       "title": "Add tooltip copy on the summary cards",
+       "status": "Ready to Release",
+       "statusType": "started",
+       "assignee": "priya.anand@northgate.dev",
+       "url": "https://linear.example.com/demo/issue/MER-1844/add-tooltip-copy-on-the-summary-cards"
+      },
+      {
+       "id": "MER-1845",
+       "title": "Update audit log entry on delete",
+       "status": "Ready to Release",
+       "statusType": "started",
+       "assignee": "rohan.desai@northgate.dev",
+       "url": "https://linear.example.com/demo/issue/MER-1845/update-audit-log-entry-on-delete"
+      },
+      {
+       "id": "MER-1846",
+       "title": "Refactor status badge colour mapping",
+       "status": "Ready to Release",
+       "statusType": "started",
+       "assignee": "elena.marsh@meridian.dev",
+       "url": "https://linear.example.com/demo/issue/MER-1846/refactor-status-badge-colour-mapping"
+      },
+      {
+       "id": "MER-1847",
+       "title": "Investigate sort order in the list view",
+       "status": "Ready to Release",
+       "statusType": "started",
+       "assignee": "kwame.b@northgate.dev",
+       "url": "https://linear.example.com/demo/issue/MER-1847/investigate-sort-order-in-the-list-view"
+      },
+      {
+       "id": "MER-1848",
+       "title": "Remove keyboard navigation in the modal",
+       "status": "Ready to Release",
+       "statusType": "started",
+       "assignee": "sofia.l@meridian.dev",
+       "url": "https://linear.example.com/demo/issue/MER-1848/remove-keyboard-navigation-in-the-modal"
+      },
+      {
+       "id": "MER-1849",
+       "title": "Improve session timeout warning",
+       "status": "Ready to Release",
+       "statusType": "started",
+       "assignee": "arjun.nair@northgate.dev",
+       "url": "https://linear.example.com/demo/issue/MER-1849/improve-session-timeout-warning"
+      },
+      {
+       "id": "MER-1850",
+       "title": "Migrate error toast on failed save",
+       "status": "Ready to Release",
+       "statusType": "started",
+       "assignee": "hana.sato@northgate.dev",
+       "url": "https://linear.example.com/demo/issue/MER-1850/migrate-error-toast-on-failed-save"
+      },
+      {
+       "id": "MER-1851",
+       "title": "Validate loading skeleton for the chart",
+       "status": "Ready to Release",
+       "statusType": "started",
+       "assignee": "daniel.okafor@meridian.dev",
+       "url": "https://linear.example.com/demo/issue/MER-1851/validate-loading-skeleton-for-the-chart"
+      },
+      {
+       "id": "MER-1852",
+       "title": "Implement pagination on the results table",
+       "status": "Dev Completed",
+       "statusType": "started",
+       "assignee": "freya.nilsen@meridian.dev",
+       "url": "https://linear.example.com/demo/issue/MER-1852/implement-pagination-on-the-results-table"
+      },
+      {
+       "id": "MER-1865",
+       "title": "Fix bulk select behaviour",
+       "status": "System Testing",
+       "statusType": "started",
+       "assignee": "ravi.menon@northgate.dev",
+       "url": "https://linear.example.com/demo/issue/MER-1865/fix-bulk-select-behaviour"
+      },
+      {
+       "id": "MER-1900",
+       "title": "Add duplicate detection on import",
+       "status": "System Testing",
+       "statusType": "started",
+       "assignee": "clara.bennett@meridian.dev",
+       "url": "https://linear.example.com/demo/issue/MER-1900/add-duplicate-detection-on-import"
+      },
+      {
+       "id": "MER-1904",
+       "title": "Update empty state for the filters panel",
+       "status": "In Progress",
+       "statusType": "started",
+       "assignee": "idris.khan@northgate.dev",
+       "url": "https://linear.example.com/demo/issue/MER-1904/update-empty-state-for-the-filters-panel"
+      },
+      {
+       "id": "MER-1905",
+       "title": "Refactor column widths on narrow screens",
+       "status": "Todo",
+       "statusType": "unstarted",
+       "assignee": "mei.chen@northgate.dev",
+       "url": "https://linear.example.com/demo/issue/MER-1905/refactor-column-widths-on-narrow-screens"
+      },
+      {
+       "id": "MER-1914",
+       "title": "Investigate rate limit handling in the client",
+       "status": "Ready to Release",
+       "statusType": "started",
+       "assignee": "oscar.duarte@meridian.dev",
+       "url": "https://linear.example.com/demo/issue/MER-1914/investigate-rate-limit-handling-in-the-client"
+      },
+      {
+       "id": "MER-1915",
+       "title": "Remove retry logic on the sync job",
+       "status": "Ready to Release",
+       "statusType": "started",
+       "assignee": "lena.petrova@northgate.dev",
+       "url": "https://linear.example.com/demo/issue/MER-1915/remove-retry-logic-on-the-sync-job"
+      },
+      {
+       "id": "MER-1916",
+       "title": "Improve timezone handling in the scheduler",
+       "status": "Ready to Release",
+       "statusType": "started",
+       "assignee": "samir.haddad@northgate.dev",
+       "url": "https://linear.example.com/demo/issue/MER-1916/improve-timezone-handling-in-the-scheduler"
+      },
+      {
+       "id": "MER-1917",
+       "title": "Migrate breadcrumb on the detail page",
+       "status": "Ready to Release",
+       "statusType": "started",
+       "assignee": "grace.mwangi@meridian.dev",
+       "url": "https://linear.example.com/demo/issue/MER-1917/migrate-breadcrumb-on-the-detail-page"
+      },
+      {
+       "id": "MER-1918",
+       "title": "Validate validation on the date range picker",
+       "status": "Ready to Release",
+       "statusType": "started",
+       "assignee": "theo.almeida@northgate.dev",
+       "url": "https://linear.example.com/demo/issue/MER-1918/validate-validation-on-the-date-range-picker"
+      },
+      {
+       "id": "MER-1920",
+       "title": "Implement caching for the lookup endpoint",
+       "status": "Ready to Release",
+       "statusType": "started",
+       "assignee": "jonas.weber@meridian.dev",
+       "url": "https://linear.example.com/demo/issue/MER-1920/implement-caching-for-the-lookup-endpoint"
+      },
+      {
+       "id": "MER-1923",
+       "title": "Fix CSV export column headers",
+       "status": "Ready to Release",
+       "statusType": "started",
+       "assignee": "ines.ferreira@northgate.dev",
+       "url": "https://linear.example.com/demo/issue/MER-1923/fix-csv-export-column-headers"
+      },
+      {
+       "id": "MER-1924",
+       "title": "Add tooltip copy on the summary cards",
+       "status": "Ready to Release",
+       "statusType": "started",
+       "assignee": "alina.rowe@meridian.dev",
+       "url": "https://linear.example.com/demo/issue/MER-1924/add-tooltip-copy-on-the-summary-cards"
+      },
+      {
+       "id": "MER-1925",
+       "title": "Update audit log entry on delete",
+       "status": "Ready to Release",
+       "statusType": "started",
+       "assignee": "marcus.vidal@meridian.dev",
+       "url": "https://linear.example.com/demo/issue/MER-1925/update-audit-log-entry-on-delete"
+      },
+      {
+       "id": "MER-1926",
+       "title": "Refactor status badge colour mapping",
+       "status": "Ready to Release",
+       "statusType": "started",
+       "assignee": "nadia.o@meridian.dev",
+       "url": "https://linear.example.com/demo/issue/MER-1926/refactor-status-badge-colour-mapping"
+      },
+      {
+       "id": "MER-1927",
+       "title": "Investigate sort order in the list view",
+       "status": "Ready to Release",
+       "statusType": "started",
+       "assignee": "tomas.berg@meridian.dev",
+       "url": "https://linear.example.com/demo/issue/MER-1927/investigate-sort-order-in-the-list-view"
+      },
+      {
+       "id": "MER-1928",
+       "title": "Remove keyboard navigation in the modal",
+       "status": "Ready to Release",
+       "statusType": "started",
+       "assignee": "priya.anand@northgate.dev",
+       "url": "https://linear.example.com/demo/issue/MER-1928/remove-keyboard-navigation-in-the-modal"
+      },
+      {
+       "id": "MER-1929",
+       "title": "Improve session timeout warning",
+       "status": "Ready to Release",
+       "statusType": "started",
+       "assignee": "rohan.desai@northgate.dev",
+       "url": "https://linear.example.com/demo/issue/MER-1929/improve-session-timeout-warning"
+      },
+      {
+       "id": "MER-1931",
+       "title": "Migrate error toast on failed save",
+       "status": "Ready to Release",
+       "statusType": "started",
+       "assignee": "elena.marsh@meridian.dev",
+       "url": "https://linear.example.com/demo/issue/MER-1931/migrate-error-toast-on-failed-save"
+      },
+      {
+       "id": "MER-1932",
+       "title": "Validate loading skeleton for the chart",
+       "status": "Ready to Release",
+       "statusType": "started",
+       "assignee": "kwame.b@northgate.dev",
+       "url": "https://linear.example.com/demo/issue/MER-1932/validate-loading-skeleton-for-the-chart"
+      },
+      {
+       "id": "MER-1933",
+       "title": "Implement pagination on the results table",
+       "status": "Ready to Release",
+       "statusType": "started",
+       "assignee": "sofia.l@meridian.dev",
+       "url": "https://linear.example.com/demo/issue/MER-1933/implement-pagination-on-the-results-table"
+      },
+      {
+       "id": "MER-1934",
+       "title": "Fix bulk select behaviour",
+       "status": "Todo",
+       "statusType": "unstarted",
+       "assignee": "arjun.nair@northgate.dev",
+       "url": "https://linear.example.com/demo/issue/MER-1934/fix-bulk-select-behaviour"
+      },
+      {
+       "id": "MER-1935",
+       "title": "Add duplicate detection on import",
+       "status": "Ready to Release",
+       "statusType": "started",
+       "assignee": "hana.sato@northgate.dev",
+       "url": "https://linear.example.com/demo/issue/MER-1935/add-duplicate-detection-on-import"
+      },
+      {
+       "id": "MER-1936",
+       "title": "Update empty state for the filters panel",
+       "status": "Ready to Release",
+       "statusType": "started",
+       "assignee": "daniel.okafor@meridian.dev",
+       "url": "https://linear.example.com/demo/issue/MER-1936/update-empty-state-for-the-filters-panel"
+      },
+      {
+       "id": "MER-1937",
+       "title": "Refactor column widths on narrow screens",
+       "status": "Ready to Release",
+       "statusType": "started",
+       "assignee": "freya.nilsen@meridian.dev",
+       "url": "https://linear.example.com/demo/issue/MER-1937/refactor-column-widths-on-narrow-screens"
+      },
+      {
+       "id": "MER-1940",
+       "title": "Investigate rate limit handling in the client",
+       "status": "Ready to Release",
+       "statusType": "started",
+       "assignee": "ravi.menon@northgate.dev",
+       "url": "https://linear.example.com/demo/issue/MER-1940/investigate-rate-limit-handling-in-the-client"
+      },
+      {
+       "id": "MER-1942",
+       "title": "Remove retry logic on the sync job",
+       "status": "Dev Completed",
+       "statusType": "started",
+       "assignee": "clara.bennett@meridian.dev",
+       "url": "https://linear.example.com/demo/issue/MER-1942/remove-retry-logic-on-the-sync-job"
+      },
+      {
+       "id": "MER-1943",
+       "title": "Improve timezone handling in the scheduler",
+       "status": "Ready to Release",
+       "statusType": "started",
+       "assignee": "idris.khan@northgate.dev",
+       "url": "https://linear.example.com/demo/issue/MER-1943/improve-timezone-handling-in-the-scheduler"
+      },
+      {
+       "id": "MER-1944",
+       "title": "Migrate breadcrumb on the detail page",
+       "status": "Ready to Release",
+       "statusType": "started",
+       "assignee": "mei.chen@northgate.dev",
+       "url": "https://linear.example.com/demo/issue/MER-1944/migrate-breadcrumb-on-the-detail-page"
+      },
+      {
+       "id": "MER-1945",
+       "title": "Validate validation on the date range picker",
+       "status": "Ready to Release",
+       "statusType": "started",
+       "assignee": "oscar.duarte@meridian.dev",
+       "url": "https://linear.example.com/demo/issue/MER-1945/validate-validation-on-the-date-range-picker"
+      },
+      {
+       "id": "MER-1948",
+       "title": "Implement caching for the lookup endpoint",
+       "status": "Ready to Release",
+       "statusType": "started",
+       "assignee": "lena.petrova@northgate.dev",
+       "url": "https://linear.example.com/demo/issue/MER-1948/implement-caching-for-the-lookup-endpoint"
+      },
+      {
+       "id": "MER-1949",
+       "title": "Fix CSV export column headers",
+       "status": "Ready to Release",
+       "statusType": "started",
+       "assignee": "samir.haddad@northgate.dev",
+       "url": "https://linear.example.com/demo/issue/MER-1949/fix-csv-export-column-headers"
+      },
+      {
+       "id": "MER-1950",
+       "title": "Add tooltip copy on the summary cards",
+       "status": "Ready to Release",
+       "statusType": "started",
+       "assignee": "grace.mwangi@meridian.dev",
+       "url": "https://linear.example.com/demo/issue/MER-1950/add-tooltip-copy-on-the-summary-cards"
+      },
+      {
+       "id": "MER-1952",
+       "title": "Update audit log entry on delete",
+       "status": "Ready to Release",
+       "statusType": "started",
+       "assignee": "theo.almeida@northgate.dev",
+       "url": "https://linear.example.com/demo/issue/MER-1952/update-audit-log-entry-on-delete"
+      },
+      {
+       "id": "MER-1953",
+       "title": "Refactor status badge colour mapping",
+       "status": "Ready to Release",
+       "statusType": "started",
+       "assignee": "jonas.weber@meridian.dev",
+       "url": "https://linear.example.com/demo/issue/MER-1953/refactor-status-badge-colour-mapping"
+      },
+      {
+       "id": "MER-1954",
+       "title": "Investigate sort order in the list view",
+       "status": "Dev Completed",
+       "statusType": "started",
+       "assignee": "ines.ferreira@northgate.dev",
+       "url": "https://linear.example.com/demo/issue/MER-1954/investigate-sort-order-in-the-list-view"
+      },
+      {
+       "id": "MER-1955",
+       "title": "Remove keyboard navigation in the modal",
+       "status": "Ready to Release",
+       "statusType": "started",
+       "assignee": "alina.rowe@meridian.dev",
+       "url": "https://linear.example.com/demo/issue/MER-1955/remove-keyboard-navigation-in-the-modal"
+      },
+      {
+       "id": "MER-1956",
+       "title": "Improve session timeout warning",
+       "status": "Ready to Release",
+       "statusType": "started",
+       "assignee": "marcus.vidal@meridian.dev",
+       "url": "https://linear.example.com/demo/issue/MER-1956/improve-session-timeout-warning"
+      },
+      {
+       "id": "MER-1957",
+       "title": "Migrate error toast on failed save",
+       "status": "Ready to Release",
+       "statusType": "started",
+       "assignee": "nadia.o@meridian.dev",
+       "url": "https://linear.example.com/demo/issue/MER-1957/migrate-error-toast-on-failed-save"
+      },
+      {
+       "id": "MER-1960",
+       "title": "Validate loading skeleton for the chart",
+       "status": "Ready to Release",
+       "statusType": "started",
+       "assignee": "tomas.berg@meridian.dev",
+       "url": "https://linear.example.com/demo/issue/MER-1960/validate-loading-skeleton-for-the-chart"
+      },
+      {
+       "id": "MER-1975",
+       "title": "Implement pagination on the results table",
+       "status": "Ready to Release",
+       "statusType": "started",
+       "assignee": "priya.anand@northgate.dev",
+       "url": "https://linear.example.com/demo/issue/MER-1975/implement-pagination-on-the-results-table"
+      },
+      {
+       "id": "MER-1976",
+       "title": "Fix bulk select behaviour",
+       "status": "Ready to Release",
+       "statusType": "started",
+       "assignee": "rohan.desai@northgate.dev",
+       "url": "https://linear.example.com/demo/issue/MER-1976/fix-bulk-select-behaviour"
+      },
+      {
+       "id": "MER-1983",
+       "title": "Add duplicate detection on import",
+       "status": "Ready to Release",
+       "statusType": "started",
+       "assignee": "elena.marsh@meridian.dev",
+       "url": "https://linear.example.com/demo/issue/MER-1983/add-duplicate-detection-on-import"
+      },
+      {
+       "id": "MER-1984",
+       "title": "Update empty state for the filters panel",
+       "status": "Ready to Release",
+       "statusType": "started",
+       "assignee": "kwame.b@northgate.dev",
+       "url": "https://linear.example.com/demo/issue/MER-1984/update-empty-state-for-the-filters-panel"
+      },
+      {
+       "id": "MER-2104",
+       "title": "Refactor column widths on narrow screens",
+       "status": "Ready to Release",
+       "statusType": "started",
+       "assignee": "sofia.l@meridian.dev",
+       "url": "https://linear.example.com/demo/issue/MER-2104/refactor-column-widths-on-narrow-screens"
+      },
+      {
+       "id": "MER-2106",
+       "title": "Investigate rate limit handling in the client",
+       "status": "Todo",
+       "statusType": "unstarted",
+       "assignee": "arjun.nair@northgate.dev",
+       "url": "https://linear.example.com/demo/issue/MER-2106/investigate-rate-limit-handling-in-the-client"
+      },
+      {
+       "id": "MER-2116",
+       "title": "Remove retry logic on the sync job",
+       "status": "Ready to Release",
+       "statusType": "started",
+       "assignee": "hana.sato@northgate.dev",
+       "url": "https://linear.example.com/demo/issue/MER-2116/remove-retry-logic-on-the-sync-job"
+      },
+      {
+       "id": "MER-2118",
+       "title": "Improve timezone handling in the scheduler",
+       "status": "Todo",
+       "statusType": "unstarted",
+       "assignee": "daniel.okafor@meridian.dev",
+       "url": "https://linear.example.com/demo/issue/MER-2118/improve-timezone-handling-in-the-scheduler"
+      },
+      {
+       "id": "MER-2127",
+       "title": "Migrate breadcrumb on the detail page",
+       "status": "Ready to Release",
+       "statusType": "started",
+       "assignee": "freya.nilsen@meridian.dev",
+       "url": "https://linear.example.com/demo/issue/MER-2127/migrate-breadcrumb-on-the-detail-page"
+      },
+      {
+       "id": "MER-2171",
+       "title": "Validate validation on the date range picker",
+       "status": "Dev Completed",
+       "statusType": "started",
+       "assignee": "ravi.menon@northgate.dev",
+       "url": "https://linear.example.com/demo/issue/MER-2171/validate-validation-on-the-date-range-picker"
+      },
+      {
+       "id": "MER-2172",
+       "title": "Implement caching for the lookup endpoint",
+       "status": "Dev Completed",
+       "statusType": "started",
+       "assignee": "clara.bennett@meridian.dev",
+       "url": "https://linear.example.com/demo/issue/MER-2172/implement-caching-for-the-lookup-endpoint"
+      },
+      {
+       "id": "MER-2175",
+       "title": "Fix CSV export column headers",
+       "status": "Ready to Release",
+       "statusType": "started",
+       "assignee": "idris.khan@northgate.dev",
+       "url": "https://linear.example.com/demo/issue/MER-2175/fix-csv-export-column-headers"
+      },
+      {
+       "id": "MER-2196",
+       "title": "Add tooltip copy on the summary cards",
+       "status": "Ready to Release",
+       "statusType": "started",
+       "assignee": "mei.chen@northgate.dev",
+       "url": "https://linear.example.com/demo/issue/MER-2196/add-tooltip-copy-on-the-summary-cards"
+      },
+      {
+       "id": "MER-2211",
+       "title": "Update audit log entry on delete",
+       "status": "Dev Completed",
+       "statusType": "started",
+       "assignee": "oscar.duarte@meridian.dev",
+       "url": "https://linear.example.com/demo/issue/MER-2211/update-audit-log-entry-on-delete"
+      },
+      {
+       "id": "MER-2213",
+       "title": "Refactor status badge colour mapping",
+       "status": "Ready to Release",
+       "statusType": "started",
+       "assignee": "lena.petrova@northgate.dev",
+       "url": "https://linear.example.com/demo/issue/MER-2213/refactor-status-badge-colour-mapping"
+      },
+      {
+       "id": "MER-2214",
+       "title": "Investigate sort order in the list view",
+       "status": "Ready to Release",
+       "statusType": "started",
+       "assignee": "samir.haddad@northgate.dev",
+       "url": "https://linear.example.com/demo/issue/MER-2214/investigate-sort-order-in-the-list-view"
+      },
+      {
+       "id": "MER-2215",
+       "title": "Remove keyboard navigation in the modal",
+       "status": "Dev Completed",
+       "statusType": "started",
+       "assignee": "grace.mwangi@meridian.dev",
+       "url": "https://linear.example.com/demo/issue/MER-2215/remove-keyboard-navigation-in-the-modal"
+      },
+      {
+       "id": "MER-2216",
+       "title": "Improve session timeout warning",
+       "status": "Ready to Release",
+       "statusType": "started",
+       "assignee": "theo.almeida@northgate.dev",
+       "url": "https://linear.example.com/demo/issue/MER-2216/improve-session-timeout-warning"
+      },
+      {
+       "id": "MER-2227",
+       "title": "Migrate error toast on failed save",
+       "status": "Dev Completed",
+       "statusType": "started",
+       "assignee": "jonas.weber@meridian.dev",
+       "url": "https://linear.example.com/demo/issue/MER-2227/migrate-error-toast-on-failed-save"
+      },
+      {
+       "id": "MER-2238",
+       "title": "Validate loading skeleton for the chart",
+       "status": "Ready to Release",
+       "statusType": "started",
+       "assignee": "ines.ferreira@northgate.dev",
+       "url": "https://linear.example.com/demo/issue/MER-2238/validate-loading-skeleton-for-the-chart"
+      },
+      {
+       "id": "MER-2249",
+       "title": "Implement pagination on the results table",
+       "status": "Todo",
+       "statusType": "unstarted",
+       "assignee": "alina.rowe@meridian.dev",
+       "url": "https://linear.example.com/demo/issue/MER-2249/implement-pagination-on-the-results-table"
+      },
+      {
+       "id": "MER-2250",
+       "title": "Fix bulk select behaviour",
+       "status": "Dev Completed",
+       "statusType": "started",
+       "assignee": "marcus.vidal@meridian.dev",
+       "url": "https://linear.example.com/demo/issue/MER-2250/fix-bulk-select-behaviour"
+      },
+      {
+       "id": "MER-2448",
+       "title": "Add duplicate detection on import",
+       "status": "Hold or Blocked",
+       "statusType": "unstarted",
+       "assignee": "nadia.o@meridian.dev",
+       "url": "https://linear.example.com/demo/issue/MER-2448/add-duplicate-detection-on-import"
+      },
+      {
+       "id": "MER-2545",
+       "title": "Update empty state for the filters panel",
+       "status": "Ready to Release",
+       "statusType": "started",
+       "assignee": "tomas.berg@meridian.dev",
+       "url": "https://linear.example.com/demo/issue/MER-2545/update-empty-state-for-the-filters-panel"
+      },
+      {
+       "id": "MER-2771",
+       "title": "Refactor column widths on narrow screens",
+       "status": "System Testing",
+       "statusType": "started",
+       "assignee": "priya.anand@northgate.dev",
+       "url": "https://linear.example.com/demo/issue/MER-2771/refactor-column-widths-on-narrow-screens"
+      },
+      {
+       "id": "MER-2772",
+       "title": "Investigate rate limit handling in the client",
+       "status": "Hold or Blocked",
+       "statusType": "unstarted",
+       "assignee": "rohan.desai@northgate.dev",
+       "url": "https://linear.example.com/demo/issue/MER-2772/investigate-rate-limit-handling-in-the-client"
+      },
+      {
+       "id": "MER-2773",
+       "title": "Remove retry logic on the sync job",
+       "status": "Hold or Blocked",
+       "statusType": "unstarted",
+       "assignee": "elena.marsh@meridian.dev",
+       "url": "https://linear.example.com/demo/issue/MER-2773/remove-retry-logic-on-the-sync-job"
+      },
+      {
+       "id": "MER-2791",
+       "title": "Improve timezone handling in the scheduler",
+       "status": "Dev Completed",
+       "statusType": "started",
+       "assignee": "kwame.b@northgate.dev",
+       "url": "https://linear.example.com/demo/issue/MER-2791/improve-timezone-handling-in-the-scheduler"
+      },
+      {
+       "id": "MER-356",
+       "title": "Migrate breadcrumb on the detail page",
+       "status": "Dev Completed",
+       "statusType": "started",
+       "assignee": "sofia.l@meridian.dev",
+       "url": "https://linear.example.com/demo/issue/MER-356/migrate-breadcrumb-on-the-detail-page"
+      },
+      {
+       "id": "MER-357",
+       "title": "Validate validation on the date range picker",
+       "status": "Dev Completed",
+       "statusType": "started",
+       "assignee": "arjun.nair@northgate.dev",
+       "url": "https://linear.example.com/demo/issue/MER-357/validate-validation-on-the-date-range-picker"
+      },
+      {
+       "id": "MER-358",
+       "title": "Implement caching for the lookup endpoint",
+       "status": "Dev Completed",
+       "statusType": "started",
+       "assignee": "hana.sato@northgate.dev",
+       "url": "https://linear.example.com/demo/issue/MER-358/implement-caching-for-the-lookup-endpoint"
+      },
+      {
+       "id": "MER-359",
+       "title": "Fix CSV export column headers",
+       "status": "Dev Completed",
+       "statusType": "started",
+       "assignee": "daniel.okafor@meridian.dev",
+       "url": "https://linear.example.com/demo/issue/MER-359/fix-csv-export-column-headers"
+      },
+      {
+       "id": "MER-360",
+       "title": "Add tooltip copy on the summary cards",
+       "status": "Dev Completed",
+       "statusType": "started",
+       "assignee": "freya.nilsen@meridian.dev",
+       "url": "https://linear.example.com/demo/issue/MER-360/add-tooltip-copy-on-the-summary-cards"
+      },
+      {
+       "id": "MER-361",
+       "title": "Update audit log entry on delete",
+       "status": "Dev Completed",
+       "statusType": "started",
+       "assignee": "ravi.menon@northgate.dev",
+       "url": "https://linear.example.com/demo/issue/MER-361/update-audit-log-entry-on-delete"
+      },
+      {
+       "id": "MER-362",
+       "title": "Refactor status badge colour mapping",
+       "status": "Dev Completed",
+       "statusType": "started",
+       "assignee": "clara.bennett@meridian.dev",
+       "url": "https://linear.example.com/demo/issue/MER-362/refactor-status-badge-colour-mapping"
+      },
+      {
+       "id": "MER-363",
+       "title": "Investigate sort order in the list view",
+       "status": "Dev Completed",
+       "statusType": "started",
+       "assignee": "idris.khan@northgate.dev",
+       "url": "https://linear.example.com/demo/issue/MER-363/investigate-sort-order-in-the-list-view"
+      },
+      {
+       "id": "MER-364",
+       "title": "Remove keyboard navigation in the modal",
+       "status": "Dev Completed",
+       "statusType": "started",
+       "assignee": "mei.chen@northgate.dev",
+       "url": "https://linear.example.com/demo/issue/MER-364/remove-keyboard-navigation-in-the-modal"
+      },
+      {
+       "id": "MER-365",
+       "title": "Improve session timeout warning",
+       "status": "Dev Completed",
+       "statusType": "started",
+       "assignee": "oscar.duarte@meridian.dev",
+       "url": "https://linear.example.com/demo/issue/MER-365/improve-session-timeout-warning"
+      },
+      {
+       "id": "MER-366",
+       "title": "Migrate error toast on failed save",
+       "status": "Dev Completed",
+       "statusType": "started",
+       "assignee": "lena.petrova@northgate.dev",
+       "url": "https://linear.example.com/demo/issue/MER-366/migrate-error-toast-on-failed-save"
+      },
+      {
+       "id": "MER-367",
+       "title": "Validate loading skeleton for the chart",
+       "status": "Dev Completed",
+       "statusType": "started",
+       "assignee": "samir.haddad@northgate.dev",
+       "url": "https://linear.example.com/demo/issue/MER-367/validate-loading-skeleton-for-the-chart"
+      },
+      {
+       "id": "MER-368",
+       "title": "Implement pagination on the results table",
+       "status": "Dev Completed",
+       "statusType": "started",
+       "assignee": "grace.mwangi@meridian.dev",
+       "url": "https://linear.example.com/demo/issue/MER-368/implement-pagination-on-the-results-table"
+      },
+      {
+       "id": "MER-369",
+       "title": "Fix bulk select behaviour",
+       "status": "Dev Completed",
+       "statusType": "started",
+       "assignee": "theo.almeida@northgate.dev",
+       "url": "https://linear.example.com/demo/issue/MER-369/fix-bulk-select-behaviour"
+      },
+      {
+       "id": "MER-370",
+       "title": "Add duplicate detection on import",
+       "status": "Dev Completed",
+       "statusType": "started",
+       "assignee": "jonas.weber@meridian.dev",
+       "url": "https://linear.example.com/demo/issue/MER-370/add-duplicate-detection-on-import"
+      },
+      {
+       "id": "MER-371",
+       "title": "Update empty state for the filters panel",
+       "status": "Dev Completed",
+       "statusType": "started",
+       "assignee": "ines.ferreira@northgate.dev",
+       "url": "https://linear.example.com/demo/issue/MER-371/update-empty-state-for-the-filters-panel"
+      },
+      {
+       "id": "MER-372",
+       "title": "Refactor column widths on narrow screens",
+       "status": "Dev Completed",
+       "statusType": "started",
+       "assignee": "alina.rowe@meridian.dev",
+       "url": "https://linear.example.com/demo/issue/MER-372/refactor-column-widths-on-narrow-screens"
+      },
+      {
+       "id": "MER-373",
+       "title": "Investigate rate limit handling in the client",
+       "status": "Dev Completed",
+       "statusType": "started",
+       "assignee": "marcus.vidal@meridian.dev",
+       "url": "https://linear.example.com/demo/issue/MER-373/investigate-rate-limit-handling-in-the-client"
+      },
+      {
+       "id": "MER-374",
+       "title": "Remove retry logic on the sync job",
+       "status": "Dev Completed",
+       "statusType": "started",
+       "assignee": "nadia.o@meridian.dev",
+       "url": "https://linear.example.com/demo/issue/MER-374/remove-retry-logic-on-the-sync-job"
+      },
+      {
+       "id": "MER-375",
+       "title": "Improve timezone handling in the scheduler",
+       "status": "Dev Completed",
+       "statusType": "started",
+       "assignee": "tomas.berg@meridian.dev",
+       "url": "https://linear.example.com/demo/issue/MER-375/improve-timezone-handling-in-the-scheduler"
+      },
+      {
+       "id": "MER-376",
+       "title": "Migrate breadcrumb on the detail page",
+       "status": "Dev Completed",
+       "statusType": "started",
+       "assignee": "priya.anand@northgate.dev",
+       "url": "https://linear.example.com/demo/issue/MER-376/migrate-breadcrumb-on-the-detail-page"
+      },
+      {
+       "id": "MER-377",
+       "title": "Validate validation on the date range picker",
+       "status": "System Testing",
+       "statusType": "started",
+       "assignee": "rohan.desai@northgate.dev",
+       "url": "https://linear.example.com/demo/issue/MER-377/validate-validation-on-the-date-range-picker"
+      },
+      {
+       "id": "MER-378",
+       "title": "Implement caching for the lookup endpoint",
+       "status": "Todo",
+       "statusType": "unstarted",
+       "assignee": "elena.marsh@meridian.dev",
+       "url": "https://linear.example.com/demo/issue/MER-378/implement-caching-for-the-lookup-endpoint"
+      },
+      {
+       "id": "MER-379",
+       "title": "Fix CSV export column headers",
+       "status": "Todo",
+       "statusType": "unstarted",
+       "assignee": "kwame.b@northgate.dev",
+       "url": "https://linear.example.com/demo/issue/MER-379/fix-csv-export-column-headers"
+      },
+      {
+       "id": "MER-380",
+       "title": "Add tooltip copy on the summary cards",
+       "status": "Todo",
+       "statusType": "unstarted",
+       "assignee": "sofia.l@meridian.dev",
+       "url": "https://linear.example.com/demo/issue/MER-380/add-tooltip-copy-on-the-summary-cards"
+      },
+      {
+       "id": "MER-381",
+       "title": "Update audit log entry on delete",
+       "status": "Todo",
+       "statusType": "unstarted",
+       "assignee": "arjun.nair@northgate.dev",
+       "url": "https://linear.example.com/demo/issue/MER-381/update-audit-log-entry-on-delete"
+      },
+      {
+       "id": "MER-382",
+       "title": "Refactor status badge colour mapping",
+       "status": "Todo",
+       "statusType": "unstarted",
+       "assignee": "hana.sato@northgate.dev",
+       "url": "https://linear.example.com/demo/issue/MER-382/refactor-status-badge-colour-mapping"
+      },
+      {
+       "id": "MER-383",
+       "title": "Investigate sort order in the list view",
+       "status": "Todo",
+       "statusType": "unstarted",
+       "assignee": "daniel.okafor@meridian.dev",
+       "url": "https://linear.example.com/demo/issue/MER-383/investigate-sort-order-in-the-list-view"
+      },
+      {
+       "id": "MER-384",
+       "title": "Remove keyboard navigation in the modal",
+       "status": "Todo",
+       "statusType": "unstarted",
+       "assignee": "freya.nilsen@meridian.dev",
+       "url": "https://linear.example.com/demo/issue/MER-384/remove-keyboard-navigation-in-the-modal"
+      },
+      {
+       "id": "MER-385",
+       "title": "Improve session timeout warning",
+       "status": "Todo",
+       "statusType": "unstarted",
+       "assignee": "ravi.menon@northgate.dev",
+       "url": "https://linear.example.com/demo/issue/MER-385/improve-session-timeout-warning"
+      },
+      {
+       "id": "MER-386",
+       "title": "Migrate error toast on failed save",
+       "status": "System Testing",
+       "statusType": "started",
+       "assignee": "clara.bennett@meridian.dev",
+       "url": "https://linear.example.com/demo/issue/MER-386/migrate-error-toast-on-failed-save"
+      },
+      {
+       "id": "MER-387",
+       "title": "Validate loading skeleton for the chart",
+       "status": "Hold or Blocked",
+       "statusType": "unstarted",
+       "assignee": "idris.khan@northgate.dev",
+       "url": "https://linear.example.com/demo/issue/MER-387/validate-loading-skeleton-for-the-chart"
+      },
+      {
+       "id": "MER-388",
+       "title": "Implement pagination on the results table",
+       "status": "In Progress",
+       "statusType": "started",
+       "assignee": "mei.chen@northgate.dev",
+       "url": "https://linear.example.com/demo/issue/MER-388/implement-pagination-on-the-results-table"
+      },
+      {
+       "id": "MER-389",
+       "title": "Fix bulk select behaviour",
+       "status": "In Progress",
+       "statusType": "started",
+       "assignee": "oscar.duarte@meridian.dev",
+       "url": "https://linear.example.com/demo/issue/MER-389/fix-bulk-select-behaviour"
+      },
+      {
+       "id": "MER-390",
+       "title": "Add duplicate detection on import",
+       "status": "In Progress",
+       "statusType": "started",
+       "assignee": "lena.petrova@northgate.dev",
+       "url": "https://linear.example.com/demo/issue/MER-390/add-duplicate-detection-on-import"
+      },
+      {
+       "id": "MER-393",
+       "title": "Update empty state for the filters panel",
+       "status": "In Progress",
+       "statusType": "started",
+       "assignee": "samir.haddad@northgate.dev",
+       "url": "https://linear.example.com/demo/issue/MER-393/update-empty-state-for-the-filters-panel"
+      },
+      {
+       "id": "MER-394",
+       "title": "Refactor column widths on narrow screens",
+       "status": "In Progress",
+       "statusType": "started",
+       "assignee": "grace.mwangi@meridian.dev",
+       "url": "https://linear.example.com/demo/issue/MER-394/refactor-column-widths-on-narrow-screens"
+      },
+      {
+       "id": "MER-395",
+       "title": "Investigate rate limit handling in the client",
+       "status": "In Progress",
+       "statusType": "started",
+       "assignee": "theo.almeida@northgate.dev",
+       "url": "https://linear.example.com/demo/issue/MER-395/investigate-rate-limit-handling-in-the-client"
+      },
+      {
+       "id": "MER-396",
+       "title": "Remove retry logic on the sync job",
+       "status": "In Progress",
+       "statusType": "started",
+       "assignee": "jonas.weber@meridian.dev",
+       "url": "https://linear.example.com/demo/issue/MER-396/remove-retry-logic-on-the-sync-job"
+      },
+      {
+       "id": "MER-397",
+       "title": "Improve timezone handling in the scheduler",
+       "status": "In Progress",
+       "statusType": "started",
+       "assignee": "ines.ferreira@northgate.dev",
+       "url": "https://linear.example.com/demo/issue/MER-397/improve-timezone-handling-in-the-scheduler"
+      },
+      {
+       "id": "MER-398",
+       "title": "Migrate breadcrumb on the detail page",
+       "status": "In Progress",
+       "statusType": "started",
+       "assignee": "alina.rowe@meridian.dev",
+       "url": "https://linear.example.com/demo/issue/MER-398/migrate-breadcrumb-on-the-detail-page"
+      },
+      {
+       "id": "MER-399",
+       "title": "Validate validation on the date range picker",
+       "status": "In Progress",
+       "statusType": "started",
+       "assignee": "marcus.vidal@meridian.dev",
+       "url": "https://linear.example.com/demo/issue/MER-399/validate-validation-on-the-date-range-picker"
+      },
+      {
+       "id": "MER-400",
+       "title": "Implement caching for the lookup endpoint",
+       "status": "In Progress",
+       "statusType": "started",
+       "assignee": "nadia.o@meridian.dev",
+       "url": "https://linear.example.com/demo/issue/MER-400/implement-caching-for-the-lookup-endpoint"
+      },
+      {
+       "id": "MER-401",
+       "title": "Fix CSV export column headers",
+       "status": "In Progress",
+       "statusType": "started",
+       "assignee": "tomas.berg@meridian.dev",
+       "url": "https://linear.example.com/demo/issue/MER-401/fix-csv-export-column-headers"
+      },
+      {
+       "id": "MER-402",
+       "title": "Add tooltip copy on the summary cards",
+       "status": "In Progress",
+       "statusType": "started",
+       "assignee": "priya.anand@northgate.dev",
+       "url": "https://linear.example.com/demo/issue/MER-402/add-tooltip-copy-on-the-summary-cards"
+      },
+      {
+       "id": "MER-403",
+       "title": "Update audit log entry on delete",
+       "status": "In Progress",
+       "statusType": "started",
+       "assignee": "rohan.desai@northgate.dev",
+       "url": "https://linear.example.com/demo/issue/MER-403/update-audit-log-entry-on-delete"
+      },
+      {
+       "id": "MER-404",
+       "title": "Refactor status badge colour mapping",
+       "status": "In Progress",
+       "statusType": "started",
+       "assignee": "elena.marsh@meridian.dev",
+       "url": "https://linear.example.com/demo/issue/MER-404/refactor-status-badge-colour-mapping"
+      },
+      {
+       "id": "MER-405",
+       "title": "Investigate sort order in the list view",
+       "status": "In Progress",
+       "statusType": "started",
+       "assignee": "kwame.b@northgate.dev",
+       "url": "https://linear.example.com/demo/issue/MER-405/investigate-sort-order-in-the-list-view"
+      },
+      {
+       "id": "MER-406",
+       "title": "Remove keyboard navigation in the modal",
+       "status": "In Progress",
+       "statusType": "started",
+       "assignee": "sofia.l@meridian.dev",
+       "url": "https://linear.example.com/demo/issue/MER-406/remove-keyboard-navigation-in-the-modal"
+      },
+      {
+       "id": "MER-407",
+       "title": "Improve session timeout warning",
+       "status": "In Progress",
+       "statusType": "started",
+       "assignee": "arjun.nair@northgate.dev",
+       "url": "https://linear.example.com/demo/issue/MER-407/improve-session-timeout-warning"
+      },
+      {
+       "id": "MER-408",
+       "title": "Migrate error toast on failed save",
+       "status": "In Progress",
+       "statusType": "started",
+       "assignee": "hana.sato@northgate.dev",
+       "url": "https://linear.example.com/demo/issue/MER-408/migrate-error-toast-on-failed-save"
+      },
+      {
+       "id": "MER-409",
+       "title": "Validate loading skeleton for the chart",
+       "status": "In Progress",
+       "statusType": "started",
+       "assignee": "daniel.okafor@meridian.dev",
+       "url": "https://linear.example.com/demo/issue/MER-409/validate-loading-skeleton-for-the-chart"
+      },
+      {
+       "id": "MER-412",
+       "title": "Implement pagination on the results table",
+       "status": "Dev Completed",
+       "statusType": "started",
+       "assignee": "freya.nilsen@meridian.dev",
+       "url": "https://linear.example.com/demo/issue/MER-412/implement-pagination-on-the-results-table"
+      },
+      {
+       "id": "MER-423",
+       "title": "Fix bulk select behaviour",
+       "status": "Dev Completed",
+       "statusType": "started",
+       "assignee": "ravi.menon@northgate.dev",
+       "url": "https://linear.example.com/demo/issue/MER-423/fix-bulk-select-behaviour"
+      },
+      {
+       "id": "MER-425",
+       "title": "Add duplicate detection on import",
+       "status": "Dev Completed",
+       "statusType": "started",
+       "assignee": "clara.bennett@meridian.dev",
+       "url": "https://linear.example.com/demo/issue/MER-425/add-duplicate-detection-on-import"
+      },
+      {
+       "id": "MER-429",
+       "title": "Update empty state for the filters panel",
+       "status": "Dev Completed",
+       "statusType": "started",
+       "assignee": "idris.khan@northgate.dev",
+       "url": "https://linear.example.com/demo/issue/MER-429/update-empty-state-for-the-filters-panel"
+      },
+      {
+       "id": "MER-432",
+       "title": "Refactor column widths on narrow screens",
+       "status": "Dev Completed",
+       "statusType": "started",
+       "assignee": "mei.chen@northgate.dev",
+       "url": "https://linear.example.com/demo/issue/MER-432/refactor-column-widths-on-narrow-screens"
+      },
+      {
+       "id": "MER-537",
+       "title": "Investigate rate limit handling in the client",
+       "status": "Dev Completed",
+       "statusType": "started",
+       "assignee": "oscar.duarte@meridian.dev",
+       "url": "https://linear.example.com/demo/issue/MER-537/investigate-rate-limit-handling-in-the-client"
+      },
+      {
+       "id": "MER-538",
+       "title": "Remove retry logic on the sync job",
+       "status": "Todo",
+       "statusType": "unstarted",
+       "assignee": "lena.petrova@northgate.dev",
+       "url": "https://linear.example.com/demo/issue/MER-538/remove-retry-logic-on-the-sync-job"
+      },
+      {
+       "id": "MER-539",
+       "title": "Improve timezone handling in the scheduler",
+       "status": "Dev Completed",
+       "statusType": "started",
+       "assignee": "samir.haddad@northgate.dev",
+       "url": "https://linear.example.com/demo/issue/MER-539/improve-timezone-handling-in-the-scheduler"
+      },
+      {
+       "id": "MER-824",
+       "title": "Migrate breadcrumb on the detail page",
+       "status": "Dev Completed",
+       "statusType": "started",
+       "assignee": "grace.mwangi@meridian.dev",
+       "url": "https://linear.example.com/demo/issue/MER-824/migrate-breadcrumb-on-the-detail-page"
+      },
+      {
+       "id": "MER-825",
+       "title": "Validate validation on the date range picker",
+       "status": "Dev Completed",
+       "statusType": "started",
+       "assignee": "theo.almeida@northgate.dev",
+       "url": "https://linear.example.com/demo/issue/MER-825/validate-validation-on-the-date-range-picker"
+      },
+      {
+       "id": "MER-826",
+       "title": "Implement caching for the lookup endpoint",
+       "status": "Dev Completed",
+       "statusType": "started",
+       "assignee": "jonas.weber@meridian.dev",
+       "url": "https://linear.example.com/demo/issue/MER-826/implement-caching-for-the-lookup-endpoint"
+      },
+      {
+       "id": "MER-827",
+       "title": "Fix CSV export column headers",
+       "status": "Dev Completed",
+       "statusType": "started",
+       "assignee": "ines.ferreira@northgate.dev",
+       "url": "https://linear.example.com/demo/issue/MER-827/fix-csv-export-column-headers"
+      },
+      {
+       "id": "MER-828",
+       "title": "Add tooltip copy on the summary cards",
+       "status": "Dev Completed",
+       "statusType": "started",
+       "assignee": "alina.rowe@meridian.dev",
+       "url": "https://linear.example.com/demo/issue/MER-828/add-tooltip-copy-on-the-summary-cards"
+      },
+      {
+       "id": "MER-829",
+       "title": "Update audit log entry on delete",
+       "status": "Dev Completed",
+       "statusType": "started",
+       "assignee": "marcus.vidal@meridian.dev",
+       "url": "https://linear.example.com/demo/issue/MER-829/update-audit-log-entry-on-delete"
+      },
+      {
+       "id": "MER-975",
+       "title": "Refactor status badge colour mapping",
+       "status": "Dev Completed",
+       "statusType": "started",
+       "assignee": "nadia.o@meridian.dev",
+       "url": "https://linear.example.com/demo/issue/MER-975/refactor-status-badge-colour-mapping"
+      },
+      {
+       "id": "MER-985",
+       "title": "Investigate sort order in the list view",
+       "status": "Dev Completed",
+       "statusType": "started",
+       "assignee": "tomas.berg@meridian.dev",
+       "url": "https://linear.example.com/demo/issue/MER-985/investigate-sort-order-in-the-list-view"
+      },
+      {
+       "id": "MER-986",
+       "title": "Remove keyboard navigation in the modal",
+       "status": "Dev Completed",
+       "statusType": "started",
+       "assignee": "priya.anand@northgate.dev",
+       "url": "https://linear.example.com/demo/issue/MER-986/remove-keyboard-navigation-in-the-modal"
+      },
+      {
+       "id": "MER-987",
+       "title": "Improve session timeout warning",
+       "status": "Dev Completed",
+       "statusType": "started",
+       "assignee": "rohan.desai@northgate.dev",
+       "url": "https://linear.example.com/demo/issue/MER-987/improve-session-timeout-warning"
+      },
+      {
+       "id": "MER-988",
+       "title": "Migrate error toast on failed save",
+       "status": "Dev Completed",
+       "statusType": "started",
+       "assignee": "elena.marsh@meridian.dev",
+       "url": "https://linear.example.com/demo/issue/MER-988/migrate-error-toast-on-failed-save"
+      },
+      {
+       "id": "MER-989",
+       "title": "Validate loading skeleton for the chart",
+       "status": "Dev Completed",
+       "statusType": "started",
+       "assignee": "kwame.b@northgate.dev",
+       "url": "https://linear.example.com/demo/issue/MER-989/validate-loading-skeleton-for-the-chart"
+      },
+      {
+       "id": "MER-990",
+       "title": "Implement pagination on the results table",
+       "status": "Dev Completed",
+       "statusType": "started",
+       "assignee": "sofia.l@meridian.dev",
+       "url": "https://linear.example.com/demo/issue/MER-990/implement-pagination-on-the-results-table"
+      },
+      {
+       "id": "MER-991",
+       "title": "Fix bulk select behaviour",
+       "status": "Dev Completed",
+       "statusType": "started",
+       "assignee": "arjun.nair@northgate.dev",
+       "url": "https://linear.example.com/demo/issue/MER-991/fix-bulk-select-behaviour"
+      },
+      {
+       "id": "MER-992",
+       "title": "Add duplicate detection on import",
+       "status": "Dev Completed",
+       "statusType": "started",
+       "assignee": "hana.sato@northgate.dev",
+       "url": "https://linear.example.com/demo/issue/MER-992/add-duplicate-detection-on-import"
+      }
+     ]
+    },
+    {
+     "name": "BEACON",
+     "issues": [
+      {
+       "id": "CBT-177",
+       "title": "Update empty state for the filters panel",
+       "status": "Ready to Release",
+       "statusType": "started",
+       "assignee": "daniel.okafor@meridian.dev",
+       "url": "https://linear.example.com/demo/issue/CBT-177/update-empty-state-for-the-filters-panel"
+      },
+      {
+       "id": "CBT-177",
+       "title": "Refactor column widths on narrow screens",
+       "status": "Ready to Release",
+       "statusType": "started",
+       "assignee": "freya.nilsen@meridian.dev",
+       "url": "https://linear.example.com/demo/issue/CBT-177/refactor-column-widths-on-narrow-screens"
+      },
+      {
+       "id": "CBT-178",
+       "title": "Investigate rate limit handling in the client",
+       "status": "Dev Completed",
+       "statusType": "started",
+       "assignee": "ravi.menon@northgate.dev",
+       "url": "https://linear.example.com/demo/issue/CBT-178/investigate-rate-limit-handling-in-the-client"
+      },
+      {
+       "id": "CBT-178",
+       "title": "Remove retry logic on the sync job",
+       "status": "Dev Completed",
+       "statusType": "started",
+       "assignee": "clara.bennett@meridian.dev",
+       "url": "https://linear.example.com/demo/issue/CBT-178/remove-retry-logic-on-the-sync-job"
+      },
+      {
+       "id": "CBT-179",
+       "title": "Improve timezone handling in the scheduler",
+       "status": "Dev Completed",
+       "statusType": "started",
+       "assignee": "idris.khan@northgate.dev",
+       "url": "https://linear.example.com/demo/issue/CBT-179/improve-timezone-handling-in-the-scheduler"
+      },
+      {
+       "id": "CBT-179",
+       "title": "Migrate breadcrumb on the detail page",
+       "status": "Dev Completed",
+       "statusType": "started",
+       "assignee": "mei.chen@northgate.dev",
+       "url": "https://linear.example.com/demo/issue/CBT-179/migrate-breadcrumb-on-the-detail-page"
+      },
+      {
+       "id": "CBT-180",
+       "title": "Validate validation on the date range picker",
+       "status": "Dev Completed",
+       "statusType": "started",
+       "assignee": "oscar.duarte@meridian.dev",
+       "url": "https://linear.example.com/demo/issue/CBT-180/validate-validation-on-the-date-range-picker"
+      },
+      {
+       "id": "CBT-180",
+       "title": "Implement caching for the lookup endpoint",
+       "status": "Dev Completed",
+       "statusType": "started",
+       "assignee": "lena.petrova@northgate.dev",
+       "url": "https://linear.example.com/demo/issue/CBT-180/implement-caching-for-the-lookup-endpoint"
+      },
+      {
+       "id": "CBT-181",
+       "title": "Fix CSV export column headers",
+       "status": "Dev Completed",
+       "statusType": "started",
+       "assignee": "samir.haddad@northgate.dev",
+       "url": "https://linear.example.com/demo/issue/CBT-181/fix-csv-export-column-headers"
+      },
+      {
+       "id": "CBT-181",
+       "title": "Add tooltip copy on the summary cards",
+       "status": "Dev Completed",
+       "statusType": "started",
+       "assignee": "grace.mwangi@meridian.dev",
+       "url": "https://linear.example.com/demo/issue/CBT-181/add-tooltip-copy-on-the-summary-cards"
+      },
+      {
+       "id": "CBT-182",
+       "title": "Update audit log entry on delete",
+       "status": "Ready to Release",
+       "statusType": "started",
+       "assignee": "theo.almeida@northgate.dev",
+       "url": "https://linear.example.com/demo/issue/CBT-182/update-audit-log-entry-on-delete"
+      },
+      {
+       "id": "CBT-182",
+       "title": "Refactor status badge colour mapping",
+       "status": "Ready to Release",
+       "statusType": "started",
+       "assignee": "jonas.weber@meridian.dev",
+       "url": "https://linear.example.com/demo/issue/CBT-182/refactor-status-badge-colour-mapping"
+      },
+      {
+       "id": "CBT-183",
+       "title": "Investigate sort order in the list view",
+       "status": "Ready to Release",
+       "statusType": "started",
+       "assignee": "ines.ferreira@northgate.dev",
+       "url": "https://linear.example.com/demo/issue/CBT-183/investigate-sort-order-in-the-list-view"
+      },
+      {
+       "id": "CBT-183",
+       "title": "Remove keyboard navigation in the modal",
+       "status": "Ready to Release",
+       "statusType": "started",
+       "assignee": "alina.rowe@meridian.dev",
+       "url": "https://linear.example.com/demo/issue/CBT-183/remove-keyboard-navigation-in-the-modal"
+      },
+      {
+       "id": "CBT-184",
+       "title": "Improve session timeout warning",
+       "status": "Dev Completed",
+       "statusType": "started",
+       "assignee": "marcus.vidal@meridian.dev",
+       "url": "https://linear.example.com/demo/issue/CBT-184/improve-session-timeout-warning"
+      },
+      {
+       "id": "CBT-184",
+       "title": "Migrate error toast on failed save",
+       "status": "Dev Completed",
+       "statusType": "started",
+       "assignee": "nadia.o@meridian.dev",
+       "url": "https://linear.example.com/demo/issue/CBT-184/migrate-error-toast-on-failed-save"
+      },
+      {
+       "id": "CBT-185",
+       "title": "Validate loading skeleton for the chart",
+       "status": "System Testing",
+       "statusType": "started",
+       "assignee": "tomas.berg@meridian.dev",
+       "url": "https://linear.example.com/demo/issue/CBT-185/validate-loading-skeleton-for-the-chart"
+      },
+      {
+       "id": "CBT-185",
+       "title": "Implement pagination on the results table",
+       "status": "System Testing",
+       "statusType": "started",
+       "assignee": "priya.anand@northgate.dev",
+       "url": "https://linear.example.com/demo/issue/CBT-185/implement-pagination-on-the-results-table"
+      },
+      {
+       "id": "CBT-187",
+       "title": "Fix bulk select behaviour",
+       "status": "System Testing",
+       "statusType": "started",
+       "assignee": "rohan.desai@northgate.dev",
+       "url": "https://linear.example.com/demo/issue/CBT-187/fix-bulk-select-behaviour"
+      },
+      {
+       "id": "CBT-187",
+       "title": "Add duplicate detection on import",
+       "status": "System Testing",
+       "statusType": "started",
+       "assignee": "elena.marsh@meridian.dev",
+       "url": "https://linear.example.com/demo/issue/CBT-187/add-duplicate-detection-on-import"
+      },
+      {
+       "id": "CBT-188",
+       "title": "Update empty state for the filters panel",
+       "status": "System Testing",
+       "statusType": "started",
+       "assignee": "kwame.b@northgate.dev",
+       "url": "https://linear.example.com/demo/issue/CBT-188/update-empty-state-for-the-filters-panel"
+      },
+      {
+       "id": "CBT-188",
+       "title": "Refactor column widths on narrow screens",
+       "status": "System Testing",
+       "statusType": "started",
+       "assignee": "sofia.l@meridian.dev",
+       "url": "https://linear.example.com/demo/issue/CBT-188/refactor-column-widths-on-narrow-screens"
+      },
+      {
+       "id": "CBT-190",
+       "title": "Investigate rate limit handling in the client",
+       "status": "System Testing",
+       "statusType": "started",
+       "assignee": "arjun.nair@northgate.dev",
+       "url": "https://linear.example.com/demo/issue/CBT-190/investigate-rate-limit-handling-in-the-client"
+      },
+      {
+       "id": "CBT-190",
+       "title": "Remove retry logic on the sync job",
+       "status": "System Testing",
+       "statusType": "started",
+       "assignee": "hana.sato@northgate.dev",
+       "url": "https://linear.example.com/demo/issue/CBT-190/remove-retry-logic-on-the-sync-job"
+      },
+      {
+       "id": "CBT-191",
+       "title": "Improve timezone handling in the scheduler",
+       "status": "Ready to Release",
+       "statusType": "started",
+       "assignee": "daniel.okafor@meridian.dev",
+       "url": "https://linear.example.com/demo/issue/CBT-191/improve-timezone-handling-in-the-scheduler"
+      },
+      {
+       "id": "CBT-191",
+       "title": "Migrate breadcrumb on the detail page",
+       "status": "Ready to Release",
+       "statusType": "started",
+       "assignee": "freya.nilsen@meridian.dev",
+       "url": "https://linear.example.com/demo/issue/CBT-191/migrate-breadcrumb-on-the-detail-page"
+      },
+      {
+       "id": "CBT-202",
+       "title": "Validate validation on the date range picker",
+       "status": "System Testing",
+       "statusType": "started",
+       "assignee": "ravi.menon@northgate.dev",
+       "url": "https://linear.example.com/demo/issue/CBT-202/validate-validation-on-the-date-range-picker"
+      },
+      {
+       "id": "CBT-202",
+       "title": "Implement caching for the lookup endpoint",
+       "status": "System Testing",
+       "statusType": "started",
+       "assignee": "clara.bennett@meridian.dev",
+       "url": "https://linear.example.com/demo/issue/CBT-202/implement-caching-for-the-lookup-endpoint"
+      },
+      {
+       "id": "CBT-204",
+       "title": "Fix CSV export column headers",
+       "status": "Dev Completed",
+       "statusType": "started",
+       "assignee": "idris.khan@northgate.dev",
+       "url": "https://linear.example.com/demo/issue/CBT-204/fix-csv-export-column-headers"
+      },
+      {
+       "id": "CBT-204",
+       "title": "Add tooltip copy on the summary cards",
+       "status": "Dev Completed",
+       "statusType": "started",
+       "assignee": "mei.chen@northgate.dev",
+       "url": "https://linear.example.com/demo/issue/CBT-204/add-tooltip-copy-on-the-summary-cards"
+      },
+      {
+       "id": "CBT-206",
+       "title": "Update audit log entry on delete",
+       "status": "Ready to Release",
+       "statusType": "started",
+       "assignee": "oscar.duarte@meridian.dev",
+       "url": "https://linear.example.com/demo/issue/CBT-206/update-audit-log-entry-on-delete"
+      },
+      {
+       "id": "CBT-206",
+       "title": "Refactor status badge colour mapping",
+       "status": "Ready to Release",
+       "statusType": "started",
+       "assignee": "lena.petrova@northgate.dev",
+       "url": "https://linear.example.com/demo/issue/CBT-206/refactor-status-badge-colour-mapping"
+      },
+      {
+       "id": "CBT-207",
+       "title": "Investigate sort order in the list view",
+       "status": "System Testing",
+       "statusType": "started",
+       "assignee": "samir.haddad@northgate.dev",
+       "url": "https://linear.example.com/demo/issue/CBT-207/investigate-sort-order-in-the-list-view"
+      },
+      {
+       "id": "CBT-207",
+       "title": "Remove keyboard navigation in the modal",
+       "status": "System Testing",
+       "statusType": "started",
+       "assignee": "grace.mwangi@meridian.dev",
+       "url": "https://linear.example.com/demo/issue/CBT-207/remove-keyboard-navigation-in-the-modal"
+      },
+      {
+       "id": "CBT-208",
+       "title": "Improve session timeout warning",
+       "status": "Ready to Release",
+       "statusType": "started",
+       "assignee": "theo.almeida@northgate.dev",
+       "url": "https://linear.example.com/demo/issue/CBT-208/improve-session-timeout-warning"
+      },
+      {
+       "id": "CBT-208",
+       "title": "Migrate error toast on failed save",
+       "status": "Ready to Release",
+       "statusType": "started",
+       "assignee": "jonas.weber@meridian.dev",
+       "url": "https://linear.example.com/demo/issue/CBT-208/migrate-error-toast-on-failed-save"
+      },
+      {
+       "id": "CBT-210",
+       "title": "Validate loading skeleton for the chart",
+       "status": "In Progress",
+       "statusType": "started",
+       "assignee": "ines.ferreira@northgate.dev",
+       "url": "https://linear.example.com/demo/issue/CBT-210/validate-loading-skeleton-for-the-chart"
+      },
+      {
+       "id": "CBT-210",
+       "title": "Implement pagination on the results table",
+       "status": "In Progress",
+       "statusType": "started",
+       "assignee": "alina.rowe@meridian.dev",
+       "url": "https://linear.example.com/demo/issue/CBT-210/implement-pagination-on-the-results-table"
+      },
+      {
+       "id": "CBT-211",
+       "title": "Fix bulk select behaviour",
+       "status": "Ready to Release",
+       "statusType": "started",
+       "assignee": "marcus.vidal@meridian.dev",
+       "url": "https://linear.example.com/demo/issue/CBT-211/fix-bulk-select-behaviour"
+      },
+      {
+       "id": "CBT-211",
+       "title": "Add duplicate detection on import",
+       "status": "Ready to Release",
+       "statusType": "started",
+       "assignee": "nadia.o@meridian.dev",
+       "url": "https://linear.example.com/demo/issue/CBT-211/add-duplicate-detection-on-import"
+      },
+      {
+       "id": "CBT-213",
+       "title": "Update empty state for the filters panel",
+       "status": "System Testing",
+       "statusType": "started",
+       "assignee": "tomas.berg@meridian.dev",
+       "url": "https://linear.example.com/demo/issue/CBT-213/update-empty-state-for-the-filters-panel"
+      },
+      {
+       "id": "CBT-213",
+       "title": "Refactor column widths on narrow screens",
+       "status": "System Testing",
+       "statusType": "started",
+       "assignee": "priya.anand@northgate.dev",
+       "url": "https://linear.example.com/demo/issue/CBT-213/refactor-column-widths-on-narrow-screens"
+      },
+      {
+       "id": "CBT-590",
+       "title": "Investigate rate limit handling in the client",
+       "status": "Dev Completed",
+       "statusType": "started",
+       "assignee": "rohan.desai@northgate.dev",
+       "url": "https://linear.example.com/demo/issue/CBT-590/investigate-rate-limit-handling-in-the-client"
+      },
+      {
+       "id": "CBT-590",
+       "title": "Remove retry logic on the sync job",
+       "status": "Dev Completed",
+       "statusType": "started",
+       "assignee": "elena.marsh@meridian.dev",
+       "url": "https://linear.example.com/demo/issue/CBT-590/remove-retry-logic-on-the-sync-job"
+      },
+      {
+       "id": "CBT-638",
+       "title": "Improve timezone handling in the scheduler",
+       "status": "Ready to Release",
+       "statusType": "started",
+       "assignee": "kwame.b@northgate.dev",
+       "url": "https://linear.example.com/demo/issue/CBT-638/improve-timezone-handling-in-the-scheduler"
+      },
+      {
+       "id": "CBT-638",
+       "title": "Migrate breadcrumb on the detail page",
+       "status": "Ready to Release",
+       "statusType": "started",
+       "assignee": "sofia.l@meridian.dev",
+       "url": "https://linear.example.com/demo/issue/CBT-638/migrate-breadcrumb-on-the-detail-page"
+      },
+      {
+       "id": "CBT-653",
+       "title": "Validate validation on the date range picker",
+       "status": "Dev Completed",
+       "statusType": "started",
+       "assignee": "arjun.nair@northgate.dev",
+       "url": "https://linear.example.com/demo/issue/CBT-653/validate-validation-on-the-date-range-picker"
+      },
+      {
+       "id": "CBT-653",
+       "title": "Implement caching for the lookup endpoint",
+       "status": "Dev Completed",
+       "statusType": "started",
+       "assignee": "hana.sato@northgate.dev",
+       "url": "https://linear.example.com/demo/issue/CBT-653/implement-caching-for-the-lookup-endpoint"
+      },
+      {
+       "id": "CBT-719",
+       "title": "Fix CSV export column headers",
+       "status": "Ready to Release",
+       "statusType": "started",
+       "assignee": "daniel.okafor@meridian.dev",
+       "url": "https://linear.example.com/demo/issue/CBT-719/fix-csv-export-column-headers"
+      },
+      {
+       "id": "CBT-719",
+       "title": "Add tooltip copy on the summary cards",
+       "status": "Ready to Release",
+       "statusType": "started",
+       "assignee": "freya.nilsen@meridian.dev",
+       "url": "https://linear.example.com/demo/issue/CBT-719/add-tooltip-copy-on-the-summary-cards"
+      },
+      {
+       "id": "CBT-736",
+       "title": "Update audit log entry on delete",
+       "status": "Ready to Release",
+       "statusType": "started",
+       "assignee": "ravi.menon@northgate.dev",
+       "url": "https://linear.example.com/demo/issue/CBT-736/update-audit-log-entry-on-delete"
+      },
+      {
+       "id": "CBT-736",
+       "title": "Refactor status badge colour mapping",
+       "status": "Ready to Release",
+       "statusType": "started",
+       "assignee": "clara.bennett@meridian.dev",
+       "url": "https://linear.example.com/demo/issue/CBT-736/refactor-status-badge-colour-mapping"
+      },
+      {
+       "id": "CBT-739",
+       "title": "Investigate sort order in the list view",
+       "status": "Dev Completed",
+       "statusType": "started",
+       "assignee": "idris.khan@northgate.dev",
+       "url": "https://linear.example.com/demo/issue/CBT-739/investigate-sort-order-in-the-list-view"
+      },
+      {
+       "id": "CBT-739",
+       "title": "Remove keyboard navigation in the modal",
+       "status": "Dev Completed",
+       "statusType": "started",
+       "assignee": "mei.chen@northgate.dev",
+       "url": "https://linear.example.com/demo/issue/CBT-739/remove-keyboard-navigation-in-the-modal"
+      },
+      {
+       "id": "CBT-786",
+       "title": "Improve session timeout warning",
+       "status": "Ready to Release",
+       "statusType": "started",
+       "assignee": "oscar.duarte@meridian.dev",
+       "url": "https://linear.example.com/demo/issue/CBT-786/improve-session-timeout-warning"
+      },
+      {
+       "id": "CBT-786",
+       "title": "Migrate error toast on failed save",
+       "status": "Ready to Release",
+       "statusType": "started",
+       "assignee": "lena.petrova@northgate.dev",
+       "url": "https://linear.example.com/demo/issue/CBT-786/migrate-error-toast-on-failed-save"
+      },
+      {
+       "id": "CBT-831",
+       "title": "Validate loading skeleton for the chart",
+       "status": "Ready to Release",
+       "statusType": "started",
+       "assignee": "samir.haddad@northgate.dev",
+       "url": "https://linear.example.com/demo/issue/CBT-831/validate-loading-skeleton-for-the-chart"
+      },
+      {
+       "id": "CBT-831",
+       "title": "Implement pagination on the results table",
+       "status": "Ready to Release",
+       "statusType": "started",
+       "assignee": "grace.mwangi@meridian.dev",
+       "url": "https://linear.example.com/demo/issue/CBT-831/implement-pagination-on-the-results-table"
+      },
+      {
+       "id": "CBT-832",
+       "title": "Fix bulk select behaviour",
+       "status": "Ready to Release",
+       "statusType": "started",
+       "assignee": "theo.almeida@northgate.dev",
+       "url": "https://linear.example.com/demo/issue/CBT-832/fix-bulk-select-behaviour"
+      },
+      {
+       "id": "CBT-832",
+       "title": "Add duplicate detection on import",
+       "status": "Ready to Release",
+       "statusType": "started",
+       "assignee": "jonas.weber@meridian.dev",
+       "url": "https://linear.example.com/demo/issue/CBT-832/add-duplicate-detection-on-import"
+      },
+      {
+       "id": "CBT-833",
+       "title": "Update empty state for the filters panel",
+       "status": "Ready to Release",
+       "statusType": "started",
+       "assignee": "ines.ferreira@northgate.dev",
+       "url": "https://linear.example.com/demo/issue/CBT-833/update-empty-state-for-the-filters-panel"
+      },
+      {
+       "id": "CBT-833",
+       "title": "Refactor column widths on narrow screens",
+       "status": "Ready to Release",
+       "statusType": "started",
+       "assignee": "alina.rowe@meridian.dev",
+       "url": "https://linear.example.com/demo/issue/CBT-833/refactor-column-widths-on-narrow-screens"
+      },
+      {
+       "id": "CBT-836",
+       "title": "Investigate rate limit handling in the client",
+       "status": "Ready to Release",
+       "statusType": "started",
+       "assignee": "marcus.vidal@meridian.dev",
+       "url": "https://linear.example.com/demo/issue/CBT-836/investigate-rate-limit-handling-in-the-client"
+      },
+      {
+       "id": "CBT-836",
+       "title": "Remove retry logic on the sync job",
+       "status": "Ready to Release",
+       "statusType": "started",
+       "assignee": "nadia.o@meridian.dev",
+       "url": "https://linear.example.com/demo/issue/CBT-836/remove-retry-logic-on-the-sync-job"
+      },
+      {
+       "id": "CBT-837",
+       "title": "Improve timezone handling in the scheduler",
+       "status": "Ready to Release",
+       "statusType": "started",
+       "assignee": "tomas.berg@meridian.dev",
+       "url": "https://linear.example.com/demo/issue/CBT-837/improve-timezone-handling-in-the-scheduler"
+      },
+      {
+       "id": "CBT-837",
+       "title": "Migrate breadcrumb on the detail page",
+       "status": "Ready to Release",
+       "statusType": "started",
+       "assignee": "priya.anand@northgate.dev",
+       "url": "https://linear.example.com/demo/issue/CBT-837/migrate-breadcrumb-on-the-detail-page"
+      }
+     ]
+    },
+    {
+     "name": "Exchange",
+     "issues": [
+      {
+       "id": "CBT-438",
+       "title": "Validate validation on the date range picker",
+       "status": "In Progress",
+       "statusType": "started",
+       "assignee": "rohan.desai@northgate.dev",
+       "url": "https://linear.example.com/demo/issue/CBT-438/validate-validation-on-the-date-range-picker"
+      },
+      {
+       "id": "CBT-438",
+       "title": "Implement caching for the lookup endpoint",
+       "status": "In Progress",
+       "statusType": "started",
+       "assignee": "elena.marsh@meridian.dev",
+       "url": "https://linear.example.com/demo/issue/CBT-438/implement-caching-for-the-lookup-endpoint"
+      },
+      {
+       "id": "CBT-440",
+       "title": "Fix CSV export column headers",
+       "status": "In Progress",
+       "statusType": "started",
+       "assignee": "kwame.b@northgate.dev",
+       "url": "https://linear.example.com/demo/issue/CBT-440/fix-csv-export-column-headers"
+      },
+      {
+       "id": "CBT-440",
+       "title": "Add tooltip copy on the summary cards",
+       "status": "In Progress",
+       "statusType": "started",
+       "assignee": "sofia.l@meridian.dev",
+       "url": "https://linear.example.com/demo/issue/CBT-440/add-tooltip-copy-on-the-summary-cards"
+      },
+      {
+       "id": "CBT-442",
+       "title": "Update audit log entry on delete",
+       "status": "System Testing",
+       "statusType": "started",
+       "assignee": "arjun.nair@northgate.dev",
+       "url": "https://linear.example.com/demo/issue/CBT-442/update-audit-log-entry-on-delete"
+      },
+      {
+       "id": "CBT-442",
+       "title": "Refactor status badge colour mapping",
+       "status": "System Testing",
+       "statusType": "started",
+       "assignee": "hana.sato@northgate.dev",
+       "url": "https://linear.example.com/demo/issue/CBT-442/refactor-status-badge-colour-mapping"
+      },
+      {
+       "id": "CBT-447",
+       "title": "Investigate sort order in the list view",
+       "status": "Ready to Release",
+       "statusType": "started",
+       "assignee": "daniel.okafor@meridian.dev",
+       "url": "https://linear.example.com/demo/issue/CBT-447/investigate-sort-order-in-the-list-view"
+      },
+      {
+       "id": "CBT-447",
+       "title": "Remove keyboard navigation in the modal",
+       "status": "Ready to Release",
+       "statusType": "started",
+       "assignee": "freya.nilsen@meridian.dev",
+       "url": "https://linear.example.com/demo/issue/CBT-447/remove-keyboard-navigation-in-the-modal"
+      },
+      {
+       "id": "CBT-454",
+       "title": "Improve session timeout warning",
+       "status": "Ready to Release",
+       "statusType": "started",
+       "assignee": "ravi.menon@northgate.dev",
+       "url": "https://linear.example.com/demo/issue/CBT-454/improve-session-timeout-warning"
+      },
+      {
+       "id": "CBT-454",
+       "title": "Migrate error toast on failed save",
+       "status": "Ready to Release",
+       "statusType": "started",
+       "assignee": "clara.bennett@meridian.dev",
+       "url": "https://linear.example.com/demo/issue/CBT-454/migrate-error-toast-on-failed-save"
+      },
+      {
+       "id": "CBT-469",
+       "title": "Validate loading skeleton for the chart",
+       "status": "Todo",
+       "statusType": "unstarted",
+       "assignee": "idris.khan@northgate.dev",
+       "url": "https://linear.example.com/demo/issue/CBT-469/validate-loading-skeleton-for-the-chart"
+      },
+      {
+       "id": "CBT-469",
+       "title": "Implement pagination on the results table",
+       "status": "Todo",
+       "statusType": "unstarted",
+       "assignee": "mei.chen@northgate.dev",
+       "url": "https://linear.example.com/demo/issue/CBT-469/implement-pagination-on-the-results-table"
+      },
+      {
+       "id": "CBT-473",
+       "title": "Fix bulk select behaviour",
+       "status": "Ready to Release",
+       "statusType": "started",
+       "assignee": "oscar.duarte@meridian.dev",
+       "url": "https://linear.example.com/demo/issue/CBT-473/fix-bulk-select-behaviour"
+      },
+      {
+       "id": "CBT-473",
+       "title": "Add duplicate detection on import",
+       "status": "Ready to Release",
+       "statusType": "started",
+       "assignee": "lena.petrova@northgate.dev",
+       "url": "https://linear.example.com/demo/issue/CBT-473/add-duplicate-detection-on-import"
+      },
+      {
+       "id": "CBT-494",
+       "title": "Update empty state for the filters panel",
+       "status": "System Testing",
+       "statusType": "started",
+       "assignee": "samir.haddad@northgate.dev",
+       "url": "https://linear.example.com/demo/issue/CBT-494/update-empty-state-for-the-filters-panel"
+      },
+      {
+       "id": "CBT-494",
+       "title": "Refactor column widths on narrow screens",
+       "status": "System Testing",
+       "statusType": "started",
+       "assignee": "grace.mwangi@meridian.dev",
+       "url": "https://linear.example.com/demo/issue/CBT-494/refactor-column-widths-on-narrow-screens"
+      },
+      {
+       "id": "CBT-495",
+       "title": "Investigate rate limit handling in the client",
+       "status": "System Testing",
+       "statusType": "started",
+       "assignee": "theo.almeida@northgate.dev",
+       "url": "https://linear.example.com/demo/issue/CBT-495/investigate-rate-limit-handling-in-the-client"
+      },
+      {
+       "id": "CBT-495",
+       "title": "Remove retry logic on the sync job",
+       "status": "System Testing",
+       "statusType": "started",
+       "assignee": "jonas.weber@meridian.dev",
+       "url": "https://linear.example.com/demo/issue/CBT-495/remove-retry-logic-on-the-sync-job"
+      },
+      {
+       "id": "CBT-496",
+       "title": "Improve timezone handling in the scheduler",
+       "status": "System Testing",
+       "statusType": "started",
+       "assignee": "ines.ferreira@northgate.dev",
+       "url": "https://linear.example.com/demo/issue/CBT-496/improve-timezone-handling-in-the-scheduler"
+      },
+      {
+       "id": "CBT-496",
+       "title": "Migrate breadcrumb on the detail page",
+       "status": "System Testing",
+       "statusType": "started",
+       "assignee": "alina.rowe@meridian.dev",
+       "url": "https://linear.example.com/demo/issue/CBT-496/migrate-breadcrumb-on-the-detail-page"
+      },
+      {
+       "id": "CBT-501",
+       "title": "Validate validation on the date range picker",
+       "status": "Dev Completed",
+       "statusType": "started",
+       "assignee": "marcus.vidal@meridian.dev",
+       "url": "https://linear.example.com/demo/issue/CBT-501/validate-validation-on-the-date-range-picker"
+      },
+      {
+       "id": "CBT-501",
+       "title": "Implement caching for the lookup endpoint",
+       "status": "Dev Completed",
+       "statusType": "started",
+       "assignee": "nadia.o@meridian.dev",
+       "url": "https://linear.example.com/demo/issue/CBT-501/implement-caching-for-the-lookup-endpoint"
+      },
+      {
+       "id": "CBT-510",
+       "title": "Fix CSV export column headers",
+       "status": "Ready to Release",
+       "statusType": "started",
+       "assignee": "tomas.berg@meridian.dev",
+       "url": "https://linear.example.com/demo/issue/CBT-510/fix-csv-export-column-headers"
+      },
+      {
+       "id": "CBT-510",
+       "title": "Add tooltip copy on the summary cards",
+       "status": "Ready to Release",
+       "statusType": "started",
+       "assignee": "priya.anand@northgate.dev",
+       "url": "https://linear.example.com/demo/issue/CBT-510/add-tooltip-copy-on-the-summary-cards"
+      },
+      {
+       "id": "CBT-511",
+       "title": "Update audit log entry on delete",
+       "status": "Ready to Release",
+       "statusType": "started",
+       "assignee": "rohan.desai@northgate.dev",
+       "url": "https://linear.example.com/demo/issue/CBT-511/update-audit-log-entry-on-delete"
+      },
+      {
+       "id": "CBT-511",
+       "title": "Refactor status badge colour mapping",
+       "status": "Ready to Release",
+       "statusType": "started",
+       "assignee": "elena.marsh@meridian.dev",
+       "url": "https://linear.example.com/demo/issue/CBT-511/refactor-status-badge-colour-mapping"
+      },
+      {
+       "id": "CBT-513",
+       "title": "Investigate sort order in the list view",
+       "status": "Ready to Release",
+       "statusType": "started",
+       "assignee": "kwame.b@northgate.dev",
+       "url": "https://linear.example.com/demo/issue/CBT-513/investigate-sort-order-in-the-list-view"
+      },
+      {
+       "id": "CBT-513",
+       "title": "Remove keyboard navigation in the modal",
+       "status": "Ready to Release",
+       "statusType": "started",
+       "assignee": "sofia.l@meridian.dev",
+       "url": "https://linear.example.com/demo/issue/CBT-513/remove-keyboard-navigation-in-the-modal"
+      },
+      {
+       "id": "CBT-520",
+       "title": "Improve session timeout warning",
+       "status": "Ready to Release",
+       "statusType": "started",
+       "assignee": "arjun.nair@northgate.dev",
+       "url": "https://linear.example.com/demo/issue/CBT-520/improve-session-timeout-warning"
+      },
+      {
+       "id": "CBT-520",
+       "title": "Migrate error toast on failed save",
+       "status": "Ready to Release",
+       "statusType": "started",
+       "assignee": "hana.sato@northgate.dev",
+       "url": "https://linear.example.com/demo/issue/CBT-520/migrate-error-toast-on-failed-save"
+      },
+      {
+       "id": "CBT-521",
+       "title": "Validate loading skeleton for the chart",
+       "status": "Ready to Release",
+       "statusType": "started",
+       "assignee": "daniel.okafor@meridian.dev",
+       "url": "https://linear.example.com/demo/issue/CBT-521/validate-loading-skeleton-for-the-chart"
+      },
+      {
+       "id": "CBT-521",
+       "title": "Implement pagination on the results table",
+       "status": "Ready to Release",
+       "statusType": "started",
+       "assignee": "freya.nilsen@meridian.dev",
+       "url": "https://linear.example.com/demo/issue/CBT-521/implement-pagination-on-the-results-table"
+      },
+      {
+       "id": "CBT-556",
+       "title": "Fix bulk select behaviour",
+       "status": "In Progress",
+       "statusType": "started",
+       "assignee": "ravi.menon@northgate.dev",
+       "url": "https://linear.example.com/demo/issue/CBT-556/fix-bulk-select-behaviour"
+      },
+      {
+       "id": "CBT-556",
+       "title": "Add duplicate detection on import",
+       "status": "In Progress",
+       "statusType": "started",
+       "assignee": "clara.bennett@meridian.dev",
+       "url": "https://linear.example.com/demo/issue/CBT-556/add-duplicate-detection-on-import"
+      },
+      {
+       "id": "CBT-557",
+       "title": "Update empty state for the filters panel",
+       "status": "In Progress",
+       "statusType": "started",
+       "assignee": "idris.khan@northgate.dev",
+       "url": "https://linear.example.com/demo/issue/CBT-557/update-empty-state-for-the-filters-panel"
+      },
+      {
+       "id": "CBT-557",
+       "title": "Refactor column widths on narrow screens",
+       "status": "In Progress",
+       "statusType": "started",
+       "assignee": "mei.chen@northgate.dev",
+       "url": "https://linear.example.com/demo/issue/CBT-557/refactor-column-widths-on-narrow-screens"
+      },
+      {
+       "id": "CBT-601",
+       "title": "Investigate rate limit handling in the client",
+       "status": "Ready to Release",
+       "statusType": "started",
+       "assignee": "oscar.duarte@meridian.dev",
+       "url": "https://linear.example.com/demo/issue/CBT-601/investigate-rate-limit-handling-in-the-client"
+      },
+      {
+       "id": "CBT-601",
+       "title": "Remove retry logic on the sync job",
+       "status": "Ready to Release",
+       "statusType": "started",
+       "assignee": "lena.petrova@northgate.dev",
+       "url": "https://linear.example.com/demo/issue/CBT-601/remove-retry-logic-on-the-sync-job"
+      },
+      {
+       "id": "CBT-602",
+       "title": "Improve timezone handling in the scheduler",
+       "status": "Ready to Release",
+       "statusType": "started",
+       "assignee": "samir.haddad@northgate.dev",
+       "url": "https://linear.example.com/demo/issue/CBT-602/improve-timezone-handling-in-the-scheduler"
+      },
+      {
+       "id": "CBT-602",
+       "title": "Migrate breadcrumb on the detail page",
+       "status": "Ready to Release",
+       "statusType": "started",
+       "assignee": "grace.mwangi@meridian.dev",
+       "url": "https://linear.example.com/demo/issue/CBT-602/migrate-breadcrumb-on-the-detail-page"
+      },
+      {
+       "id": "CBT-603",
+       "title": "Validate validation on the date range picker",
+       "status": "Ready to Release",
+       "statusType": "started",
+       "assignee": "theo.almeida@northgate.dev",
+       "url": "https://linear.example.com/demo/issue/CBT-603/validate-validation-on-the-date-range-picker"
+      },
+      {
+       "id": "CBT-603",
+       "title": "Implement caching for the lookup endpoint",
+       "status": "Ready to Release",
+       "statusType": "started",
+       "assignee": "jonas.weber@meridian.dev",
+       "url": "https://linear.example.com/demo/issue/CBT-603/implement-caching-for-the-lookup-endpoint"
+      },
+      {
+       "id": "CBT-604",
+       "title": "Fix CSV export column headers",
+       "status": "In Progress",
+       "statusType": "started",
+       "assignee": "ines.ferreira@northgate.dev",
+       "url": "https://linear.example.com/demo/issue/CBT-604/fix-csv-export-column-headers"
+      },
+      {
+       "id": "CBT-604",
+       "title": "Add tooltip copy on the summary cards",
+       "status": "In Progress",
+       "statusType": "started",
+       "assignee": "alina.rowe@meridian.dev",
+       "url": "https://linear.example.com/demo/issue/CBT-604/add-tooltip-copy-on-the-summary-cards"
+      },
+      {
+       "id": "CBT-606",
+       "title": "Update audit log entry on delete",
+       "status": "In Progress",
+       "statusType": "started",
+       "assignee": "marcus.vidal@meridian.dev",
+       "url": "https://linear.example.com/demo/issue/CBT-606/update-audit-log-entry-on-delete"
+      },
+      {
+       "id": "CBT-606",
+       "title": "Refactor status badge colour mapping",
+       "status": "In Progress",
+       "statusType": "started",
+       "assignee": "nadia.o@meridian.dev",
+       "url": "https://linear.example.com/demo/issue/CBT-606/refactor-status-badge-colour-mapping"
+      },
+      {
+       "id": "CBT-628",
+       "title": "Investigate sort order in the list view",
+       "status": "System Testing",
+       "statusType": "started",
+       "assignee": "tomas.berg@meridian.dev",
+       "url": "https://linear.example.com/demo/issue/CBT-628/investigate-sort-order-in-the-list-view"
+      },
+      {
+       "id": "CBT-628",
+       "title": "Remove keyboard navigation in the modal",
+       "status": "System Testing",
+       "statusType": "started",
+       "assignee": "priya.anand@northgate.dev",
+       "url": "https://linear.example.com/demo/issue/CBT-628/remove-keyboard-navigation-in-the-modal"
+      },
+      {
+       "id": "CBT-631",
+       "title": "Improve session timeout warning",
+       "status": "Dev Completed",
+       "statusType": "started",
+       "assignee": "rohan.desai@northgate.dev",
+       "url": "https://linear.example.com/demo/issue/CBT-631/improve-session-timeout-warning"
+      },
+      {
+       "id": "CBT-631",
+       "title": "Migrate error toast on failed save",
+       "status": "Dev Completed",
+       "statusType": "started",
+       "assignee": "elena.marsh@meridian.dev",
+       "url": "https://linear.example.com/demo/issue/CBT-631/migrate-error-toast-on-failed-save"
+      },
+      {
+       "id": "CBT-634",
+       "title": "Validate loading skeleton for the chart",
+       "status": "Ready to Release",
+       "statusType": "started",
+       "assignee": "kwame.b@northgate.dev",
+       "url": "https://linear.example.com/demo/issue/CBT-634/validate-loading-skeleton-for-the-chart"
+      },
+      {
+       "id": "CBT-634",
+       "title": "Implement pagination on the results table",
+       "status": "Ready to Release",
+       "statusType": "started",
+       "assignee": "sofia.l@meridian.dev",
+       "url": "https://linear.example.com/demo/issue/CBT-634/implement-pagination-on-the-results-table"
+      },
+      {
+       "id": "CBT-635",
+       "title": "Fix bulk select behaviour",
+       "status": "Ready to Release",
+       "statusType": "started",
+       "assignee": "arjun.nair@northgate.dev",
+       "url": "https://linear.example.com/demo/issue/CBT-635/fix-bulk-select-behaviour"
+      },
+      {
+       "id": "CBT-635",
+       "title": "Add duplicate detection on import",
+       "status": "Ready to Release",
+       "statusType": "started",
+       "assignee": "hana.sato@northgate.dev",
+       "url": "https://linear.example.com/demo/issue/CBT-635/add-duplicate-detection-on-import"
+      },
+      {
+       "id": "CBT-647",
+       "title": "Update empty state for the filters panel",
+       "status": "Ready to Release",
+       "statusType": "started",
+       "assignee": "daniel.okafor@meridian.dev",
+       "url": "https://linear.example.com/demo/issue/CBT-647/update-empty-state-for-the-filters-panel"
+      },
+      {
+       "id": "CBT-647",
+       "title": "Refactor column widths on narrow screens",
+       "status": "Ready to Release",
+       "statusType": "started",
+       "assignee": "freya.nilsen@meridian.dev",
+       "url": "https://linear.example.com/demo/issue/CBT-647/refactor-column-widths-on-narrow-screens"
+      },
+      {
+       "id": "CBT-648",
+       "title": "Investigate rate limit handling in the client",
+       "status": "In Progress",
+       "statusType": "started",
+       "assignee": "ravi.menon@northgate.dev",
+       "url": "https://linear.example.com/demo/issue/CBT-648/investigate-rate-limit-handling-in-the-client"
+      },
+      {
+       "id": "CBT-648",
+       "title": "Remove retry logic on the sync job",
+       "status": "In Progress",
+       "statusType": "started",
+       "assignee": "clara.bennett@meridian.dev",
+       "url": "https://linear.example.com/demo/issue/CBT-648/remove-retry-logic-on-the-sync-job"
+      },
+      {
+       "id": "CBT-659",
+       "title": "Improve timezone handling in the scheduler",
+       "status": "In Progress",
+       "statusType": "started",
+       "assignee": "idris.khan@northgate.dev",
+       "url": "https://linear.example.com/demo/issue/CBT-659/improve-timezone-handling-in-the-scheduler"
+      },
+      {
+       "id": "CBT-659",
+       "title": "Migrate breadcrumb on the detail page",
+       "status": "In Progress",
+       "statusType": "started",
+       "assignee": "mei.chen@northgate.dev",
+       "url": "https://linear.example.com/demo/issue/CBT-659/migrate-breadcrumb-on-the-detail-page"
+      },
+      {
+       "id": "CBT-667",
+       "title": "Validate validation on the date range picker",
+       "status": "Ready to Release",
+       "statusType": "started",
+       "assignee": "oscar.duarte@meridian.dev",
+       "url": "https://linear.example.com/demo/issue/CBT-667/validate-validation-on-the-date-range-picker"
+      },
+      {
+       "id": "CBT-667",
+       "title": "Implement caching for the lookup endpoint",
+       "status": "Ready to Release",
+       "statusType": "started",
+       "assignee": "lena.petrova@northgate.dev",
+       "url": "https://linear.example.com/demo/issue/CBT-667/implement-caching-for-the-lookup-endpoint"
+      },
+      {
+       "id": "CBT-673",
+       "title": "Fix CSV export column headers",
+       "status": "Dev Completed",
+       "statusType": "started",
+       "assignee": "samir.haddad@northgate.dev",
+       "url": "https://linear.example.com/demo/issue/CBT-673/fix-csv-export-column-headers"
+      },
+      {
+       "id": "CBT-673",
+       "title": "Add tooltip copy on the summary cards",
+       "status": "Dev Completed",
+       "statusType": "started",
+       "assignee": "grace.mwangi@meridian.dev",
+       "url": "https://linear.example.com/demo/issue/CBT-673/add-tooltip-copy-on-the-summary-cards"
+      },
+      {
+       "id": "CBT-703",
+       "title": "Update audit log entry on delete",
+       "status": "Ready to Release",
+       "statusType": "started",
+       "assignee": "theo.almeida@northgate.dev",
+       "url": "https://linear.example.com/demo/issue/CBT-703/update-audit-log-entry-on-delete"
+      },
+      {
+       "id": "CBT-703",
+       "title": "Refactor status badge colour mapping",
+       "status": "Ready to Release",
+       "statusType": "started",
+       "assignee": "jonas.weber@meridian.dev",
+       "url": "https://linear.example.com/demo/issue/CBT-703/refactor-status-badge-colour-mapping"
+      },
+      {
+       "id": "CBT-729",
+       "title": "Investigate sort order in the list view",
+       "status": "Todo",
+       "statusType": "unstarted",
+       "assignee": "ines.ferreira@northgate.dev",
+       "url": "https://linear.example.com/demo/issue/CBT-729/investigate-sort-order-in-the-list-view"
+      },
+      {
+       "id": "CBT-729",
+       "title": "Remove keyboard navigation in the modal",
+       "status": "Todo",
+       "statusType": "unstarted",
+       "assignee": "alina.rowe@meridian.dev",
+       "url": "https://linear.example.com/demo/issue/CBT-729/remove-keyboard-navigation-in-the-modal"
+      },
+      {
+       "id": "CBT-761",
+       "title": "Improve session timeout warning",
+       "status": "Ready to Release",
+       "statusType": "started",
+       "assignee": "marcus.vidal@meridian.dev",
+       "url": "https://linear.example.com/demo/issue/CBT-761/improve-session-timeout-warning"
+      },
+      {
+       "id": "CBT-761",
+       "title": "Migrate error toast on failed save",
+       "status": "Ready to Release",
+       "statusType": "started",
+       "assignee": "nadia.o@meridian.dev",
+       "url": "https://linear.example.com/demo/issue/CBT-761/migrate-error-toast-on-failed-save"
+      },
+      {
+       "id": "CBT-762",
+       "title": "Validate loading skeleton for the chart",
+       "status": "Ready to Release",
+       "statusType": "started",
+       "assignee": "tomas.berg@meridian.dev",
+       "url": "https://linear.example.com/demo/issue/CBT-762/validate-loading-skeleton-for-the-chart"
+      },
+      {
+       "id": "CBT-762",
+       "title": "Implement pagination on the results table",
+       "status": "Ready to Release",
+       "statusType": "started",
+       "assignee": "priya.anand@northgate.dev",
+       "url": "https://linear.example.com/demo/issue/CBT-762/implement-pagination-on-the-results-table"
+      },
+      {
+       "id": "CBT-763",
+       "title": "Fix bulk select behaviour",
+       "status": "Ready to Release",
+       "statusType": "started",
+       "assignee": "rohan.desai@northgate.dev",
+       "url": "https://linear.example.com/demo/issue/CBT-763/fix-bulk-select-behaviour"
+      },
+      {
+       "id": "CBT-763",
+       "title": "Add duplicate detection on import",
+       "status": "Ready to Release",
+       "statusType": "started",
+       "assignee": "elena.marsh@meridian.dev",
+       "url": "https://linear.example.com/demo/issue/CBT-763/add-duplicate-detection-on-import"
+      },
+      {
+       "id": "CBT-764",
+       "title": "Update empty state for the filters panel",
+       "status": "Ready to Release",
+       "statusType": "started",
+       "assignee": "kwame.b@northgate.dev",
+       "url": "https://linear.example.com/demo/issue/CBT-764/update-empty-state-for-the-filters-panel"
+      },
+      {
+       "id": "CBT-764",
+       "title": "Refactor column widths on narrow screens",
+       "status": "Ready to Release",
+       "statusType": "started",
+       "assignee": "sofia.l@meridian.dev",
+       "url": "https://linear.example.com/demo/issue/CBT-764/refactor-column-widths-on-narrow-screens"
+      },
+      {
+       "id": "CBT-765",
+       "title": "Investigate rate limit handling in the client",
+       "status": "Ready to Release",
+       "statusType": "started",
+       "assignee": "arjun.nair@northgate.dev",
+       "url": "https://linear.example.com/demo/issue/CBT-765/investigate-rate-limit-handling-in-the-client"
+      },
+      {
+       "id": "CBT-765",
+       "title": "Remove retry logic on the sync job",
+       "status": "Ready to Release",
+       "statusType": "started",
+       "assignee": "hana.sato@northgate.dev",
+       "url": "https://linear.example.com/demo/issue/CBT-765/remove-retry-logic-on-the-sync-job"
+      },
+      {
+       "id": "CBT-766",
+       "title": "Improve timezone handling in the scheduler",
+       "status": "Ready to Release",
+       "statusType": "started",
+       "assignee": "daniel.okafor@meridian.dev",
+       "url": "https://linear.example.com/demo/issue/CBT-766/improve-timezone-handling-in-the-scheduler"
+      },
+      {
+       "id": "CBT-766",
+       "title": "Migrate breadcrumb on the detail page",
+       "status": "Ready to Release",
+       "statusType": "started",
+       "assignee": "freya.nilsen@meridian.dev",
+       "url": "https://linear.example.com/demo/issue/CBT-766/migrate-breadcrumb-on-the-detail-page"
+      },
+      {
+       "id": "CBT-767",
+       "title": "Validate validation on the date range picker",
+       "status": "Ready to Release",
+       "statusType": "started",
+       "assignee": "ravi.menon@northgate.dev",
+       "url": "https://linear.example.com/demo/issue/CBT-767/validate-validation-on-the-date-range-picker"
+      },
+      {
+       "id": "CBT-767",
+       "title": "Implement caching for the lookup endpoint",
+       "status": "Ready to Release",
+       "statusType": "started",
+       "assignee": "clara.bennett@meridian.dev",
+       "url": "https://linear.example.com/demo/issue/CBT-767/implement-caching-for-the-lookup-endpoint"
+      },
+      {
+       "id": "CBT-768",
+       "title": "Fix CSV export column headers",
+       "status": "Ready to Release",
+       "statusType": "started",
+       "assignee": "idris.khan@northgate.dev",
+       "url": "https://linear.example.com/demo/issue/CBT-768/fix-csv-export-column-headers"
+      },
+      {
+       "id": "CBT-768",
+       "title": "Add tooltip copy on the summary cards",
+       "status": "Ready to Release",
+       "statusType": "started",
+       "assignee": "mei.chen@northgate.dev",
+       "url": "https://linear.example.com/demo/issue/CBT-768/add-tooltip-copy-on-the-summary-cards"
+      },
+      {
+       "id": "CBT-769",
+       "title": "Update audit log entry on delete",
+       "status": "Ready to Release",
+       "statusType": "started",
+       "assignee": "oscar.duarte@meridian.dev",
+       "url": "https://linear.example.com/demo/issue/CBT-769/update-audit-log-entry-on-delete"
+      },
+      {
+       "id": "CBT-769",
+       "title": "Refactor status badge colour mapping",
+       "status": "Ready to Release",
+       "statusType": "started",
+       "assignee": "lena.petrova@northgate.dev",
+       "url": "https://linear.example.com/demo/issue/CBT-769/refactor-status-badge-colour-mapping"
+      },
+      {
+       "id": "CBT-781",
+       "title": "Investigate sort order in the list view",
+       "status": "Ready to Release",
+       "statusType": "started",
+       "assignee": "samir.haddad@northgate.dev",
+       "url": "https://linear.example.com/demo/issue/CBT-781/investigate-sort-order-in-the-list-view"
+      },
+      {
+       "id": "CBT-781",
+       "title": "Remove keyboard navigation in the modal",
+       "status": "Ready to Release",
+       "statusType": "started",
+       "assignee": "grace.mwangi@meridian.dev",
+       "url": "https://linear.example.com/demo/issue/CBT-781/remove-keyboard-navigation-in-the-modal"
+      },
+      {
+       "id": "CBT-787",
+       "title": "Improve session timeout warning",
+       "status": "System Testing",
+       "statusType": "started",
+       "assignee": "theo.almeida@northgate.dev",
+       "url": "https://linear.example.com/demo/issue/CBT-787/improve-session-timeout-warning"
+      },
+      {
+       "id": "CBT-787",
+       "title": "Migrate error toast on failed save",
+       "status": "System Testing",
+       "statusType": "started",
+       "assignee": "jonas.weber@meridian.dev",
+       "url": "https://linear.example.com/demo/issue/CBT-787/migrate-error-toast-on-failed-save"
+      },
+      {
+       "id": "CBT-788",
+       "title": "Validate loading skeleton for the chart",
+       "status": "System Testing",
+       "statusType": "started",
+       "assignee": "ines.ferreira@northgate.dev",
+       "url": "https://linear.example.com/demo/issue/CBT-788/validate-loading-skeleton-for-the-chart"
+      },
+      {
+       "id": "CBT-788",
+       "title": "Implement pagination on the results table",
+       "status": "System Testing",
+       "statusType": "started",
+       "assignee": "alina.rowe@meridian.dev",
+       "url": "https://linear.example.com/demo/issue/CBT-788/implement-pagination-on-the-results-table"
+      },
+      {
+       "id": "CBT-793",
+       "title": "Fix bulk select behaviour",
+       "status": "Todo",
+       "statusType": "unstarted",
+       "assignee": "marcus.vidal@meridian.dev",
+       "url": "https://linear.example.com/demo/issue/CBT-793/fix-bulk-select-behaviour"
+      },
+      {
+       "id": "CBT-793",
+       "title": "Add duplicate detection on import",
+       "status": "Todo",
+       "statusType": "unstarted",
+       "assignee": "nadia.o@meridian.dev",
+       "url": "https://linear.example.com/demo/issue/CBT-793/add-duplicate-detection-on-import"
+      }
+     ]
+    },
+    {
+     "name": "FORGE",
+     "issues": [
+      {
+       "id": "MER-1408",
+       "title": "Update empty state for the filters panel",
+       "status": "Ready to Release",
+       "statusType": "started",
+       "assignee": "tomas.berg@meridian.dev",
+       "url": "https://linear.example.com/demo/issue/MER-1408/update-empty-state-for-the-filters-panel"
+      },
+      {
+       "id": "MER-4055",
+       "title": "Refactor column widths on narrow screens",
+       "status": "Released",
+       "statusType": "completed",
+       "assignee": "priya.anand@northgate.dev",
+       "url": "https://linear.example.com/demo/issue/MER-4055/refactor-column-widths-on-narrow-screens"
+      },
+      {
+       "id": "MER-4056",
+       "title": "Investigate rate limit handling in the client",
+       "status": "Released",
+       "statusType": "completed",
+       "assignee": "rohan.desai@northgate.dev",
+       "url": "https://linear.example.com/demo/issue/MER-4056/investigate-rate-limit-handling-in-the-client"
+      },
+      {
+       "id": "MER-4057",
+       "title": "Remove retry logic on the sync job",
+       "status": "Released",
+       "statusType": "completed",
+       "assignee": "elena.marsh@meridian.dev",
+       "url": "https://linear.example.com/demo/issue/MER-4057/remove-retry-logic-on-the-sync-job"
+      },
+      {
+       "id": "MER-4058",
+       "title": "Improve timezone handling in the scheduler",
+       "status": "Released",
+       "statusType": "completed",
+       "assignee": "kwame.b@northgate.dev",
+       "url": "https://linear.example.com/demo/issue/MER-4058/improve-timezone-handling-in-the-scheduler"
+      },
+      {
+       "id": "FRG-1",
+       "title": "Migrate breadcrumb on the detail page",
+       "status": "In Progress",
+       "statusType": "started",
+       "assignee": "sofia.l@meridian.dev",
+       "url": "https://linear.example.com/demo/issue/FRG-1/migrate-breadcrumb-on-the-detail-page"
+      },
+      {
+       "id": "FRG-11",
+       "title": "Validate validation on the date range picker",
+       "status": "In Progress",
+       "statusType": "started",
+       "assignee": "arjun.nair@northgate.dev",
+       "url": "https://linear.example.com/demo/issue/FRG-11/validate-validation-on-the-date-range-picker"
+      },
+      {
+       "id": "FRG-12",
+       "title": "Implement caching for the lookup endpoint",
+       "status": "Ready to Release",
+       "statusType": "started",
+       "assignee": "hana.sato@northgate.dev",
+       "url": "https://linear.example.com/demo/issue/FRG-12/implement-caching-for-the-lookup-endpoint"
+      },
+      {
+       "id": "FRG-13",
+       "title": "Fix CSV export column headers",
+       "status": "Ready to Release",
+       "statusType": "started",
+       "assignee": "daniel.okafor@meridian.dev",
+       "url": "https://linear.example.com/demo/issue/FRG-13/fix-csv-export-column-headers"
+      },
+      {
+       "id": "FRG-187",
+       "title": "Add tooltip copy on the summary cards",
+       "status": "In Progress",
+       "statusType": "started",
+       "assignee": "freya.nilsen@meridian.dev",
+       "url": "https://linear.example.com/demo/issue/FRG-187/add-tooltip-copy-on-the-summary-cards"
+      },
+      {
+       "id": "FRG-189",
+       "title": "Update audit log entry on delete",
+       "status": "In Progress",
+       "statusType": "started",
+       "assignee": "ravi.menon@northgate.dev",
+       "url": "https://linear.example.com/demo/issue/FRG-189/update-audit-log-entry-on-delete"
+      },
+      {
+       "id": "FRG-190",
+       "title": "Refactor status badge colour mapping",
+       "status": "In Progress",
+       "statusType": "started",
+       "assignee": "clara.bennett@meridian.dev",
+       "url": "https://linear.example.com/demo/issue/FRG-190/refactor-status-badge-colour-mapping"
+      },
+      {
+       "id": "FRG-191",
+       "title": "Investigate sort order in the list view",
+       "status": "In Progress",
+       "statusType": "started",
+       "assignee": "idris.khan@northgate.dev",
+       "url": "https://linear.example.com/demo/issue/FRG-191/investigate-sort-order-in-the-list-view"
+      },
+      {
+       "id": "FRG-192",
+       "title": "Remove keyboard navigation in the modal",
+       "status": "In Progress",
+       "statusType": "started",
+       "assignee": "mei.chen@northgate.dev",
+       "url": "https://linear.example.com/demo/issue/FRG-192/remove-keyboard-navigation-in-the-modal"
+      },
+      {
+       "id": "FRG-202",
+       "title": "Improve session timeout warning",
+       "status": "Dev Completed",
+       "statusType": "started",
+       "assignee": "oscar.duarte@meridian.dev",
+       "url": "https://linear.example.com/demo/issue/FRG-202/improve-session-timeout-warning"
+      },
+      {
+       "id": "FRG-203",
+       "title": "Migrate error toast on failed save",
+       "status": "In Progress",
+       "statusType": "started",
+       "assignee": "lena.petrova@northgate.dev",
+       "url": "https://linear.example.com/demo/issue/FRG-203/migrate-error-toast-on-failed-save"
+      },
+      {
+       "id": "FRG-204",
+       "title": "Validate loading skeleton for the chart",
+       "status": "Dev Completed",
+       "statusType": "started",
+       "assignee": "samir.haddad@northgate.dev",
+       "url": "https://linear.example.com/demo/issue/FRG-204/validate-loading-skeleton-for-the-chart"
+      },
+      {
+       "id": "FRG-205",
+       "title": "Implement pagination on the results table",
+       "status": "Dev Completed",
+       "statusType": "started",
+       "assignee": "grace.mwangi@meridian.dev",
+       "url": "https://linear.example.com/demo/issue/FRG-205/implement-pagination-on-the-results-table"
+      },
+      {
+       "id": "FRG-208",
+       "title": "Fix bulk select behaviour",
+       "status": "Dev Completed",
+       "statusType": "started",
+       "assignee": "theo.almeida@northgate.dev",
+       "url": "https://linear.example.com/demo/issue/FRG-208/fix-bulk-select-behaviour"
+      },
+      {
+       "id": "FRG-209",
+       "title": "Add duplicate detection on import",
+       "status": "Ready to Release",
+       "statusType": "started",
+       "assignee": "jonas.weber@meridian.dev",
+       "url": "https://linear.example.com/demo/issue/FRG-209/add-duplicate-detection-on-import"
+      },
+      {
+       "id": "FRG-210",
+       "title": "Update empty state for the filters panel",
+       "status": "In Progress",
+       "statusType": "started",
+       "assignee": "ines.ferreira@northgate.dev",
+       "url": "https://linear.example.com/demo/issue/FRG-210/update-empty-state-for-the-filters-panel"
+      },
+      {
+       "id": "FRG-215",
+       "title": "Refactor column widths on narrow screens",
+       "status": "Ready to Release",
+       "statusType": "started",
+       "assignee": "alina.rowe@meridian.dev",
+       "url": "https://linear.example.com/demo/issue/FRG-215/refactor-column-widths-on-narrow-screens"
+      },
+      {
+       "id": "FRG-219",
+       "title": "Investigate rate limit handling in the client",
+       "status": "Dev Completed",
+       "statusType": "started",
+       "assignee": "marcus.vidal@meridian.dev",
+       "url": "https://linear.example.com/demo/issue/FRG-219/investigate-rate-limit-handling-in-the-client"
+      },
+      {
+       "id": "FRG-221",
+       "title": "Remove retry logic on the sync job",
+       "status": "In Progress",
+       "statusType": "started",
+       "assignee": "nadia.o@meridian.dev",
+       "url": "https://linear.example.com/demo/issue/FRG-221/remove-retry-logic-on-the-sync-job"
+      },
+      {
+       "id": "FRG-222",
+       "title": "Improve timezone handling in the scheduler",
+       "status": "In Progress",
+       "statusType": "started",
+       "assignee": "tomas.berg@meridian.dev",
+       "url": "https://linear.example.com/demo/issue/FRG-222/improve-timezone-handling-in-the-scheduler"
+      },
+      {
+       "id": "FRG-223",
+       "title": "Migrate breadcrumb on the detail page",
+       "status": "In Progress",
+       "statusType": "started",
+       "assignee": "priya.anand@northgate.dev",
+       "url": "https://linear.example.com/demo/issue/FRG-223/migrate-breadcrumb-on-the-detail-page"
+      },
+      {
+       "id": "FRG-226",
+       "title": "Validate validation on the date range picker",
+       "status": "Dev Completed",
+       "statusType": "started",
+       "assignee": "rohan.desai@northgate.dev",
+       "url": "https://linear.example.com/demo/issue/FRG-226/validate-validation-on-the-date-range-picker"
+      },
+      {
+       "id": "FRG-227",
+       "title": "Implement caching for the lookup endpoint",
+       "status": "Dev Completed",
+       "statusType": "started",
+       "assignee": "elena.marsh@meridian.dev",
+       "url": "https://linear.example.com/demo/issue/FRG-227/implement-caching-for-the-lookup-endpoint"
+      },
+      {
+       "id": "FRG-237",
+       "title": "Fix CSV export column headers",
+       "status": "Ready to Release",
+       "statusType": "started",
+       "assignee": "kwame.b@northgate.dev",
+       "url": "https://linear.example.com/demo/issue/FRG-237/fix-csv-export-column-headers"
+      },
+      {
+       "id": "FRG-238",
+       "title": "Add tooltip copy on the summary cards",
+       "status": "Todo",
+       "statusType": "unstarted",
+       "assignee": "sofia.l@meridian.dev",
+       "url": "https://linear.example.com/demo/issue/FRG-238/add-tooltip-copy-on-the-summary-cards"
+      },
+      {
+       "id": "FRG-239",
+       "title": "Update audit log entry on delete",
+       "status": "Ready to Release",
+       "statusType": "started",
+       "assignee": "arjun.nair@northgate.dev",
+       "url": "https://linear.example.com/demo/issue/FRG-239/update-audit-log-entry-on-delete"
+      },
+      {
+       "id": "FRG-240",
+       "title": "Refactor status badge colour mapping",
+       "status": "Ready to Release",
+       "statusType": "started",
+       "assignee": "hana.sato@northgate.dev",
+       "url": "https://linear.example.com/demo/issue/FRG-240/refactor-status-badge-colour-mapping"
+      },
+      {
+       "id": "FRG-241",
+       "title": "Investigate sort order in the list view",
+       "status": "Ready to Release",
+       "statusType": "started",
+       "assignee": "daniel.okafor@meridian.dev",
+       "url": "https://linear.example.com/demo/issue/FRG-241/investigate-sort-order-in-the-list-view"
+      },
+      {
+       "id": "FRG-242",
+       "title": "Remove keyboard navigation in the modal",
+       "status": "Ready to Release",
+       "statusType": "started",
+       "assignee": "freya.nilsen@meridian.dev",
+       "url": "https://linear.example.com/demo/issue/FRG-242/remove-keyboard-navigation-in-the-modal"
+      },
+      {
+       "id": "FRG-243",
+       "title": "Improve session timeout warning",
+       "status": "Ready to Release",
+       "statusType": "started",
+       "assignee": "ravi.menon@northgate.dev",
+       "url": "https://linear.example.com/demo/issue/FRG-243/improve-session-timeout-warning"
+      },
+      {
+       "id": "FRG-244",
+       "title": "Migrate error toast on failed save",
+       "status": "Todo",
+       "statusType": "unstarted",
+       "assignee": "clara.bennett@meridian.dev",
+       "url": "https://linear.example.com/demo/issue/FRG-244/migrate-error-toast-on-failed-save"
+      },
+      {
+       "id": "FRG-248",
+       "title": "Validate loading skeleton for the chart",
+       "status": "Ready to Release",
+       "statusType": "started",
+       "assignee": "idris.khan@northgate.dev",
+       "url": "https://linear.example.com/demo/issue/FRG-248/validate-loading-skeleton-for-the-chart"
+      },
+      {
+       "id": "FRG-249",
+       "title": "Implement pagination on the results table",
+       "status": "Dev Completed",
+       "statusType": "started",
+       "assignee": "mei.chen@northgate.dev",
+       "url": "https://linear.example.com/demo/issue/FRG-249/implement-pagination-on-the-results-table"
+      },
+      {
+       "id": "FRG-250",
+       "title": "Fix bulk select behaviour",
+       "status": "Ready to Release",
+       "statusType": "started",
+       "assignee": "oscar.duarte@meridian.dev",
+       "url": "https://linear.example.com/demo/issue/FRG-250/fix-bulk-select-behaviour"
+      },
+      {
+       "id": "FRG-251",
+       "title": "Add duplicate detection on import",
+       "status": "Ready to Release",
+       "statusType": "started",
+       "assignee": "lena.petrova@northgate.dev",
+       "url": "https://linear.example.com/demo/issue/FRG-251/add-duplicate-detection-on-import"
+      },
+      {
+       "id": "FRG-252",
+       "title": "Update empty state for the filters panel",
+       "status": "Ready to Release",
+       "statusType": "started",
+       "assignee": "samir.haddad@northgate.dev",
+       "url": "https://linear.example.com/demo/issue/FRG-252/update-empty-state-for-the-filters-panel"
+      },
+      {
+       "id": "FRG-257",
+       "title": "Refactor column widths on narrow screens",
+       "status": "Todo",
+       "statusType": "unstarted",
+       "assignee": "grace.mwangi@meridian.dev",
+       "url": "https://linear.example.com/demo/issue/FRG-257/refactor-column-widths-on-narrow-screens"
+      },
+      {
+       "id": "FRG-3",
+       "title": "Investigate rate limit handling in the client",
+       "status": "Ready to Release",
+       "statusType": "started",
+       "assignee": "theo.almeida@northgate.dev",
+       "url": "https://linear.example.com/demo/issue/FRG-3/investigate-rate-limit-handling-in-the-client"
+      },
+      {
+       "id": "FRG-318",
+       "title": "Remove retry logic on the sync job",
+       "status": "Ready to Release",
+       "statusType": "started",
+       "assignee": "jonas.weber@meridian.dev",
+       "url": "https://linear.example.com/demo/issue/FRG-318/remove-retry-logic-on-the-sync-job"
+      },
+      {
+       "id": "FRG-323",
+       "title": "Improve timezone handling in the scheduler",
+       "status": "Ready to Release",
+       "statusType": "started",
+       "assignee": "ines.ferreira@northgate.dev",
+       "url": "https://linear.example.com/demo/issue/FRG-323/improve-timezone-handling-in-the-scheduler"
+      },
+      {
+       "id": "FRG-350",
+       "title": "Migrate breadcrumb on the detail page",
+       "status": "Ready to Release",
+       "statusType": "started",
+       "assignee": "alina.rowe@meridian.dev",
+       "url": "https://linear.example.com/demo/issue/FRG-350/migrate-breadcrumb-on-the-detail-page"
+      },
+      {
+       "id": "FRG-351",
+       "title": "Validate validation on the date range picker",
+       "status": "Ready to Release",
+       "statusType": "started",
+       "assignee": "marcus.vidal@meridian.dev",
+       "url": "https://linear.example.com/demo/issue/FRG-351/validate-validation-on-the-date-range-picker"
+      },
+      {
+       "id": "FRG-356",
+       "title": "Implement caching for the lookup endpoint",
+       "status": "Ready to Release",
+       "statusType": "started",
+       "assignee": "nadia.o@meridian.dev",
+       "url": "https://linear.example.com/demo/issue/FRG-356/implement-caching-for-the-lookup-endpoint"
+      },
+      {
+       "id": "FRG-357",
+       "title": "Fix CSV export column headers",
+       "status": "Ready to Release",
+       "statusType": "started",
+       "assignee": "tomas.berg@meridian.dev",
+       "url": "https://linear.example.com/demo/issue/FRG-357/fix-csv-export-column-headers"
+      },
+      {
+       "id": "FRG-4",
+       "title": "Add tooltip copy on the summary cards",
+       "status": "Ready to Release",
+       "statusType": "started",
+       "assignee": "priya.anand@northgate.dev",
+       "url": "https://linear.example.com/demo/issue/FRG-4/add-tooltip-copy-on-the-summary-cards"
+      },
+      {
+       "id": "FRG-5",
+       "title": "Update audit log entry on delete",
+       "status": "Hold or Blocked",
+       "statusType": "unstarted",
+       "assignee": "rohan.desai@northgate.dev",
+       "url": "https://linear.example.com/demo/issue/FRG-5/update-audit-log-entry-on-delete"
+      },
+      {
+       "id": "FRG-6",
+       "title": "Refactor status badge colour mapping",
+       "status": "In Progress",
+       "statusType": "started",
+       "assignee": "elena.marsh@meridian.dev",
+       "url": "https://linear.example.com/demo/issue/FRG-6/refactor-status-badge-colour-mapping"
+      },
+      {
+       "id": "FRG-7",
+       "title": "Investigate sort order in the list view",
+       "status": "Dev Completed",
+       "statusType": "started",
+       "assignee": "kwame.b@northgate.dev",
+       "url": "https://linear.example.com/demo/issue/FRG-7/investigate-sort-order-in-the-list-view"
+      },
+      {
+       "id": "FRG-8",
+       "title": "Remove keyboard navigation in the modal",
+       "status": "Ready to Release",
+       "statusType": "started",
+       "assignee": "sofia.l@meridian.dev",
+       "url": "https://linear.example.com/demo/issue/FRG-8/remove-keyboard-navigation-in-the-modal"
+      },
+      {
+       "id": "FRG-9",
+       "title": "Improve session timeout warning",
+       "status": "Ready to Release",
+       "statusType": "started",
+       "assignee": "arjun.nair@northgate.dev",
+       "url": "https://linear.example.com/demo/issue/FRG-9/improve-session-timeout-warning"
+      }
+     ]
+    },
+    {
+     "name": "DRIFT HARNESS",
+     "issues": [
+      {
+       "id": "MER-3767",
+       "title": "Migrate error toast on failed save",
+       "status": "In Progress",
+       "statusType": "started",
+       "assignee": "hana.sato@northgate.dev",
+       "url": "https://linear.example.com/demo/issue/MER-3767/migrate-error-toast-on-failed-save"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "cnum": 8,
+   "sprintNo": 18,
+   "starts": "2026-08-16T22:00:00.000Z",
+   "ends": "2026-08-30T22:00:00.000Z",
+   "current": false,
+   "teams": [
+    "Meridian",
+    "COBALT",
+    "FORGE"
+   ],
+   "hist": [
+    {
+     "team": "Meridian",
+     "issueCountHistory": [
+      791,
+      692,
+      714,
+      764,
+      764,
+      764,
+      765,
+      761,
+      781,
+      796,
+      604,
+      608,
+      608,
+      608
+     ],
+     "completedIssueCountHistory": [
+      33,
+      41,
+      67,
+      100,
+      103,
+      103,
+      109,
+      111,
+      118,
+      122,
+      98,
+      100,
+      100,
+      100
+     ]
+    },
+    {
+     "team": "COBALT",
+     "issueCountHistory": [
+      88,
+      88,
+      88,
+      88,
+      88,
+      88,
+      88,
+      88,
+      88,
+      88,
+      88,
+      88,
+      88,
+      88
+     ],
+     "completedIssueCountHistory": [
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0
+     ]
+    },
+    {
+     "team": "FORGE",
+     "issueCountHistory": [
+      69,
+      69,
+      72,
+      72,
+      72,
+      72,
+      72,
+      72,
+      72,
+      72,
+      72,
+      72,
+      72,
+      72
+     ],
+     "completedIssueCountHistory": [
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0
+     ]
+    }
+   ],
+   "projects": []
+  }
+ ]
+};
+
+/* ===== DATE + CLOCKS ===== */
+(function(){var d=new Date();var days=['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday'];var months=['January','February','March','April','May','June','July','August','September','October','November','December'];var el=document.getElementById('liveDateText');if(el)el.textContent=days[d.getDay()]+', '+months[d.getMonth()]+' '+d.getDate()+', '+d.getFullYear();})();
+function updateClocks(){var now=new Date();function z(t){return t.toLocaleTimeString('en-GB',{hour:'2-digit',minute:'2-digit',hour12:false})}try{var ist=new Date(now.toLocaleString('en-US',{timeZone:'Asia/Kolkata'}));var uk=new Date(now.toLocaleString('en-US',{timeZone:'Europe/London'}));var a=document.getElementById('clockIST'),b=document.getElementById('clockUK');if(a)a.textContent=z(ist);if(b)b.textContent=z(uk);}catch(e){}}
+updateClocks();setInterval(updateClocks,30000);
+
+/* ===== CONFIG ===== */
+const SPRINT_OFFSET=10;
+const NO_CYCLE_TEAMS=["DevOps Engineering","AMPP HARNESS","Support Tool"];
+const PRIMARY=[
+  {names:["Agentic Atlas Pro","DRIFT HARNESS","Pilot Client Pilot"],label:"Atlas Pro (DRIFT)",pr:"P1",emoji:"🤖"},
+  {names:["Exchange"],label:"Meridian Exchange",pr:"P2",emoji:"🔄"},
+  {names:["ATLAS"],label:"ATLAS",pr:"P3",emoji:"⚡"},
+  {names:["Meridian Support Tool","Support Tool"],label:"Support Tool",pr:"P3",emoji:"🛟",noCycleWarn:true},
+  {names:["BEACON"],label:"BEACON",pr:"P4",emoji:"📊"},
+  {names:["LABS"],label:"Meridian Labs",pr:"P5",emoji:"🧪"}
+];
+const BK={done:{c:"#10b981",b:"bd-done",l:"Delivered"},test:{c:"#3b82f6",b:"bd-test",l:"Testing / Review"},prog:{c:"#8A5CFF",b:"bd-prog",l:"In progress"},todo:{c:"#cbd0dc",b:"bd-todo",l:"To do"},blocked:{c:"#ef4444",b:"bd-blk",l:"Blocked"},cancelled:{c:"#b9bcc7",b:"bd-can",l:"Cancelled"}};
+
+/* ===== HELPERS ===== */
+const $=s=>document.querySelector(s);
+function bucket(it){const st=(it.status||"").toLowerCase(),t=it.statusType||"";if(st.includes("block")||st.includes("hold"))return t==="canceled"?"cancelled":"blocked";if(t==="completed")return "done";if(t==="canceled")return "cancelled";if(t==="started"){if(st.includes("test")||st.includes("qa")||st.includes("review")||st.includes("dev complet")||st.includes("ready"))return "test";return "prog";}return "todo";}
+const fmtDate=iso=>{const d=new Date(iso);return d.toLocaleDateString('en-GB',{day:'numeric',month:'short'});};
+function esc(s){return (s==null?"":String(s)).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));}
+function shortName(a){if(!a)return "—";if(a.includes("@"))return a.split("@")[0];return a;}
+let charts={};
+function destroy(k){if(charts[k]){charts[k].destroy();delete charts[k];}}
+
+/* ===== BOOT ===== */
+function boot(){
+  const data=window.SR_DATA;
+  if(!data||!data.sprints||!data.sprints.length){$("#srSub").textContent="No snapshot data embedded.";return;}
+  const sel=$("#srSel");sel.innerHTML="";
+  data.sprints.forEach((s,i)=>{const o=document.createElement("option");o.value=i;o.textContent="Sprint "+s.sprintNo+"  ·  Cycle "+s.cnum+(s.current?"  (just closed)":"");sel.appendChild(o);});
+  sel.value=0;
+  sel.addEventListener("change",()=>render(Number(sel.value)));
+  const lr=$("#lastRefresh");if(lr&&data.generatedAt)lr.textContent="Linear snapshot "+new Date(data.generatedAt).toLocaleDateString('en-GB',{day:'numeric',month:'short',year:'numeric'});
+  render(0);
+}
+
+function isPlanProject(name){return PRIMARY.some(p=>p.names.includes(name));}
+function planProjectsOf(sp){return sp.projects.filter(p=>isPlanProject(p.name));}
+function allIssues(sp){let a=[];planProjectsOf(sp).forEach(p=>p.issues.forEach(it=>a.push(it)));return a;}
+function planDelivered(sp){let n=0;planProjectsOf(sp).forEach(p=>p.issues.forEach(it=>{if(bucket(it)==="done")n++;}));return n;}
+
+function render(i){
+  const sp=window.SR_DATA.sprints[i];
+  const issues=allIssues(sp);
+  const bk={done:0,test:0,prog:0,todo:0,blocked:0,cancelled:0};
+  issues.forEach(it=>bk[bucket(it)]++);
+
+  // Scoped to the Sprint Plan projects, computed from the live cycle issues.
+  const committed=issues.length;
+  const delivered=bk.done;
+  const carry=bk.test+bk.prog+bk.todo+bk.blocked;
+  const compPct=committed?Math.round(delivered/committed*100):0;
+  const nProj=planProjectsOf(sp).length;
+
+  $("#srWin").textContent=fmtDate(sp.starts)+" - "+fmtDate(sp.ends);
+  $("#srSub").textContent="Sprint "+sp.sprintNo+" \u00b7 cycle-based \u00b7 Sprint Plan projects ("+nProj+")";
+  $("#srPortHint").textContent="Sprint "+sp.sprintNo+" \u00b7 "+committed+" issues across "+nProj+" Sprint Plan projects";
+
+  $("#srKpis").innerHTML=[
+    kpi("p","Committed",committed,"issues in these projects"),
+    kpi("g","Delivered",delivered,compPct+"% completion"),
+    kpi("b","In progress",bk.prog,"actively being worked"),
+    kpi("","In test/review",bk.test,"awaiting sign-off"),
+    kpi("a","Carryover",carry,"rolls to next sprint"),
+    kpi("r","Blocked",bk.blocked,bk.blocked?"needs attention":"none")
+  ].join("");
+
+  let bn='<div class="srx-note" style="margin:0 0 12px"><b>'+issues.length+' issues across the Sprint Plan projects (incl. sub-issues).</b> Every figure on this page is scoped to those projects only.';
+  if(!sp.current) bn+=' Note: this sprint is closed - unfinished issues were rolled into the next cycle and no longer carry this cycle\'s tag, so completion reads higher than it was at close.';
+  bn+='</div>';
+  $("#srBreakNote").innerHTML=bn;
+
+  drawVel(i);
+  const arr=aggregateProjects(sp);
+  drawProj(arr);
+  drawStatus(bk);
+  drawTeam(issues);
+  renderProjects(arr);
+  renderCoverage(sp);
+
+  $("#srFoot").innerHTML="Source: Linear workspace <b>meridiandemo</b> \u00b7 cycle-based sprint model (1 Linear cycle = 1 sprint), scoped to the current Sprint Plan projects only (Atlas Pro, Meridian Exchange, ATLAS, Support Tool, BEACON, Meridian Labs). "+
+    "All figures come from the live Linear issues in each project's cycle; velocity is issue count (no story points in use). "+
+    "Snapshot generated "+(window.SR_DATA.generatedAt?new Date(window.SR_DATA.generatedAt).toLocaleString('en-GB'):"-")+". To refresh, ask the PJM tool to re-pull Linear.";
+}
+function kpi(cls,l,v,f){return '<div class="srx-kpi '+cls+'"><div class="l">'+l+'</div><div class="v">'+v+'</div><div class="f">'+f+'</div></div>';}
+
+function aggregateProjects(sp){
+  const primIdx=name=>{for(let i=0;i<PRIMARY.length;i++)if(PRIMARY[i].names.includes(name))return i;return 99;};
+  const meta=name=>PRIMARY.find(x=>x.names.includes(name));
+  const arr=planProjectsOf(sp).map(p=>{const bk={done:0,test:0,prog:0,todo:0,blocked:0,cancelled:0};p.issues.forEach(it=>bk[bucket(it)]++);return {name:p.name,total:p.issues.length,bk,issues:p.issues,meta:meta(p.name),ord:primIdx(p.name)};});
+  const present=new Set(arr.map(a=>a.name));
+  PRIMARY.forEach(pm=>{if(!pm.names.some(nm=>present.has(nm))&&pm.noCycleWarn){arr.push({name:pm.label,total:0,bk:{done:0,test:0,prog:0,todo:0,blocked:0,cancelled:0},issues:[],meta:pm,ord:PRIMARY.indexOf(pm),_empty:true});}});
+  arr.sort((a,b)=>(a.ord-b.ord)||(b.total-a.total));
+  return arr;
+}
+function renderProjects(arr){
+  const host=$("#srProjGrid");host.innerHTML="";
+  arr.forEach(p=>{
+    const m=p.meta,pct=p.total?Math.round(p.bk.done/p.total*100):0;
+    const disp=m?m.label:p.name, emoji=m?m.emoji+" ":"", tag=m?'<span class="srx-prtag">'+m.pr+'</span>':"";
+    let body;
+    if(p._empty){
+      body='<div class="srx-note" style="margin-top:2px">This team does not run Linear cycles, so no issues appear in a cycle-based review. Move its work into team cycles to include it here.</div>';
+    }else{
+      const segs=[["done","done"],["test","test"],["prog","prog"],["todo","todo"],["blocked","blk"],["cancelled","can"]].map(([k,c])=>{const w=p.total?(p.bk[k]/p.total*100):0;return w>0?'<i class="sg-'+c+'" style="width:'+w+'%"></i>':"";}).join("");
+      body='<div style="display:flex;align-items:baseline;justify-content:space-between"><span class="srx-pct" style="color:'+(pct>=70?'#10b981':pct>=40?'#f59e0b':'#ef4444')+'">'+pct+'%</span><span style="font-size:11.5px;color:var(--muted)">'+p.bk.done+' / '+p.total+' delivered</span></div>'+
+        '<div class="srx-bar">'+segs+'</div>'+
+        '<div class="srx-pstats">'+
+          '<div><div class="n" style="color:#8A5CFF">'+p.bk.prog+'</div><div class="t">Prog</div></div>'+
+          '<div><div class="n" style="color:#3b82f6">'+p.bk.test+'</div><div class="t">Test</div></div>'+
+          '<div><div class="n" style="color:#64748b">'+p.bk.todo+'</div><div class="t">To do</div></div>'+
+          '<div><div class="n" style="color:#ef4444">'+p.bk.blocked+'</div><div class="t">Blocked</div></div>'+
+        '</div>'+issueTable(p.issues);
+    }
+    host.insertAdjacentHTML("beforeend",'<div class="srx-proj'+(p._empty?' empty':'')+'"><div class="srx-ptop"><div class="srx-pname">'+emoji+esc(disp)+'</div>'+tag+'</div>'+body+'</div>');
+  });
+}
+function issueTable(issues){
+  if(!issues.length)return "";
+  const order={blocked:0,test:1,prog:2,done:3,todo:4,cancelled:5};
+  const sorted=[...issues].sort((a,b)=>order[bucket(a)]-order[bucket(b)]);
+  const rows=sorted.slice(0,60).map(it=>{const m=BK[bucket(it)];return '<tr><td class="k"><a href="'+it.url+'" target="_blank" rel="noopener">'+esc(it.id)+'</a></td><td>'+esc(it.title)+'</td><td><span class="srx-badge '+m.b+'">'+esc(it.status||m.l)+'</span></td><td>'+esc(shortName(it.assignee))+'</td></tr>';}).join("");
+  return '<details class="srx-details"><summary>'+issues.length+' issue'+(issues.length>1?'s':'')+'</summary><table class="srx-tbl"><thead><tr><th>ID</th><th>Title</th><th>Status</th><th>Owner</th></tr></thead><tbody>'+rows+'</tbody></table>'+(issues.length>60?'<div style="font-size:11px;color:var(--muted);margin-top:6px">Showing first 60.</div>':'')+'</details>';
+}
+function renderCoverage(sp){
+  $("#srCoverage").innerHTML='<div class="srx-note" style="margin-top:14px"><b>Coverage note (cycle-based):</b> this review counts only issues assigned to a team cycle. Teams in this sprint: '+sp.teams.join(", ")+'. Teams that don\'t run cycles — '+NO_CYCLE_TEAMS.join(", ")+' — are not represented, so work those teams did on shared projects (e.g. DevOps on Exchange/BEACON, Support Tool) won\'t appear until they adopt cycles.</div>';
+}
+
+/* ===== CHARTS ===== */
+const GRID="#eef0f4",TICK="#64748b";
+function baseOpts(o){const stacked=!!o.stacked;return{responsive:true,maintainAspectRatio:false,indexAxis:o.indexAxis||"x",plugins:{legend:o.legend?{position:"top",labels:{font:{size:11},boxWidth:12,padding:10}}:{display:false}},scales:{x:{stacked,grid:{color:GRID},ticks:{color:TICK,font:{size:11}}},y:{stacked,grid:{color:GRID},ticks:{color:TICK,font:{size:11}}}}};}
+function drawVel(sel){
+  destroy("vel");
+  const sps=[...window.SR_DATA.sprints].map((s,i)=>({s,i})).sort((a,b)=>a.s.sprintNo-b.s.sprintNo);
+  const labels=sps.map(x=>"S"+x.s.sprintNo);
+  const vals=sps.map(x=>planDelivered(x.s));
+  const colors=sps.map(x=>x.i===sel?"#5C26FF":"#c9bcff");
+  charts.vel=new Chart($("#cVel"),{type:"bar",data:{labels,datasets:[{label:"Delivered",data:vals,backgroundColor:colors,borderRadius:6,maxBarThickness:70}]},options:baseOpts({})});
+}
+function drawProj(arr){
+  destroy("proj");
+  const top=arr.filter(p=>p.total>0).slice(0,8);
+  charts.proj=new Chart($("#cProj"),{type:"bar",data:{labels:top.map(p=>p.meta?p.meta.label:p.name),datasets:[
+    {label:"Delivered",data:top.map(p=>p.bk.done),backgroundColor:"#10b981",borderRadius:5,stack:"s"},
+    {label:"Remaining",data:top.map(p=>p.total-p.bk.done),backgroundColor:"#e2d9ff",borderRadius:5,stack:"s"}
+  ]},options:baseOpts({legend:true,indexAxis:"y",stacked:true})});
+}
+function drawStatus(bk){
+  destroy("status");
+  const keys=["done","test","prog","todo","blocked","cancelled"].filter(k=>bk[k]>0);
+  charts.status=new Chart($("#cStatus"),{type:"doughnut",data:{labels:keys.map(k=>BK[k].l),datasets:[{data:keys.map(k=>bk[k]),backgroundColor:keys.map(k=>BK[k].c),borderWidth:2,borderColor:"#fff"}]},options:{responsive:true,maintainAspectRatio:false,cutout:"58%",plugins:{legend:{position:"right",labels:{font:{size:11},boxWidth:12,padding:9}}}}});
+}
+function drawTeam(issues){
+  destroy("team");
+  const map={};
+  issues.forEach(it=>{const a=shortName(it.assignee);if(a==="—")return;if(!map[a])map[a]={done:0,other:0};if(bucket(it)==="done")map[a].done++;else map[a].other++;});
+  const top=Object.entries(map).sort((a,b)=>(b[1].done+b[1].other)-(a[1].done+a[1].other)).slice(0,12);
+  charts.team=new Chart($("#cTeam"),{type:"bar",data:{labels:top.map(x=>x[0]),datasets:[
+    {label:"Delivered",data:top.map(x=>x[1].done),backgroundColor:"#10b981",borderRadius:4,stack:"s"},
+    {label:"In flight / carried",data:top.map(x=>x[1].other),backgroundColor:"#8A5CFF",borderRadius:4,stack:"s"}
+  ]},options:baseOpts({legend:true,indexAxis:"y",stacked:true})});
+}
+
+document.addEventListener("DOMContentLoaded",boot);
+</script>
+
+<script src="shared/pjm-sync.js"></script>
+<script src="shared/pjm-nav.js"></script>
+<script>
+const MODULE_ID='sprint-review';
+document.addEventListener('DOMContentLoaded',function(){
+  try{if(typeof PJMNav!=='undefined')PJMNav.render(MODULE_ID);}catch(e){console.warn('PJMNav unavailable:',e);}
+  try{if(typeof PJMSync!=='undefined')PJMSync.initModule(MODULE_ID,function(){});}catch(e){console.warn('PJMSync unavailable:',e);}
+});
+</script>
+</body>
+</html>

@@ -1,0 +1,720 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Overview — Meridian PJM</title>
+<script src="https://accounts.google.com/gsi/client" async defer></script>
+<link rel="stylesheet" href="shared/pjm.css">
+<style>
+.kpi-bar{display:grid;grid-template-columns:repeat(4,1fr);gap:16px;margin-bottom:28px}
+.kpi-card{background:var(--card);border:1px solid var(--border);border-radius:var(--radius);padding:20px 24px;display:flex;flex-direction:column;gap:6px}
+.kpi-card .kpi-label{font-size:12px;color:var(--muted);font-weight:600;text-transform:uppercase;letter-spacing:.5px}
+.kpi-card .kpi-value{font-size:32px;font-weight:800;line-height:1}
+.kpi-card .kpi-sub{font-size:12px;color:var(--muted)}
+.kpi-card.blue .kpi-value{color:#3b82f6}
+.kpi-card.green .kpi-value{color:#10b981}
+.kpi-card.orange .kpi-value{color:#f59e0b}
+.kpi-card.red .kpi-value{color:#ef4444}
+.section-title{font-size:15px;font-weight:700;margin-bottom:14px;display:flex;align-items:center;gap:8px}
+.proj-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:16px;margin-bottom:28px}
+.proj-card{background:var(--card);border:1px solid var(--border);border-radius:var(--radius);padding:18px;display:flex;flex-direction:column;gap:10px;transition:box-shadow .15s}
+.proj-card:hover{box-shadow:0 4px 16px rgba(0,0,0,.08)}
+.proj-card-top{display:flex;align-items:flex-start;justify-content:space-between;gap:8px}
+.proj-name{font-size:15px;font-weight:700}
+.proj-sprint{font-size:12px;color:var(--muted);margin-top:2px}
+.status-badge{font-size:10px;font-weight:700;padding:3px 8px;border-radius:20px;white-space:nowrap;flex-shrink:0}
+.status-badge.in-progress{background:#dbeafe;color:#1d4ed8}
+.status-badge.stale{background:#fef3c7;color:#92400e}
+.status-badge.done{background:#d1fae5;color:#065f46}
+.prog-bar-wrap{background:var(--border);border-radius:4px;height:6px;overflow:hidden}
+.prog-bar-fill{height:100%;border-radius:4px;transition:width .4s}
+.prog-bar-green{background:#10b981}
+.proj-meta{display:flex;justify-content:space-between;align-items:center;font-size:12px}
+.pm-label{color:var(--muted)}
+.blocked-badge{background:#fee2e2;color:#b91c1c;font-weight:700;font-size:11px;padding:2px 8px;border-radius:10px}
+.jira-btn{font-size:11px;color:var(--primary);text-decoration:none;font-weight:600;padding:4px 10px;border:1px solid var(--primary);border-radius:6px;transition:all .15s}
+.jira-btn:hover{background:var(--primary);color:#fff}
+.sync-table-wrap{background:var(--card);border:1px solid var(--border);border-radius:var(--radius);margin-bottom:28px;overflow:hidden}
+.sync-table-hdr{padding:16px 20px;border-bottom:1px solid var(--border);font-size:14px;font-weight:700;display:flex;align-items:center;gap:8px}
+.sync-table{width:100%;border-collapse:collapse}
+.sync-table th{padding:10px 16px;font-size:11px;color:var(--muted);font-weight:600;text-transform:uppercase;border-bottom:1px solid var(--border);text-align:left}
+.sync-table td{padding:10px 16px;font-size:13px;border-bottom:1px solid var(--border)}
+.sync-table tr:last-child td{border-bottom:none}
+.sync-table tr:hover td{background:var(--hover)}
+.dot{width:8px;height:8px;border-radius:50%;display:inline-block;margin-right:6px}
+.dot.fresh{background:#10b981}
+.dot.stale{background:#f59e0b}
+.dot.error{background:#ef4444}
+.dot.never{background:#94a3b8}
+.dot.loading{background:#3b82f6}
+.sprint-summary{background:linear-gradient(135deg,#eff6ff 0%,#f0fdf4 100%);border:1px solid #bfdbfe;border-radius:var(--radius);padding:20px 28px;display:flex;align-items:center;gap:32px;margin-bottom:28px;flex-wrap:wrap;}
+.ss-badge{background:#fff;border:2px solid var(--primary);border-radius:10px;padding:10px 20px;font-size:14px;font-weight:700;color:var(--primary)}
+.ss-info{font-size:13px;color:var(--text)}
+.ss-info strong{font-weight:700}
+.ss-pills{display:flex;flex-direction:column;align-items:center;gap:5px;margin-left:auto;}
+.day-pills-row{display:flex;gap:4px;}
+.day-pill{width:18px;height:18px;border-radius:4px;background:#e5e7eb;}
+.day-pill.done{background:linear-gradient(135deg,#3B82F6,#6C63FF);}
+.day-pill.today{background:linear-gradient(135deg,#f59e0b,#fbbf24);box-shadow:0 0 0 2px #fff,0 0 0 3px #f59e0b;}
+.day-pill-label{font-size:11px;color:#6b7280;font-weight:600;}
+/* ── Sprint Status table ── */
+.sprint-table-wrap{background:var(--card);border:1px solid var(--border);border-radius:var(--radius);margin-bottom:28px;overflow:hidden;}
+.sprint-table-hdr{padding:16px 20px;border-bottom:1px solid var(--border);font-size:14px;font-weight:700;display:flex;align-items:center;gap:8px;}
+.sprint-tbl{width:100%;border-collapse:collapse;}
+.sprint-tbl th{padding:10px 16px;font-size:11px;color:var(--muted);font-weight:600;text-transform:uppercase;border-bottom:1px solid var(--border);text-align:left;}
+.sprint-tbl td{padding:10px 16px;font-size:13px;border-bottom:1px solid var(--border);vertical-align:middle;}
+.sprint-tbl tr:last-child td{border-bottom:none;}
+.sprint-tbl tr:hover td{background:var(--hover);}
+.spb-wrap{background:#f3f4f6;border-radius:6px;height:8px;width:90px;overflow:hidden;display:inline-block;}
+.spb-fill{height:8px;border-radius:6px;}
+.spb-good{background:linear-gradient(90deg,#10b981,#34d399);}
+.spb-med{background:linear-gradient(90deg,#f59e0b,#fcd34d);}
+.spb-low{background:linear-gradient(90deg,#ef4444,#f87171);}
+.blocked-pill{display:inline-flex;align-items:center;padding:2px 8px;border-radius:10px;font-size:11px;font-weight:700;background:#fee2e2;color:#991b1b;}
+.src-badge{font-size:10px;font-weight:800;padding:2px 8px;border-radius:6px;letter-spacing:.2px;white-space:nowrap;}
+.src-jira{background:#dbeafe;color:#1d4ed8;}
+.src-linear{background:#ede9fe;color:#6d28d9;}
+.src-static{background:#f3f4f6;color:#9ca3af;font-style:italic;}
+/* ── Daily sections ── */
+.ov-two-col{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:28px;}
+.ov-card{background:var(--card);border:1px solid var(--border);border-radius:var(--radius);padding:20px 22px;}
+.ov-card-title{font-size:14px;font-weight:800;color:#1f2937;margin-bottom:14px;display:flex;align-items:center;gap:8px;}
+.live-tag{font-size:10px;color:#10b981;font-weight:800;background:#d1fae5;padding:1px 7px;border-radius:8px;}
+/* Focus items */
+.focus-row{display:flex;gap:10px;align-items:flex-start;padding:8px 0;border-bottom:1px solid #f3f4f6;}
+.focus-row:last-child{border-bottom:none;}
+.focus-num{width:22px;height:22px;border-radius:50%;background:linear-gradient(135deg,#3B82F6,#6C63FF);color:#fff;font-size:10px;font-weight:800;display:flex;align-items:center;justify-content:center;flex-shrink:0;margin-top:1px;}
+.focus-text{font-size:13px;font-weight:600;color:#1f2937;}
+.focus-meta{display:flex;gap:5px;margin-top:3px;flex-wrap:wrap;}
+.src-chip{font-size:10px;font-weight:700;padding:1px 6px;border-radius:7px;}
+.src-chip.jira{background:#dbeafe;color:#1d4ed8;}
+.src-chip.meeting{background:#d1fae5;color:#065f46;}
+.src-chip.manual{background:#f3f4f6;color:#6b7280;}
+.src-chip.slack{background:#ede9fe;color:#6d28d9;}
+.pri-dot{width:6px;height:6px;border-radius:50%;display:inline-block;margin-right:3px;flex-shrink:0;margin-top:4px;}
+.pri-dot.high{background:#ef4444;} .pri-dot.medium{background:#f59e0b;} .pri-dot.low{background:#10b981;}
+/* Blocker rows */
+.blocker-row{background:#fef9f9;border:1px solid #fee2e2;border-radius:8px;padding:10px 13px;margin-bottom:8px;display:flex;gap:10px;align-items:flex-start;}
+.blocker-row:last-child{margin-bottom:0;}
+.blocker-icon{font-size:15px;flex-shrink:0;}
+.blocker-title{font-size:13px;font-weight:600;color:#1f2937;}
+.blocker-ref{font-size:11px;color:var(--muted);margin-top:2px;}
+/* Meetings timeline */
+.mtg-timeline-wrap{margin-bottom:12px;}
+.mtg-timeline-track{position:relative;height:6px;background:#e5e7eb;border-radius:4px;margin-bottom:18px;}
+.mtg-timeline-fill{height:100%;border-radius:4px;background:linear-gradient(90deg,#10b981,#3b82f6);}
+.mtg-now-pin{position:absolute;top:-6px;width:3px;height:18px;background:#ef4444;border-radius:2px;transform:translateX(-50%);box-shadow:0 0 0 2px #fff,0 0 0 3px rgba(239,68,68,.3);}
+.mtg-now-lbl{position:absolute;top:-22px;font-size:9px;font-weight:800;color:#ef4444;transform:translateX(-50%);white-space:nowrap;background:#fff;padding:0 3px;border-radius:3px;}
+.mtg-row{display:flex;gap:8px;align-items:center;padding:7px 6px;border-bottom:1px solid #f3f4f6;border-left:3px solid transparent;border-radius:0 6px 6px 0;transition:background .15s;}
+.mtg-row:last-child{border-bottom:none;}
+.mtg-row.mtg-done{opacity:.5;border-left-color:#10b981;}
+.mtg-row.mtg-active{background:linear-gradient(90deg,#eff6ff 0%,transparent 100%);border-left-color:#3b82f6;}
+.mtg-row.mtg-next{border-left-color:#f59e0b;}
+.mtg-time{background:#eff6ff;color:#1d4ed8;font-size:11px;font-weight:700;padding:2px 8px;border-radius:7px;white-space:nowrap;}
+.mtg-row.mtg-done .mtg-time{background:#f3f4f6;color:#9ca3af;}
+.mtg-row.mtg-active .mtg-time{background:#dbeafe;color:#1d4ed8;}
+.mtg-name{font-size:13px;font-weight:600;color:#1f2937;flex:1;}
+.mtg-row.mtg-done .mtg-name{text-decoration:line-through;color:#9ca3af;font-weight:500;}
+.mtg-dur{font-size:11px;color:var(--muted);}
+.mtg-sbadge{font-size:10px;font-weight:800;padding:2px 7px;border-radius:8px;white-space:nowrap;flex-shrink:0;}
+.mtg-sbadge.s-done{background:#d1fae5;color:#065f46;}
+.mtg-sbadge.s-active{background:#dbeafe;color:#1d4ed8;}
+.mtg-sbadge.s-next{background:#fef3c7;color:#92400e;}
+.mtg-now-divider{display:flex;align-items:center;gap:6px;padding:3px 0;margin:1px 0;}
+.mtg-now-divline{flex:1;height:1px;background:#fca5a5;}
+.mtg-now-divtxt{font-size:10px;font-weight:800;color:#ef4444;white-space:nowrap;}
+@keyframes mtg-pulse{0%,100%{opacity:1;}50%{opacity:.55;}}
+.mtg-sbadge.s-active{animation:mtg-pulse 1.6s ease-in-out infinite;}
+/* Done rows */
+.done-row{display:flex;gap:8px;align-items:flex-start;padding:7px 0;border-bottom:1px solid #f3f4f6;}
+.done-row:last-child{border-bottom:none;}
+.done-check{color:#10b981;font-size:14px;flex-shrink:0;margin-top:1px;}
+.done-text{font-size:13px;color:#1f2937;}
+/* Action items */
+.ai-row{display:flex;gap:8px;align-items:flex-start;padding:8px 0;border-bottom:1px solid #f3f4f6;}
+.ai-row:last-child{border-bottom:none;}
+.ai-num{font-size:12px;font-weight:700;color:#3B82F6;flex-shrink:0;width:18px;}
+.ai-text{font-size:13px;color:#1f2937;flex:1;}
+/* Stale-data banner */
+.stale-bar{display:flex;gap:8px;align-items:center;flex-wrap:wrap;padding:8px 14px;background:#fffbeb;border:1px solid #fde68a;border-radius:8px;margin-bottom:16px;font-size:12px;color:#92400e;font-weight:600;}
+.live-bar{display:flex;gap:8px;align-items:center;flex-wrap:wrap;padding:8px 14px;background:#f0fdf4;border:1px solid #bbf7d0;border-radius:8px;margin-bottom:16px;font-size:12px;color:#065f46;font-weight:600;}
+@media(max-width:900px){.proj-grid{grid-template-columns:repeat(2,1fr)}.kpi-bar{grid-template-columns:repeat(2,1fr)}.ov-two-col{grid-template-columns:1fr;}}
+@media(max-width:600px){.proj-grid{grid-template-columns:1fr}.kpi-bar{grid-template-columns:repeat(2,1fr)}}
+</style>
+
+<style id="demoBannerCss">
+#pjmDemoBanner{position:fixed;top:0;left:0;right:0;z-index:99999;background:#8A5CFF;color:#fff;
+ font:600 12px/1.4 system-ui,-apple-system,Segoe UI,sans-serif;padding:7px 44px 7px 16px;text-align:center;
+ letter-spacing:.2px;box-shadow:0 1px 6px rgba(0,0,0,.18)}
+#pjmDemoBanner a{color:#fff;text-decoration:underline}
+#pjmDemoBanner button{position:absolute;right:10px;top:4px;background:none;border:none;color:#fff;
+ font-size:17px;line-height:1;cursor:pointer;padding:4px}
+body.has-demo-banner{padding-top:30px}
+</style>
+<script id="pjmDemoMode">
+/* ===== PUBLIC DEMO BUILD =====
+   All data in this build is fictional. No credentials ship with it and no
+   outbound calls to third-party APIs are permitted. */
+(function(){
+  window.PJM_DEMO = true;
+  var BLOCK = /(api\.linear\.app|api\.github\.com|graphql|googleapis\.com|slack\.com|atlassian\.net)/i;
+  var of = window.fetch;
+  window.fetch = function(input){
+    var u = (typeof input === 'string') ? input : (input && input.url) || '';
+    if (BLOCK.test(u)) {
+      console.info('[demo] blocked outbound call:', u);
+      return Promise.resolve(new Response(JSON.stringify({data:null,demo:true}),
+        {status:200, headers:{'Content-Type':'application/json'}}));
+    }
+    return of.apply(this, arguments);
+  };
+  var ox = window.XMLHttpRequest && window.XMLHttpRequest.prototype.open;
+  if (ox) window.XMLHttpRequest.prototype.open = function(m,u){
+    if (BLOCK.test(String(u))) { console.info('[demo] blocked XHR:', u); u = 'data:application/json,{}'; }
+    return ox.apply(this, [m,u].concat([].slice.call(arguments,2)));
+  };
+  document.addEventListener('DOMContentLoaded', function(){
+    if (sessionStorage.getItem('pjmDemoBannerHidden')) return;
+    var b = document.createElement('div');
+    b.id = 'pjmDemoBanner';
+    b.innerHTML = 'DEMO BUILD \u2014 every person, project, ticket and meeting below is fictional. ' +
+                  'Live integrations are disabled in this build.' +
+                  '<button title="Dismiss" onclick="this.parentNode.remove();' +
+                  'document.body.classList.remove(\'has-demo-banner\');' +
+                  'sessionStorage.setItem(\'pjmDemoBannerHidden\',\'1\')">&times;</button>';
+    document.body.appendChild(b);
+    document.body.classList.add('has-demo-banner');
+  });
+})();
+</script>
+</head>
+<body>
+<div id="loginOverlay"><div class="login-box"><div class="login-logo">⬡</div><h2>Meridian PJM</h2><p>Sign in with your Meridian account to continue.</p><div id="googleSignInBtn"></div><div id="loginError"></div></div></div>
+<div id="pjmSidebarContainer"></div>
+<div class="pjm-main">
+  <div class="module-header">
+    <div>
+      <div class="module-title">📊 Overview</div>
+      <div class="section-sub" id="overviewSub">Live aggregation across all projects and modules</div>
+    </div>
+    <div class="module-header-right">
+      <span id="lastSyncedLabel" class="last-synced-label">Never synced</span>
+      <div class="date-badge" id="todayDate"></div>
+      <button class="sync-btn" id="syncBtn" onclick="doSync()"><span class="sync-icon">🔄</span> Sync</button>
+    </div>
+  </div>
+  <div id="moduleContent"><div class="loading-state"><div class="spinner"></div>Loading…</div></div>
+</div>
+<script src="shared/pjm-sync.js"></script>
+<script src="shared/pjm-nav.js"></script>
+<script>
+(function(){var d=new Date();var days=['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];var months=['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];var el=document.getElementById('todayDate');if(el)el.textContent='📅 '+days[d.getDay()]+' '+months[d.getMonth()]+' '+d.getDate();})();
+
+const MODULE_ID='overview';
+
+/* ── Linear API (mirrors 02-projects.html) ── */
+function getLinearKey(){return localStorage.getItem('pjmdemo_linear_key')||null;}
+function linearGQL(query,variables,keyOverride){
+  var key=keyOverride||getLinearKey();
+  if(!key)return Promise.reject('No Linear API key');
+  return fetch('https://api.linear.app/graphql',{
+    method:'POST',
+    headers:{'Content-Type':'application/json','Authorization':key},
+    body:JSON.stringify({query:query,variables:variables||{}})
+  }).then(function(r){return r.json();});
+}
+
+/* ── Linear snapshot — Cycle 11 / Sprint 21 (28 Sep–10 Oct 2026), refreshed 30 Sep 2026.
+   Values mirror 02-projects.html so Overview aggregates match the Projects tab exactly.
+   Press Sync to refresh live via the Linear GraphQL API. ── */
+var LINEAR_SNAPSHOT_LABEL='Cycle 11 · Sprint 21 · snapshot 30 Sep 2026';
+var linearProjectData = {"MARK": {"name": "Atlas Marketplace", "fullName": "Atlas Marketplace", "total": 327, "done": 21, "inProgress": 217, "toDo": 81, "blocked": 8, "cancelled": 0, "pct": 6, "statusBreakdown": {"Done": 21, "In Progress": 217, "Todo": 81, "Hold or Blocked": 8}, "assigneeWorkload": {}, "milestones": [{"name": "Discovery", "date": "2026-09-18", "sort": 0, "pct": 0}, {"name": "Alpha", "date": "2026-10-02", "sort": 1, "pct": 0}, {"name": "Private Beta", "date": "2026-10-31", "sort": 2, "pct": 0}], "lead": "Alina Rowe", "linearUrl": "https://linear.example.com/demo/project/atlas-marketplace", "hasCycle": true, "cycleName": "Cycle 11", "cycleStart": "28 Sep 2026", "cycleEnd": "10 Oct 2026", "velocity": [], "sprint": "Atlas Marketplace", "start": "28 Sep 2026", "end": "10 Oct 2026", "issues": [], "priority": 1, "projStatus": "In Progress"}, "LABS": {"name": "Forge Labs", "fullName": "Forge Labs", "total": 51, "done": 0, "inProgress": 47, "toDo": 3, "blocked": 1, "cancelled": 0, "pct": 0, "statusBreakdown": {"In Progress": 47, "Todo": 3, "Hold or Blocked": 1}, "assigneeWorkload": {}, "milestones": [], "lead": "Marcus Vidal", "linearUrl": "https://linear.example.com/demo/project/forge-labs", "hasCycle": true, "cycleName": "Cycle 11", "cycleStart": "28 Sep 2026", "cycleEnd": "10 Oct 2026", "velocity": [], "sprint": "Forge Labs", "start": "28 Sep 2026", "end": "10 Oct 2026", "issues": [], "priority": 3, "projStatus": "In Progress"}, "HARN": {"name": "Test Harness", "fullName": "Test Harness", "total": 39, "done": 1, "inProgress": 30, "toDo": 8, "blocked": 0, "cancelled": 0, "pct": 3, "statusBreakdown": {"Done": 1, "In Progress": 30, "Todo": 8}, "assigneeWorkload": {}, "milestones": [{"name": "Private Beta", "date": "2026-10-31", "sort": 0, "pct": 0}, {"name": "Public Beta", "date": null, "sort": 1, "pct": 0}, {"name": "GA", "date": null, "sort": 2, "pct": 0}], "lead": "Nadia Oyelaran", "linearUrl": "https://linear.example.com/demo/project/test-harness", "hasCycle": true, "cycleName": "Cycle 11", "cycleStart": "28 Sep 2026", "cycleEnd": "10 Oct 2026", "velocity": [], "sprint": "Test Harness", "start": "28 Sep 2026", "end": "10 Oct 2026", "issues": [], "priority": 1, "projStatus": "In Progress"}, "CONC": {"name": "Summit Bench", "fullName": "Summit Bench", "total": 30, "done": 16, "inProgress": 6, "toDo": 0, "blocked": 8, "cancelled": 0, "pct": 53, "statusBreakdown": {"Done": 16, "In Progress": 6, "Hold or Blocked": 8}, "assigneeWorkload": {}, "milestones": [{"name": "Public Beta", "date": null, "sort": 0, "pct": 100}, {"name": "GA", "date": null, "sort": 1, "pct": 0}, {"name": "Hardening", "date": null, "sort": 2, "pct": 0}, {"name": "Stage 1", "date": null, "sort": 3, "pct": 0}, {"name": "Stage 2", "date": null, "sort": 4, "pct": 0}, {"name": "Stage 3", "date": null, "sort": 5, "pct": 0}, {"name": "Pilot", "date": null, "sort": 6, "pct": 100}, {"name": "Rollout", "date": null, "sort": 7, "pct": 100}, {"name": "Post-launch Review", "date": null, "sort": 8, "pct": 0}, {"name": "M1: Foundations", "date": null, "sort": 9, "pct": 100}, {"name": "M2: Core Flows", "date": null, "sort": 10, "pct": 0}, {"name": "M3: Integrations", "date": null, "sort": 11, "pct": 0}, {"name": "M4: Performance", "date": null, "sort": 12, "pct": 0}, {"name": "Discovery", "date": null, "sort": 13, "pct": 0}, {"name": "Alpha", "date": null, "sort": 14, "pct": 0}, {"name": "Private Beta", "date": null, "sort": 15, "pct": 0}], "lead": "Tomas Berg", "linearUrl": "https://linear.example.com/demo/project/summit-bench", "hasCycle": true, "cycleName": "Cycle 11", "cycleStart": "28 Sep 2026", "cycleEnd": "10 Oct 2026", "velocity": [], "sprint": "Summit Bench", "start": "28 Sep 2026", "end": "10 Oct 2026", "issues": [], "priority": 1, "projStatus": "In Progress"}, "RMNF": {"name": "Adaptive Pricing Framework", "fullName": "Adaptive Pricing Framework", "total": 30, "done": 0, "inProgress": 14, "toDo": 16, "blocked": 0, "cancelled": 0, "pct": 0, "statusBreakdown": {"In Progress": 14, "Todo": 16}, "assigneeWorkload": {}, "milestones": [{"name": "GA", "date": "2026-05-23", "sort": 0, "pct": 100}, {"name": "Hardening", "date": "2026-05-30", "sort": 1, "pct": 100}, {"name": "Stage 1", "date": "2026-06-06", "sort": 2, "pct": 0}, {"name": "Stage 2", "date": "2026-06-13", "sort": 3, "pct": 0}, {"name": "Stage 3", "date": "2026-06-20", "sort": 4, "pct": 0}, {"name": "Pilot", "date": "2026-07-04", "sort": 5, "pct": 0}, {"name": "Rollout", "date": "2026-07-11", "sort": 6, "pct": 0}, {"name": "Post-launch Review", "date": "2026-07-25", "sort": 7, "pct": 0}, {"name": "M1: Foundations", "date": null, "sort": 8, "pct": 0}, {"name": "M2: Core Flows", "date": null, "sort": 9, "pct": 0}, {"name": "M3: Integrations", "date": null, "sort": 10, "pct": 0}], "lead": "Priya Anand", "linearUrl": "https://linear.example.com/demo/project/adaptive-pricing-framework", "hasCycle": true, "cycleName": "Cycle 11", "cycleStart": "28 Sep 2026", "cycleEnd": "10 Oct 2026", "velocity": [], "sprint": "Adaptive Pricing Framework", "start": "28 Sep 2026", "end": "10 Oct 2026", "issues": [], "priority": 1, "projStatus": "In Progress"}, "CONN": {"name": "Connectors", "fullName": "Connectors", "total": 27, "done": 1, "inProgress": 17, "toDo": 1, "blocked": 8, "cancelled": 0, "pct": 4, "statusBreakdown": {"Done": 1, "In Progress": 17, "Todo": 1, "Hold or Blocked": 8}, "assigneeWorkload": {}, "milestones": [{"name": "Hardening", "date": "2026-10-31", "sort": 0, "pct": 0}], "lead": "Rohan Desai", "linearUrl": "https://linear.example.com/demo/project/connectors", "hasCycle": true, "cycleName": "Cycle 11", "cycleStart": "28 Sep 2026", "cycleEnd": "10 Oct 2026", "velocity": [], "sprint": "Connectors", "start": "28 Sep 2026", "end": "10 Oct 2026", "issues": [], "priority": 1, "projStatus": "In Progress"}, "ALPR": {"name": "Marketing Site Rebuild", "fullName": "Marketing Site Rebuild", "total": 17, "done": 17, "inProgress": 0, "toDo": 0, "blocked": 0, "cancelled": 0, "pct": 100, "statusBreakdown": {"Done": 17}, "assigneeWorkload": {}, "milestones": [], "lead": "Elena Marsh", "linearUrl": "https://linear.example.com/demo/project/marketing-site-rebuild", "hasCycle": true, "cycleName": "Cycle 11", "cycleStart": "28 Sep 2026", "cycleEnd": "10 Oct 2026", "velocity": [], "sprint": "Marketing Site Rebuild", "start": "28 Sep 2026", "end": "10 Oct 2026", "issues": [], "priority": 1, "projStatus": "In Progress"}, "AST": {"name": "Support Tool", "fullName": "Support Tool", "total": 15, "done": 0, "inProgress": 14, "toDo": 1, "blocked": 0, "cancelled": 0, "pct": 0, "statusBreakdown": {"In Progress": 14, "Todo": 1}, "assigneeWorkload": {}, "milestones": [], "lead": "Unassigned", "linearUrl": "https://linear.example.com/demo/project/support-tool", "hasCycle": true, "cycleName": "Cycle 3", "cycleStart": "21 Sep 2026", "cycleEnd": "4 Oct 2026", "velocity": [], "sprint": "Support Tool", "start": "21 Sep 2026", "end": "4 Oct 2026", "issues": [], "priority": 1, "projStatus": "In Progress"}, "AN": {"name": "Beacon (non-tech)", "fullName": "Beacon (non-tech)", "total": 8, "done": 0, "inProgress": 3, "toDo": 3, "blocked": 2, "cancelled": 0, "pct": 0, "statusBreakdown": {"In Progress": 3, "Todo": 3, "Hold or Blocked": 2}, "assigneeWorkload": {}, "milestones": [], "lead": "Sofia Lindqvist", "linearUrl": "https://linear.example.com/demo/project/beacon-non-tech", "hasCycle": true, "cycleName": "Cycle 11", "cycleStart": "28 Sep 2026", "cycleEnd": "10 Oct 2026", "velocity": [], "sprint": "Beacon (non-tech)", "start": "28 Sep 2026", "end": "10 Oct 2026", "issues": [], "priority": 4, "projStatus": "In Progress"}, "SME": {"name": "smb", "fullName": "smb", "total": 8, "done": 1, "inProgress": 7, "toDo": 0, "blocked": 0, "cancelled": 0, "pct": 12, "statusBreakdown": {"Done": 1, "In Progress": 7}, "assigneeWorkload": {}, "milestones": [], "lead": "Arjun Nair", "linearUrl": "https://linear.example.com/demo/project/smb", "hasCycle": true, "cycleName": "Cycle 11", "cycleStart": "28 Sep 2026", "cycleEnd": "10 Oct 2026", "velocity": [], "sprint": "smb", "start": "28 Sep 2026", "end": "10 Oct 2026", "issues": [], "priority": 4, "projStatus": "In Progress"}, "DSS": {"name": "Delivery Service", "fullName": "Delivery Service", "total": 2, "done": 0, "inProgress": 2, "toDo": 0, "blocked": 0, "cancelled": 0, "pct": 0, "statusBreakdown": {"In Progress": 2}, "assigneeWorkload": {}, "milestones": [], "lead": "Hana Sato", "linearUrl": "https://linear.example.com/demo/project/delivery-service", "hasCycle": true, "cycleName": "Cycle 11", "cycleStart": "28 Sep 2026", "cycleEnd": "10 Oct 2026", "velocity": [], "sprint": "Delivery Service", "start": "28 Sep 2026", "end": "10 Oct 2026", "issues": [], "priority": 1, "projStatus": "In Progress"}, "AIOP": {"name": "AI Ops", "fullName": "AI Ops", "total": 0, "done": 0, "inProgress": 0, "toDo": 0, "blocked": 0, "cancelled": 0, "pct": 0, "statusBreakdown": {}, "assigneeWorkload": {}, "milestones": [], "lead": "Daniel Okafor", "linearUrl": "https://linear.example.com/demo/project/ai-ops", "hasCycle": false, "cycleName": "Cycle 11", "cycleStart": "28 Sep 2026", "cycleEnd": "10 Oct 2026", "velocity": [], "sprint": "AI Ops", "start": "28 Sep 2026", "end": "10 Oct 2026", "issues": [], "priority": 2, "projStatus": "In Progress"}, "EVAL": {"name": "Evaluations", "fullName": "Evaluations", "total": 0, "done": 0, "inProgress": 0, "toDo": 0, "blocked": 0, "cancelled": 0, "pct": 0, "statusBreakdown": {}, "assigneeWorkload": {}, "milestones": [], "lead": "Freya Nilsen", "linearUrl": "https://linear.example.com/demo/project/evaluations", "hasCycle": false, "cycleName": "Cycle 11", "cycleStart": "28 Sep 2026", "cycleEnd": "10 Oct 2026", "velocity": [], "sprint": "Evaluations", "start": "28 Sep 2026", "end": "10 Oct 2026", "issues": [], "priority": 1, "projStatus": "In Progress"}, "CS": {"name": "Customer Sandbox", "fullName": "Customer Sandbox", "total": 17, "done": 0, "inProgress": 17, "toDo": 0, "blocked": 0, "cancelled": 0, "pct": 0, "statusBreakdown": {"In Progress": 17}, "assigneeWorkload": {}, "milestones": [], "lead": "Unassigned", "linearUrl": "https://linear.example.com/demo/project/customer-sandbox", "hasCycle": true, "cycleName": "Cycle 3", "cycleStart": "21 Sep 2026", "cycleEnd": "4 Oct 2026", "velocity": [], "sprint": "Customer Sandbox", "start": "21 Sep 2026", "end": "4 Oct 2026", "issues": [], "priority": 4, "projStatus": "Backlog"}, "FOLI": {"name": "Ledger", "fullName": "Ledger", "total": 7, "done": 0, "inProgress": 7, "toDo": 0, "blocked": 0, "cancelled": 0, "pct": 0, "statusBreakdown": {"In Progress": 7}, "assigneeWorkload": {}, "milestones": [], "lead": "Clara Bennett", "linearUrl": "https://linear.example.com/demo/project/ledger", "hasCycle": true, "cycleName": "Cycle 11", "cycleStart": "28 Sep 2026", "cycleEnd": "10 Oct 2026", "velocity": [], "sprint": "Ledger", "start": "28 Sep 2026", "end": "10 Oct 2026", "issues": [], "priority": 1, "projStatus": "Backlog"}, "BEACON": {"name": "Beacon", "fullName": "Beacon", "total": 5, "done": 0, "inProgress": 5, "toDo": 0, "blocked": 0, "cancelled": 0, "pct": 0, "statusBreakdown": {"In Progress": 5}, "assigneeWorkload": {}, "milestones": [], "lead": "Idris Khan", "linearUrl": "https://linear.example.com/demo/project/beacon", "hasCycle": true, "cycleName": "Cycle 11", "cycleStart": "28 Sep 2026", "cycleEnd": "10 Oct 2026", "velocity": [], "sprint": "Beacon", "start": "28 Sep 2026", "end": "10 Oct 2026", "issues": [], "priority": 2, "projStatus": "Completed"}, "GW": {"name": "Partner Workshop", "fullName": "Partner Workshop", "total": 4, "done": 0, "inProgress": 4, "toDo": 0, "blocked": 0, "cancelled": 0, "pct": 0, "statusBreakdown": {"In Progress": 4}, "assigneeWorkload": {}, "milestones": [], "lead": "Mei Chen", "linearUrl": "https://linear.example.com/demo/project/partner-workshop", "hasCycle": true, "cycleName": "Cycle 11", "cycleStart": "28 Sep 2026", "cycleEnd": "10 Oct 2026", "velocity": [], "sprint": "Partner Workshop", "start": "28 Sep 2026", "end": "10 Oct 2026", "issues": [], "priority": 1, "projStatus": "Backlog"}, "MH": {"name": "Drift Harness", "fullName": "Drift Harness", "total": 1, "done": 0, "inProgress": 1, "toDo": 0, "blocked": 0, "cancelled": 0, "pct": 0, "statusBreakdown": {"In Progress": 1}, "assigneeWorkload": {}, "milestones": [], "lead": "Oscar Duarte", "linearUrl": "https://linear.example.com/demo/project/drift-harness", "hasCycle": true, "cycleName": "Cycle 11", "cycleStart": "28 Sep 2026", "cycleEnd": "10 Oct 2026", "velocity": [], "sprint": "Drift Harness", "start": "28 Sep 2026", "end": "10 Oct 2026", "issues": [], "priority": 4, "projStatus": "Backlog"}, "ADTE": {"name": "Cobalt Support", "fullName": "Cobalt Support", "total": 0, "done": 0, "inProgress": 0, "toDo": 0, "blocked": 0, "cancelled": 0, "pct": 0, "statusBreakdown": {}, "assigneeWorkload": {}, "milestones": [], "lead": "Unassigned", "linearUrl": "https://linear.example.com/demo/project/cobalt-support", "hasCycle": false, "cycleName": "Cycle 11", "cycleStart": "28 Sep 2026", "cycleEnd": "10 Oct 2026", "velocity": [], "sprint": "Cobalt Support", "start": "28 Sep 2026", "end": "10 Oct 2026", "issues": [], "priority": 4, "projStatus": "Backlog"}, "AS": {"name": "Beacon Support", "fullName": "Beacon Support", "total": 0, "done": 0, "inProgress": 0, "toDo": 0, "blocked": 0, "cancelled": 0, "pct": 0, "statusBreakdown": {}, "assigneeWorkload": {}, "milestones": [], "lead": "Unassigned", "linearUrl": "https://linear.example.com/demo/project/beacon-support", "hasCycle": false, "cycleName": "Cycle 11", "cycleStart": "28 Sep 2026", "cycleEnd": "10 Oct 2026", "velocity": [], "sprint": "Beacon Support", "start": "28 Sep 2026", "end": "10 Oct 2026", "issues": [], "priority": 4, "projStatus": "Backlog"}, "AF": {"name": "Automation Factory", "fullName": "Automation Factory", "total": 0, "done": 0, "inProgress": 0, "toDo": 0, "blocked": 0, "cancelled": 0, "pct": 0, "statusBreakdown": {}, "assigneeWorkload": {}, "milestones": [], "lead": "Grace Mwangi", "linearUrl": "https://linear.example.com/demo/project/automation-factory", "hasCycle": false, "cycleName": "Cycle 11", "cycleStart": "28 Sep 2026", "cycleEnd": "10 Oct 2026", "velocity": [], "sprint": "Automation Factory", "start": "28 Sep 2026", "end": "10 Oct 2026", "issues": [], "priority": 2, "projStatus": "Blocked/Hold"}, "LS": {"name": "Forge Support", "fullName": "Forge Support", "total": 0, "done": 0, "inProgress": 0, "toDo": 0, "blocked": 0, "cancelled": 0, "pct": 0, "statusBreakdown": {}, "assigneeWorkload": {}, "milestones": [], "lead": "Unassigned", "linearUrl": "https://linear.example.com/demo/project/forge-support", "hasCycle": false, "cycleName": "Cycle 11", "cycleStart": "28 Sep 2026", "cycleEnd": "10 Oct 2026", "velocity": [], "sprint": "Forge Support", "start": "28 Sep 2026", "end": "10 Oct 2026", "issues": [], "priority": 4, "projStatus": "Backlog"}, "LABS2": {"name": "Forge Support 2", "fullName": "Forge Support 2", "total": 0, "done": 0, "inProgress": 0, "toDo": 0, "blocked": 0, "cancelled": 0, "pct": 0, "statusBreakdown": {}, "assigneeWorkload": {}, "milestones": [], "lead": "Unassigned", "linearUrl": "https://linear.example.com/demo/project/forge-support-2", "hasCycle": false, "cycleName": "Cycle 11", "cycleStart": "28 Sep 2026", "cycleEnd": "10 Oct 2026", "velocity": [], "sprint": "Forge Support 2", "start": "28 Sep 2026", "end": "10 Oct 2026", "issues": [], "priority": 4, "projStatus": "Backlog"}};
+
+/* ── Runtime live-state — flips true after a successful Linear refresh ── */
+var LINEAR_LIVE=false;
+var LINEAR_SYNC_TIME='';
+
+/* ── Live data readers ── */
+function getLiveLinear(){try{return JSON.parse(localStorage.getItem('pjmdemo_pjm_linear_v1'))||null;}catch(e){return null;}}
+function getLiveCalendar(){try{return JSON.parse(localStorage.getItem('pjmdemo_pjm_calendar_v1'))||null;}catch(e){return null;}}
+function getLiveGemini(){try{return JSON.parse(localStorage.getItem('pjmdemo_pjm_gemini_v1'))||null;}catch(e){return null;}}
+function getLiveSlack(){try{return JSON.parse(localStorage.getItem('pjmdemo_pjm_slack_v1'))||null;}catch(e){return null;}}
+function loadTasks(){try{var r=localStorage.getItem('pjmdemo_ai_tasks_v2');if(r)return JSON.parse(r);}catch(e){}return [];}
+
+function escHtml(s){if(!s)return '';return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');}
+
+/* ── Aggregate helpers over linearProjectData ── */
+function projectList(){
+  return Object.keys(linearProjectData).map(function(k){
+    var p=linearProjectData[k];var o={key:k};for(var f in p){if(p.hasOwnProperty(f))o[f]=p[f];}return o;
+  }).sort(function(a,b){return (a.priority||99)-(b.priority||99);});
+}
+function aggLinear(){
+  var t={total:0,done:0,inProgress:0,toDo:0,blocked:0};
+  projectList().forEach(function(p){
+    t.total+=p.total||0;t.done+=p.done||0;t.inProgress+=p.inProgress||0;t.toDo+=p.toDo||0;t.blocked+=p.blocked||0;
+  });
+  t.pct=t.total?Math.round(t.done/t.total*100):0;
+  return t;
+}
+function activeCycleLabel(){
+  var p=projectList().find(function(x){return x.hasCycle&&x.cycleName&&/Cycle/.test(x.cycleName);});
+  if(p)return p.cycleName+(p.cycleStart&&p.cycleEnd?' · '+p.cycleStart+' – '+p.cycleEnd:'');
+  return '';
+}
+function spbClass(pct){if(pct>=70)return 'spb-good';if(pct>=40)return 'spb-med';return 'spb-low';}
+
+function getTodayMeetings(cal){
+  if(!cal||!cal.today||!cal.today.length)return null;
+  return cal.today.map(function(ev){
+    /* Google Calendar returns start as {dateTime:"..."} or {date:"..."} — not a plain string */
+    var startStr=ev.start&&ev.start.dateTime?ev.start.dateTime:(ev.start&&ev.start.date?ev.start.date:(typeof ev.start==='string'?ev.start:null));
+    var start=startStr?new Date(startStr):null;
+    var timeStr='TBD';
+    if(start&&!isNaN(start.getTime())){
+      var h=start.getHours(),m=start.getMinutes();
+      var ampm=h>=12?'PM':'AM';h=h%12||12;
+      timeStr=(h<10?'0':'')+h+':'+(m<10?'0':'')+m+' '+ampm;
+    }
+    /* Duration from start+end */
+    var endStr=ev.end&&ev.end.dateTime?ev.end.dateTime:(ev.end&&ev.end.date?ev.end.date:null);
+    var dur=ev.duration||'';
+    if(!dur&&startStr&&endStr){
+      var diff=(new Date(endStr)-new Date(startStr))/60000;
+      if(!isNaN(diff)&&diff>0)dur=diff>=60?(Math.floor(diff/60)+'h'+(diff%60?' '+diff%60+'min':'')):(diff+' min');
+    }
+    var startMs=start&&!isNaN(start.getTime())?start.getTime():null;
+    var endDt=endStr?new Date(endStr):null;
+    var endMs=endDt&&!isNaN(endDt.getTime())?endDt.getTime():null;
+    return {time:timeStr,title:ev.summary||'Meeting',duration:dur,joinUrl:ev.conferenceUrl||ev.hangoutLink||'',startMs:startMs,endMs:endMs};
+  });
+}
+
+/* Parse "10:00 AM" / "14:30" → today's ms timestamp */
+function parseTimeToMs(t){
+  if(!t||t==='TBD')return null;
+  var m=t.match(/(\d+):(\d+)\s*(AM|PM)?/i);
+  if(!m)return null;
+  var h=parseInt(m[1]),min=parseInt(m[2]),ap=(m[3]||'').toUpperCase();
+  if(ap==='PM'&&h!==12)h+=12;
+  if(ap==='AM'&&h===12)h=0;
+  var d=new Date();d.setHours(h,min,0,0);return d.getTime();
+}
+/* Parse "30 min" / "1h" / "1h 30min" → ms */
+function parseDurMs(dur){
+  if(!dur)return 30*60000;
+  var h=(dur.match(/(\d+)\s*h/)||[])[1]||0;
+  var m=(dur.match(/(\d+)\s*min/)||[])[1]||0;
+  if(!+h&&!+m){m=(dur.match(/^(\d+)$/)||[])[1]||30;}
+  return(+h*60+ +m)*60000;
+}
+
+function render(){
+  var cal=getLiveCalendar();
+  var projs=projectList();
+  var agg=aggLinear();
+  var completionPct=agg.pct;
+  var todayMeetingCount=cal?(cal.todayCount||(cal.today&&cal.today.length)||0):0;
+  var cycleLbl=activeCycleLabel();
+  var s=PJMSync.Sprint.current;
+
+  let html='';
+
+  /* ── Data-source status bar ── */
+  if(LINEAR_LIVE){
+    html+='<div class="live-bar">'
+      +'<span style="width:8px;height:8px;border-radius:50%;background:#10b981;display:inline-block;"></span>'
+      +'🟢 Live Linear data — '+projs.length+' projects'
+      +(todayMeetingCount?' · 📅 '+todayMeetingCount+' meeting'+(todayMeetingCount>1?'s':'')+' today':'')
+      +(LINEAR_SYNC_TIME?'<span style="margin-left:auto;font-size:11px;color:#059669;">Synced '+LINEAR_SYNC_TIME+'</span>':'')
+      +'</div>';
+  } else {
+    html+='<div class="stale-bar">'
+      +'<span style="width:8px;height:8px;border-radius:50%;background:#f59e0b;display:inline-block;"></span>'
+      +'🟡 Snapshot data — '+LINEAR_SNAPSHOT_LABEL+' · '+projs.length+' Linear projects'
+      +'<span style="margin-left:auto;font-size:11px;">Press Sync for live refresh</span>'
+      +'</div>';
+  }
+
+  html+=`
+  <div class="sprint-summary">
+    <div class="ss-badge">▶ Sprint ${s.number} · W${s.week} D${s.day}</div>
+    <div class="ss-info">
+      <strong>${cycleLbl||s.dates}</strong> &nbsp;·&nbsp;
+      ${projs.length} active projects &nbsp;·&nbsp;
+      ${completionPct}% overall completion${todayMeetingCount?' · '+todayMeetingCount+' meeting'+(todayMeetingCount>1?'s':'')+' today':''}
+    </div>
+    <div class="ss-pills">${(function(){
+      var todayNum=((s.week-1)*5)+s.day;
+      var pills='';
+      for(var i=1;i<=10;i++){
+        if(i===todayNum) pills+='<div class="day-pill today" title="Today: Day '+i+'"></div>';
+        else if(i<todayNum) pills+='<div class="day-pill done" title="Day '+i+'"></div>';
+        else pills+='<div class="day-pill" title="Day '+i+'"></div>';
+      }
+      return '<div class="day-pills-row">'+pills+'</div><div class="day-pill-label">Day '+todayNum+' of 10</div>';
+    })()}</div>
+  </div>
+
+  <div class="kpi-bar">
+    <div class="kpi-card blue">
+      <div class="kpi-label">Total Cycle Items</div>
+      <div class="kpi-value">${agg.total}</div>
+      <div class="kpi-sub">Across ${projs.length} projects${LINEAR_LIVE?' 🟢':''}</div>
+    </div>
+    <div class="kpi-card green">
+      <div class="kpi-label">Done</div>
+      <div class="kpi-value">${agg.done}</div>
+      <div class="kpi-sub">${completionPct}% completion</div>
+    </div>
+    <div class="kpi-card orange">
+      <div class="kpi-label">In Progress</div>
+      <div class="kpi-value">${agg.inProgress}</div>
+      <div class="kpi-sub">Active development</div>
+    </div>
+    <div class="kpi-card ${agg.blocked>0?'red':'green'}">
+      <div class="kpi-label">Total Blocked</div>
+      <div class="kpi-value">${agg.blocked}</div>
+      <div class="kpi-sub">${agg.blocked>0?'Needs attention':'All clear'}</div>
+    </div>
+  </div>
+  `;
+
+  /* ── Sprint Status Table ── */
+  html+='<div class="sprint-table-wrap">'
+    +'<div class="sprint-table-hdr">📊 Cycle Status — All Projects'
+      +(LINEAR_LIVE?' <span class="dot fresh" style="margin-left:4px;"></span><span style="font-size:11px;color:#10b981;font-weight:700;">LIVE FROM LINEAR</span>'
+                   :'<span style="font-size:11px;color:var(--muted);font-weight:500;margin-left:6px;">'+LINEAR_SNAPSHOT_LABEL+'</span>')
+    +'</div>'
+    +'<div style="overflow-x:auto;"><table class="sprint-tbl"><thead><tr>'
+    +'<th>Project</th><th>Cycle</th><th>Source</th><th>Done</th><th>In Progress</th><th>Total</th><th>Progress</th><th>Blocked</th>'
+    +'</tr></thead><tbody>';
+  projs.forEach(function(p){
+    if(!p.total)return;
+    var pct=Math.round((p.done||0)/p.total*100);
+    var liveIndicator=LINEAR_LIVE
+      ?'<span style="font-size:9px;color:#10b981;font-weight:800;margin-left:4px;" title="Live from Linear">● LIVE</span>'
+      :'';
+    var cyc=p.hasCycle?p.cycleName:(p.sprint||'—');
+    html+='<tr>'
+      +'<td style="font-weight:700;">'+escHtml(p.fullName||p.name)+liveIndicator+'</td>'
+      +'<td style="font-size:12px;color:var(--muted);">'+escHtml(cyc)+'</td>'
+      +'<td><span class="src-badge src-linear">Linear</span></td>'
+      +'<td style="font-weight:700;color:#1f2937;">'+(p.done||0)+'</td>'
+      +'<td style="font-weight:600;color:#3b82f6;">'+(p.inProgress||0)+'</td>'
+      +'<td style="color:var(--muted);">'+p.total+'</td>'
+      +'<td><div style="display:flex;align-items:center;gap:7px;">'
+        +'<div class="spb-wrap"><div class="spb-fill '+spbClass(pct)+'" style="width:'+pct+'%;"></div></div>'
+        +'<span style="font-size:11px;font-weight:700;color:var(--muted);">'+pct+'%</span>'
+      +'</div></td>'
+      +'<td>'+(p.blocked
+        ?'<span class="blocked-pill">&#9889; '+p.blocked+'</span>'
+        :'<span style="color:#10b981;font-weight:700;">&#10003;</span>')+'</td>'
+      +'</tr>';
+  });
+  html+='</tbody></table></div></div>';
+
+  /* ── Today's Focus + Meetings Today (2 col) ── */
+  var tasks=loadTasks();
+  var pending=tasks.filter(function(t){return t.status==='pending';});
+  var calMeetings=getTodayMeetings(cal);
+  var staticMeetings=[
+    
+  ];
+  var meetings=calMeetings||staticMeetings;
+  var isLiveCal=!!calMeetings;
+
+  html+='<div class="ov-two-col">';
+
+  /* Today's Focus */
+  html+='<div class="ov-card">'
+    +'<div class="ov-card-title">🎯 Today\'s Focus</div>';
+  var focus=pending.slice(0,5);
+  if(!focus.length){html+='<p style="font-size:13px;color:var(--muted);">No pending items — all clear! 🎉</p>';}
+  else{
+    focus.forEach(function(t,i){
+      var srcLabel=t.source==='gemini'?'GEMINI':(t.source||'manual').toUpperCase();
+      html+='<div class="focus-row">'
+        +'<div class="focus-num">'+(i+1)+'</div>'
+        +'<div style="flex:1;">'
+        +'<div style="display:flex;gap:5px;align-items:flex-start;">'
+        +'<div class="pri-dot '+(t.priority||'medium')+'" style="margin-top:5px;"></div>'
+        +'<div class="focus-text">'+escHtml(t.title)+'</div>'
+        +'</div>'
+        +'<div class="focus-meta"><span class="src-chip '+(t.source==='gemini'?'meeting':(t.source||'manual'))+'">'+srcLabel+'</span>'
+        +(t.sourceRef?'<span style="font-size:10px;color:var(--muted);">'+escHtml(t.sourceRef)+'</span>':'')
+        +'</div></div></div>';
+    });
+  }
+  html+='</div>';
+
+  /* Meetings Today — timeline view */
+  html+='<div class="ov-card">'
+    +'<div class="ov-card-title">📅 Meetings Today'+(isLiveCal?' <span class="live-tag">🟢 LIVE</span>':'')+'</div>';
+  if(!meetings.length){html+='<p style="font-size:13px;color:var(--muted);">No meetings scheduled.</p>';}
+  else{
+    var nowMs=Date.now();
+    /* Enrich with timestamps */
+    var em=meetings.map(function(m){
+      var sMs=m.startMs||parseTimeToMs(m.time);
+      var eMs=m.endMs||(sMs?sMs+parseDurMs(m.duration):null);
+      return {time:m.time,title:m.title,duration:m.duration,joinUrl:m.joinUrl,startMs:sMs,endMs:eMs};
+    }).sort(function(a,b){return(a.startMs||0)-(b.startMs||0);});
+    /* Assign status */
+    var nextAssigned=false;
+    em=em.map(function(m){
+      var st='upcoming';
+      if(m.endMs&&nowMs>m.endMs) st='done';
+      else if(m.startMs&&nowMs>=m.startMs) st='active';
+      else if(!nextAssigned){st='next';nextAssigned=true;}
+      return {time:m.time,title:m.title,duration:m.duration,joinUrl:m.joinUrl,startMs:m.startMs,endMs:m.endMs,status:st};
+    });
+    /* Day-progress bar */
+    var valid=em.filter(function(m){return m.startMs;});
+    if(valid.length){
+      var barFirst=valid[0].startMs;
+      var barLast=(valid[valid.length-1].endMs||valid[valid.length-1].startMs+3600000);
+      var span=barLast-barFirst||1;
+      var fillPct=Math.min(100,Math.max(0,Math.round((nowMs-barFirst)/span*100)));
+      var pinPct =Math.min(100,Math.max(0,Math.round((nowMs-barFirst)/span*100)));
+      var nn=new Date(),nh=nn.getHours(),nm2=nn.getMinutes();
+      var nap=nh>=12?'PM':'AM';nh=nh%12||12;
+      var nowLbl=(nh<10?'0':'')+nh+':'+(nm2<10?'0':'')+nm2+' '+nap;
+      html+='<div class="mtg-timeline-track">'
+        +'<div class="mtg-timeline-fill" style="width:'+fillPct+'%;"></div>'
+        +'<div class="mtg-now-pin" style="left:'+pinPct+'%;"><span class="mtg-now-lbl">'+nowLbl+'</span></div>'
+        +'</div>';
+    }
+    /* Rows */
+    var dividerInserted=false;
+    em.forEach(function(m){
+      if(!dividerInserted&&(m.status==='next'||m.status==='upcoming')){
+        html+='<div class="mtg-now-divider"><div class="mtg-now-divline"></div>'
+          +'<span class="mtg-now-divtxt">▶ NOW</span>'
+          +'<div class="mtg-now-divline" style="background:linear-gradient(90deg,#fca5a5,transparent);"></div></div>';
+        dividerInserted=true;
+      }
+      var rc='mtg-row'+(m.status==='done'?' mtg-done':m.status==='active'?' mtg-active':m.status==='next'?' mtg-next':'');
+      var badge=m.status==='done'?'<span class="mtg-sbadge s-done">✓ Done</span>'
+                :m.status==='active'?'<span class="mtg-sbadge s-active">● Now</span>'
+                :m.status==='next'?'<span class="mtg-sbadge s-next">⏳ Next</span>':'';
+      html+='<div class="'+rc+'">'
+        +'<span class="mtg-time">'+escHtml(m.time||'TBD')+'</span>'
+        +'<span class="mtg-name">'+escHtml(m.title)+'</span>'
+        +(m.duration?'<span class="mtg-dur">'+escHtml(m.duration)+'</span>':'')
+        +badge
+        +(m.joinUrl?'<a href="'+escHtml(m.joinUrl)+'" target="_blank" style="font-size:11px;font-weight:700;color:#3b82f6;flex-shrink:0;">🎥</a>':'')
+        +'</div>';
+    });
+  }
+  html+='</div>';
+  html+='</div>'; /* end two-col */
+
+  /* ── Blockers & Risks + Open Action Items (2 col) ── */
+  html+='<div class="ov-two-col">';
+
+  /* Blockers & Risks — sourced from Linear blocked counts / issues + Slack */
+  var allBlockers=[];
+  projs.filter(function(p){return p.blocked>0;}).forEach(function(p){
+    var issueBlocked=(p.issues||[]).filter(function(i){return /block|hold/i.test(i.status||'');});
+    if(issueBlocked.length){
+      issueBlocked.slice(0,2).forEach(function(i){
+        allBlockers.push({title:'['+i.key+'] '+i.summary,ref:p.cycleName||p.name,icon:'🚧'});
+      });
+    } else {
+      allBlockers.push({title:p.blocked+' blocked issue'+(p.blocked>1?'s':'')+' in '+(p.fullName||p.name),ref:p.cycleName||p.sprint||p.name,icon:'🚧'});
+    }
+  });
+  allBlockers=allBlockers.slice(0,6);
+  var slack=getLiveSlack();
+  if(slack&&slack.blockers){
+    slack.blockers.slice(0,3).forEach(function(b){allBlockers.push({title:(b.text||'').slice(0,100),ref:'#'+(b.channel||'Slack'),icon:'💬'});});
+  }
+
+  html+='<div class="ov-card">'
+    +'<div class="ov-card-title">🚧 Blockers &amp; Risks</div>';
+  if(!allBlockers.length){html+='<p style="font-size:13px;color:#10b981;font-weight:600;">✅ No blockers — all systems go!</p>';}
+  else{
+    allBlockers.forEach(function(b){
+      html+='<div class="blocker-row"><span class="blocker-icon">'+b.icon+'</span>'
+        +'<div><div class="blocker-title">'+escHtml(b.title)+'</div>'
+        +(b.ref?'<div class="blocker-ref">'+escHtml(b.ref)+'</div>':'')
+        +'</div></div>';
+    });
+  }
+  html+='</div>';
+
+  /* Open Action Items */
+  var openItems=pending.filter(function(t){return t.type!=='delegate';}).slice(0,6);
+  html+='<div class="ov-card">'
+    +'<div class="ov-card-title">📋 My Open Action Items</div>';
+  if(!openItems.length){html+='<p style="font-size:13px;color:var(--muted);">No open action items.</p>';}
+  else{
+    openItems.forEach(function(t,i){
+      var srcLabel=t.source==='gemini'?'GEMINI':(t.source||'manual').toUpperCase();
+      html+='<div class="ai-row">'
+        +'<span class="ai-num">'+(i+1)+'.</span>'
+        +'<div style="flex:1;">'
+        +'<div class="ai-text"><span class="pri-dot '+(t.priority||'medium')+'" style="margin-top:4px;vertical-align:middle;display:inline-block;"></span>'+escHtml(t.title)+'</div>'
+        +'<div class="focus-meta" style="margin-top:3px;"><span class="src-chip '+(t.source==='gemini'?'meeting':(t.source||'manual'))+'">'+srcLabel+'</span>'
+        +(t.date?'<span style="font-size:10px;color:var(--muted);">'+escHtml(t.date)+'</span>':'')
+        +'</div></div></div>';
+    });
+  }
+  html+='</div>';
+  html+='</div>'; /* end two-col */
+
+  /* ── Recent Highlights (full width) ── */
+  var gemini=getLiveGemini();
+  var isLiveGemini=!!(gemini&&gemini.meetingCount);
+  var doneTasks=tasks.filter(function(t){return t.status==='done';}).sort(function(a,b){return(b.doneAt||0)-(a.doneAt||0);}).slice(0,3);
+  var highlights=[];
+  if(isLiveGemini&&gemini.notes&&gemini.notes.length){
+    gemini.notes.slice(0,2).forEach(function(note){
+      if(note.summary)highlights.push('📋 '+note.meetingTitle+': '+note.summary.slice(0,120)+(note.summary.length>120?'…':''));
+    });
+  }
+  doneTasks.forEach(function(t){highlights.push('✅ '+t.title);});
+  if(!highlights.length){
+    highlights=[];
+  }
+
+  html+='<div class="sync-table-wrap" style="margin-bottom:28px;">'
+    +'<div class="sync-table-hdr">✅ Recent Highlights'+(isLiveGemini?' <span class="dot fresh"></span><span style="font-size:11px;color:#10b981;font-weight:700;">LIVE</span>':'')+'</div>'
+    +'<div style="padding:4px 20px 12px;">';
+  highlights.slice(0,5).forEach(function(h){
+    html+='<div class="done-row"><span class="done-check">✅</span><div class="done-text">'+escHtml(h)+'</div></div>';
+  });
+  html+='</div></div>';
+
+  document.getElementById('moduleContent').innerHTML=html;
+}
+
+/* ── Linear GraphQL queries (mirror 02-projects.html) ── */
+const LP_projQ='query { projects(first:50,filter:{status:{type:{in:[started,backlog]}}}) { nodes { id name url lead { name } teams { nodes { id name key } } } } }';
+const LP_cycleQ='query { cycles(filter:{isActive:{eq:true}}) { nodes { id name number startsAt endsAt team { id } } } }';
+const LP_issueQ='query($filter:IssueFilter){issues(first:250,filter:$filter){nodes{identifier title statusType status{name type}assignee{name}completedAt}pageInfo{hasNextPage totalCount}}}';
+
+function fmtDate(iso){try{return new Date(iso).toLocaleDateString('en-GB',{day:'numeric',month:'short',year:'numeric'});}catch(e){return '';}}
+
+function finishSync(){
+  var agg=aggLinear();
+  PJMSync.markSynced(MODULE_ID,{totalItems:agg.total,done:agg.done,blocked:agg.blocked});
+  PJMSync.setSyncBtnState(false);
+  render();
+}
+
+async function doSync(){
+  PJMSync.setSyncBtnState(true);
+  PJMSync.markLoading(MODULE_ID);
+
+  var key=getLinearKey();
+  if(!key){
+    /* No Linear key — render baked snapshot */
+    setTimeout(finishSync,300);
+    return;
+  }
+
+  try{
+    var responses=await Promise.all([linearGQL(LP_projQ),linearGQL(LP_cycleQ)]);
+    if(!responses[0].data||!responses[1].data)throw new Error('Bad Linear response');
+    var prjs=responses[0].data.projects.nodes;
+    var activeCycles=responses[1].data.cycles.nodes;
+
+    var teamCycleMap={};
+    activeCycles.forEach(function(c){teamCycleMap[c.team.id]=c;});
+
+    var results=await Promise.all(prjs.map(function(p){
+      var teamIds=p.teams.nodes.map(function(t){return t.id;});
+      var activeCycle=null;
+      for(var i=0;i<teamIds.length;i++){if(teamCycleMap[teamIds[i]]){activeCycle=teamCycleMap[teamIds[i]];break;}}
+      var filter=activeCycle
+        ?{cycle:{id:{eq:activeCycle.id}},project:{id:{eq:p.id}}}
+        :{project:{id:{eq:p.id}}};
+      return linearGQL(LP_issueQ,{filter:filter}).then(function(ir){
+        var nodes=ir.data&&ir.data.issues?ir.data.issues.nodes:[];
+        var pg=ir.data&&ir.data.issues?ir.data.issues.pageInfo:{};
+        return {project:p,issues:nodes,cycle:activeCycle,totalCount:pg.totalCount||nodes.length};
+      });
+    }));
+
+    results.forEach(function(r){
+      var p=r.project,issues=r.issues,cycle=r.cycle,total=r.totalCount;
+      var done=issues.filter(function(i){return i.statusType==='completed';}).length;
+      var cancelled=issues.filter(function(i){return i.statusType==='cancelled';}).length;
+      var inProg=issues.filter(function(i){return i.statusType==='started';}).length;
+      var todo=issues.filter(function(i){return i.statusType==='unstarted'||i.statusType==='backlog';}).length;
+      var sb={};issues.forEach(function(i){if(i.status)sb[i.status.name]=(sb[i.status.name]||0)+1;});
+      var blocked=sb['Hold or Blocked']||sb['Blocked']||0;
+      var pct=total?Math.round(done/total*100):0;
+
+      var dataKey=Object.keys(linearProjectData).find(function(k){
+        var d=linearProjectData[k];
+        return d.fullName===p.name||d.name===p.name.split(' ')[0]||p.name.indexOf(d.name)>=0;
+      })||p.name.toUpperCase().replace(/[^A-Z0-9]/g,'').substring(0,8);
+
+      var mappedIssues=issues.map(function(i){
+        return {key:i.identifier,summary:i.title,status:i.status?i.status.name:'Unknown',assignee:i.assignee?i.assignee.name:'Unassigned'};
+      });
+
+      var existing=linearProjectData[dataKey]||{};
+      linearProjectData[dataKey]={
+        name:p.name.split(' ')[0],fullName:p.name,
+        total:total,done:done,inProgress:inProg,toDo:todo,blocked:blocked,cancelled:cancelled,pct:pct,
+        statusBreakdown:sb,issues:mappedIssues,
+        lead:p.lead?p.lead.name:(existing.lead||''),
+        linearUrl:p.url||existing.linearUrl||'https://linear.app',
+        hasCycle:!!cycle,
+        cycleName:cycle?'Cycle '+cycle.number:'No Active Cycle',
+        cycleStart:cycle?fmtDate(cycle.startsAt):'',
+        cycleEnd:cycle?fmtDate(cycle.endsAt):'',
+        sprint:cycle?'Cycle '+cycle.number:p.name,
+        priority:existing.priority||99
+      };
+    });
+
+    /* Write canonical shared cache so other modules benefit */
+    var agg=aggLinear();
+    var blockersList=[];
+    projectList().forEach(function(p){
+      (p.issues||[]).filter(function(i){return /block|hold/i.test(i.status||'');}).forEach(function(i){
+        blockersList.push({key:i.key,summary:i.summary,status:i.status,project:p.name});
+      });
+    });
+    var sharedProjects={};
+    projectList().forEach(function(p){
+      sharedProjects[p.key]={name:p.fullName,total:p.total,done:p.done,inProgress:p.inProgress,todo:p.toDo,blocked:p.blocked};
+    });
+    localStorage.setItem('pjmdemo_pjm_linear_v1',JSON.stringify({
+      ts:Date.now(),linearUrl:'https://linear.app/meridiandemo',
+      projects:sharedProjects,myIssues:[],blockers:blockersList.slice(0,20),
+      totalStats:{total:agg.total,done:agg.done,completionPct:agg.pct}
+    }));
+
+    LINEAR_LIVE=true;
+    LINEAR_SYNC_TIME=new Date().toLocaleTimeString([],{hour:'2-digit',minute:'2-digit'});
+    PJMSync.markSynced(MODULE_ID,{totalItems:agg.total,done:agg.done,blocked:agg.blocked});
+    PJMSync.setSyncBtnState(false);
+    render();
+    return;
+  }catch(e){
+    console.warn('Overview Linear sync failed:',e);
+  }
+
+  /* Sync failed — render baked snapshot */
+  finishSync();
+}
+
+document.addEventListener('DOMContentLoaded',function(){
+  var sub=document.getElementById('overviewSub');
+  if(sub)sub.textContent='Live aggregation across all projects and modules — '+PJMSync.Sprint.getIndicator();
+  /* Pre-configure Linear API key (matches 02-projects.html) */
+  /* credential removed for public demo */
+  PJMNav.render(MODULE_ID);
+  PJMSync.initModule(MODULE_ID,doSync);
+  render();
+});
+</script>
+</body>
+</html>

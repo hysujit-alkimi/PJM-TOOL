@@ -1,0 +1,233 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Sprint Plans — Meridian PJM</title>
+<script src="https://accounts.google.com/gsi/client" async defer></script>
+<link rel="stylesheet" href="shared/pjm.css">
+<style>
+.year-tabs{display:flex;gap:8px;margin-bottom:20px}
+.year-tab{padding:8px 20px;border:2px solid var(--border);border-radius:20px;font-size:14px;font-weight:700;cursor:pointer;transition:all .15s;color:var(--muted)}
+.year-tab.active{background:var(--primary);border-color:var(--primary);color:#fff}
+.year-tab:hover:not(.active){border-color:var(--primary);color:var(--primary)}
+.sprint-chips{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:24px}
+.sprint-chip{padding:7px 16px;border:2px solid var(--border);border-radius:20px;font-size:13px;font-weight:600;cursor:pointer;transition:all .15s;color:var(--muted);display:flex;align-items:center;gap:6px}
+.sprint-chip:hover:not(.active){border-color:var(--primary);color:var(--primary)}
+.sprint-chip.active{background:#16a34a;border-color:#16a34a;color:#fff}
+.sprint-chip .chip-marker{font-size:10px}
+.content-area{background:var(--card);border:1px solid var(--border);border-radius:var(--radius);overflow:hidden}
+.conf-card{padding:40px;display:flex;flex-direction:column;align-items:center;text-align:center;gap:16px}
+.conf-icon{font-size:48px}
+.conf-sprint-name{font-size:22px;font-weight:800}
+.conf-sub{font-size:14px;color:var(--muted)}
+.conf-open-btn{display:inline-flex;align-items:center;gap:8px;background:var(--primary);color:#fff;text-decoration:none;padding:12px 28px;border-radius:10px;font-size:14px;font-weight:700;margin-top:8px;transition:background .15s}
+.conf-open-btn:hover{background:#1d4ed8}
+.conf-badges{display:flex;gap:8px;justify-content:center;flex-wrap:wrap}
+.conf-badge{background:var(--bg);border:1px solid var(--border);border-radius:8px;padding:6px 14px;font-size:12px;font-weight:600}
+.live-badge{background:#dcfce7;border-color:#86efac;color:#15803d;font-weight:700;padding:4px 12px;border-radius:10px;font-size:12px}
+.sprint-count{font-size:13px;color:var(--muted);margin-bottom:8px}
+</style>
+
+<style id="demoBannerCss">
+#pjmDemoBanner{position:fixed;top:0;left:0;right:0;z-index:99999;background:#8A5CFF;color:#fff;
+ font:600 12px/1.4 system-ui,-apple-system,Segoe UI,sans-serif;padding:7px 44px 7px 16px;text-align:center;
+ letter-spacing:.2px;box-shadow:0 1px 6px rgba(0,0,0,.18)}
+#pjmDemoBanner a{color:#fff;text-decoration:underline}
+#pjmDemoBanner button{position:absolute;right:10px;top:4px;background:none;border:none;color:#fff;
+ font-size:17px;line-height:1;cursor:pointer;padding:4px}
+body.has-demo-banner{padding-top:30px}
+</style>
+<script id="pjmDemoMode">
+/* ===== PUBLIC DEMO BUILD =====
+   All data in this build is fictional. No credentials ship with it and no
+   outbound calls to third-party APIs are permitted. */
+(function(){
+  window.PJM_DEMO = true;
+  var BLOCK = /(api\.linear\.app|api\.github\.com|graphql|googleapis\.com|slack\.com|atlassian\.net)/i;
+  var of = window.fetch;
+  window.fetch = function(input){
+    var u = (typeof input === 'string') ? input : (input && input.url) || '';
+    if (BLOCK.test(u)) {
+      console.info('[demo] blocked outbound call:', u);
+      return Promise.resolve(new Response(JSON.stringify({data:null,demo:true}),
+        {status:200, headers:{'Content-Type':'application/json'}}));
+    }
+    return of.apply(this, arguments);
+  };
+  var ox = window.XMLHttpRequest && window.XMLHttpRequest.prototype.open;
+  if (ox) window.XMLHttpRequest.prototype.open = function(m,u){
+    if (BLOCK.test(String(u))) { console.info('[demo] blocked XHR:', u); u = 'data:application/json,{}'; }
+    return ox.apply(this, [m,u].concat([].slice.call(arguments,2)));
+  };
+  document.addEventListener('DOMContentLoaded', function(){
+    if (sessionStorage.getItem('pjmDemoBannerHidden')) return;
+    var b = document.createElement('div');
+    b.id = 'pjmDemoBanner';
+    b.innerHTML = 'DEMO BUILD \u2014 every person, project, ticket and meeting below is fictional. ' +
+                  'Live integrations are disabled in this build.' +
+                  '<button title="Dismiss" onclick="this.parentNode.remove();' +
+                  'document.body.classList.remove(\'has-demo-banner\');' +
+                  'sessionStorage.setItem(\'pjmDemoBannerHidden\',\'1\')">&times;</button>';
+    document.body.appendChild(b);
+    document.body.classList.add('has-demo-banner');
+  });
+})();
+</script>
+</head>
+<body>
+<div id="loginOverlay"><div class="login-box"><div class="login-logo">⬡</div><h2>Meridian PJM</h2><p>Sign in with your Meridian account to continue.</p><div id="googleSignInBtn"></div><div id="loginError"></div></div></div>
+<div id="pjmSidebarContainer"></div>
+<div class="pjm-main">
+  <div class="module-header">
+    <div>
+      <div class="module-title">📋 Sprint Plans</div>
+      <div class="section-sub">Select any sprint to view its backlog — Sprint 21 (28 Sep – 10 Oct) is live, past sprints open in Folio or Confluence</div>
+    </div>
+    <div class="module-header-right">
+      <span id="lastSyncedLabel" class="last-synced-label">Never synced</span>
+      <div class="date-badge" id="todayDate"></div>
+      <button class="sync-btn" id="syncBtn" onclick="doSync()"><span class="sync-icon">🔄</span> Sync</button>
+    </div>
+  </div>
+  <div id="moduleContent"><div class="loading-state"><div class="spinner"></div>Loading…</div></div>
+</div>
+<script src="shared/pjm-sync.js"></script>
+<script src="shared/pjm-nav.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+<script>
+(function(){var d=new Date();var days=['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];var months=['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];var el=document.getElementById('todayDate');if(el)el.textContent='📅 '+days[d.getDay()]+' '+months[d.getMonth()]+' '+d.getDate();})();
+
+const MODULE_ID='sprint-plans';
+
+const sprints2026=[
+  {num:21,local:'sprint-plans/sprint-21-plan.html',current:true},
+  {num:20,local:'sprint-plans/sprint-20-plan.html',folioUrl:'https://folio.meridian.dev/docs/high-level-sprint-plan-20'},
+  {num:19,local:'sprint-plans/sprint-19-plan.html'},
+  {num:18,folioUrl:'https://folio.meridian.dev/p/0FdCDEfplr1U?key=9MJ5vsxGiU313V2ctjrg7qkBvtd1uZq7'},
+  {num:17,folioUrl:'https://folio.meridian.dev/p/sOm7L9HfXJa7?key=2ZYEC3HZWrZ8GDaYoukceRGNn1FuyJY5'},
+  {num:16,folioUrl:'https://folio.meridian.dev/p/SyLPrVgTzcRD?key=0xxe3PAP8ledjzggJek9HBynWTUqDdmw'},
+  {num:15,folioUrl:'https://folio.meridian.dev/p/aqv5yiJJu8oS?key=J647TORwUwpcAsVk0JjfF67JLDW0taoS'},
+  {num:14,folioUrl:'https://folio.meridian.dev/p/38i0tbDQQwKO?key=G3LaX17X5kK0t3vSlbl5GBTZftoVbfBG'},
+  {num:13,folioUrl:'https://folio.meridian.dev/docs/high-level-sprint-backlog-sprint-13'},
+  {num:12,local:'sprint-plans/sprint-12-plan.html'},
+  {num:11,folioUrl:'https://folio.meridian.dev/p/9DLA0KAk7jDF?key=I4pqPQYxEG5aI9uJy9emYRNlYVhZLIPR'},
+  {num:10,confId:1473085441},{num:9,confId:1467351041},{num:8,confId:1432485889},
+  {num:7,confId:1408958465},{num:6,confId:1369178113},{num:5,confId:1335164929},
+  {num:4,confId:1301643364},{num:3,confId:1265696793},{num:2,confId:1241022465},{num:1,confId:1240858625}
+];
+const sprints2025=[
+  {num:26,confId:1204092929},{num:25,confId:1173553153},{num:24,confId:1138688001},
+  {num:23,confId:1102839809},{num:22,confId:1054048257},{num:21,confId:1035337764},
+  {num:20,confId:1026097154},{num:19,confId:1009287169},{num:18,confId:989921281},
+  {num:17,confId:983040001},{num:16,confId:961019905},{num:15,confId:945127425}
+];
+
+let activeYear=2026;
+let selectedSprint=21;
+
+function confUrl(confId){
+  return `https://meridian.atlassian.net/wiki/spaces/TechDelivery/pages/${confId}`;
+}
+
+function renderChips(sprints){
+  return sprints.map(s=>{
+    const isActive=(s.num===selectedSprint&&activeYear===(s.current?2026:activeYear));
+    return `<div class="sprint-chip${isActive?' active':''}" onclick="selectSprint(${s.num},${s.current?1:0})">
+      ${s.current?'<span class="chip-marker">✦</span>':''} Sprint ${s.num}
+      ${s.current?'<span class="live-badge">LIVE</span>':''}
+    </div>`;
+  }).join('');
+}
+
+function renderContent(){
+  const sprints=activeYear===2026?sprints2026:sprints2025;
+  const found=sprints.find(s=>s.num===selectedSprint);
+
+  if(!found){
+    return `<div style="padding:60px;text-align:center;color:var(--muted)">Select a sprint above to view its plan.</div>`;
+  }
+
+  if(found.local){
+    const folioBar=found.folioUrl?`<div style="display:flex;justify-content:flex-end;padding:10px 14px;border-bottom:1px solid var(--border);background:var(--bg);">
+      <a href="${found.folioUrl}" target="_blank" style="display:inline-flex;align-items:center;gap:6px;font-size:12px;font-weight:700;color:#7c3aed;background:#f5f3ff;border:1px solid #ddd6fe;border-radius:8px;padding:6px 14px;text-decoration:none;">⬡ Open Sprint ${found.num} in Folio →</a>
+    </div>`:'';
+    return `${folioBar}<iframe src="${found.local}" style="width:100%;height:calc(100vh - ${found.folioUrl?'310px':'260px'});min-height:700px;border:none;border-radius:${found.folioUrl?'0 0 12px 12px':'12px'}" title="Sprint ${found.num} Plan"></iframe>`;
+  }
+
+  if(found.folioUrl){
+    return `<div class="conf-card">
+      <div class="conf-icon">📋</div>
+      <div class="conf-sprint-name">Sprint ${found.num} Plan</div>
+      <div class="conf-sub">This sprint plan is stored in Folio — click below to open the full document.</div>
+      <div class="conf-badges">
+        <span class="conf-badge">📅 ${activeYear}</span>
+        <span class="conf-badge">🗂️ Sprint ${found.num}</span>
+        <span class="conf-badge">⬡ Folio</span>
+      </div>
+      <a href="${found.folioUrl}" target="_blank" class="conf-open-btn" style="background:#7c3aed">
+        Open Sprint ${found.num} in Folio →
+      </a>
+    </div>`;
+  }
+
+  const url=confUrl(found.confId);
+  return `<div class="conf-card">
+    <div class="conf-icon">📄</div>
+    <div class="conf-sprint-name">Sprint ${found.num} Plan</div>
+    <div class="conf-sub">This sprint plan is stored in Confluence — click below to open the full document.</div>
+    <div class="conf-badges">
+      <span class="conf-badge">📅 ${activeYear}</span>
+      <span class="conf-badge">📋 Sprint ${found.num}</span>
+      <span class="conf-badge">🔗 Confluence</span>
+    </div>
+    <a href="${url}" target="_blank" class="conf-open-btn">
+      Open Sprint ${found.num} in Confluence →
+    </a>
+  </div>`;
+}
+
+function selectSprint(num, isCurrent){
+  selectedSprint=num;
+  renderAll();
+}
+
+function setYear(yr){
+  activeYear=yr;
+  // Default to first sprint of that year
+  const sprints=yr===2026?sprints2026:sprints2025;
+  if(sprints.length>0)selectedSprint=sprints[0].num;
+  renderAll();
+}
+
+function renderAll(){
+  const sprints=activeYear===2026?sprints2026:sprints2025;
+  const html=`
+  <div class="year-tabs">
+    <div class="year-tab${activeYear===2026?' active':''}" onclick="setYear(2026)">2026</div>
+    <div class="year-tab${activeYear===2025?' active':''}" onclick="setYear(2025)">2025</div>
+  </div>
+  <div class="sprint-count">${sprints.length} sprints in ${activeYear}</div>
+  <div class="sprint-chips">${renderChips(sprints)}</div>
+  <div class="content-area">${renderContent()}</div>`;
+  document.getElementById('moduleContent').innerHTML=html;
+}
+
+function doSync(){
+  PJMSync.setSyncBtnState(true);
+  PJMSync.markLoading(MODULE_ID);
+  setTimeout(()=>{
+    PJMSync.markSynced(MODULE_ID,{sprintsLoaded:sprints2026.length+sprints2025.length});
+    PJMSync.setSyncBtnState(false);
+    renderAll();
+  },400);
+}
+
+document.addEventListener('DOMContentLoaded',function(){
+  PJMNav.render(MODULE_ID);
+  PJMSync.initModule(MODULE_ID,doSync);
+  renderAll();
+});
+</script>
+</body>
+</html>

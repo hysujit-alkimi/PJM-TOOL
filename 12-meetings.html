@@ -1,0 +1,738 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Meetings — Meridian PJM</title>
+<script src="https://accounts.google.com/gsi/client" async defer></script>
+<link rel="stylesheet" href="shared/pjm.css">
+<style>
+/* ── Module tabs ── */
+.mod-tabs{display:flex;gap:2px;border-bottom:1px solid var(--border,#e5e7eb);margin-bottom:16px;background:#fff;border-radius:12px 12px 0 0;padding:0 4px;}
+.mod-tab{padding:11px 18px;border:none;background:none;font-size:13px;font-weight:600;color:var(--muted,#6b7280);cursor:pointer;border-bottom:2px solid transparent;margin-bottom:-1px;transition:all .15s;white-space:nowrap;}
+.mod-tab.active{color:#3B82F6;border-bottom-color:#3B82F6;}
+.mod-tab:hover:not(.active){color:#374151;}
+.tab-cnt{background:#f3f4f6;color:#9ca3af;font-size:10px;font-weight:700;padding:1px 6px;border-radius:8px;margin-left:5px;}
+.mod-tab.active .tab-cnt{background:#dbeafe;color:#3B82F6;}
+
+/* ── Calendar tab ── */
+.next-strip{display:flex;gap:12px;flex-wrap:wrap;align-items:center;background:linear-gradient(135deg,#1E40AF,#4F46E5);color:#fff;border-radius:12px;padding:14px 20px;margin-bottom:14px;}
+.ns-left{flex:1;min-width:180px;}
+.ns-label{font-size:10px;font-weight:700;opacity:.75;text-transform:uppercase;letter-spacing:.06em;margin-bottom:3px;}
+.ns-title{font-size:15px;font-weight:800;line-height:1.2;}
+.ns-time{font-size:11px;opacity:.8;margin-top:3px;}
+.cntdown{background:rgba(255,255,255,.2);border:1px solid rgba(255,255,255,.3);border-radius:20px;padding:6px 14px;font-size:13px;font-weight:800;white-space:nowrap;flex-shrink:0;}
+.tdy-cnt{font-size:12px;opacity:.8;white-space:nowrap;flex-shrink:0;}
+.live-dot{display:inline-block;width:7px;height:7px;border-radius:50%;background:#4ade80;margin-right:5px;}
+
+/* ── Week day pills ── */
+.week-pills{display:flex;gap:5px;margin-bottom:14px;flex-wrap:wrap;}
+.day-pill{padding:8px 12px;border-radius:20px;border:1px solid var(--border,#e5e7eb);background:#fff;font-size:12px;font-weight:700;cursor:pointer;color:var(--muted,#6b7280);transition:all .15s;display:flex;flex-direction:column;align-items:center;gap:2px;min-width:56px;}
+.day-pill:hover:not(.active){background:#f9fafb;}
+.day-pill.today{border-color:#3B82F6;color:#3B82F6;}
+.day-pill.active{background:#3B82F6;color:#fff;border-color:#3B82F6;}
+.dp-num{font-size:10px;font-weight:500;opacity:.7;}
+.dp-dot{width:4px;height:4px;border-radius:50%;background:currentColor;opacity:.55;}
+
+/* ── Calendar layout ── */
+.cal-layout{display:flex;gap:16px;align-items:flex-start;}
+.cal-main{flex:1;min-width:0;}
+.cal-aside{width:380px;flex-shrink:0;}
+
+/* ── Meeting cards ── */
+.mc{background:#fff;border:1px solid var(--border,#e5e7eb);border-radius:10px;padding:13px 15px;margin-bottom:8px;cursor:pointer;transition:box-shadow .15s,border-color .15s;display:flex;gap:12px;align-items:flex-start;}
+.mc:hover{box-shadow:0 2px 10px rgba(0,0,0,.06);}
+.mc.mc-past{opacity:.68;}
+.mc.mc-sel{border-color:#3B82F6;box-shadow:0 0 0 2px rgba(59,130,246,.13);opacity:1;}
+.mc-time-col{display:flex;flex-direction:column;align-items:flex-end;min-width:68px;flex-shrink:0;padding-top:1px;}
+.mc-time{font-size:13px;font-weight:800;color:#3B82F6;white-space:nowrap;}
+.mc-dur{font-size:10px;color:var(--muted,#6b7280);margin-top:2px;}
+.mc-body{flex:1;min-width:0;}
+.mc-title{font-size:13px;font-weight:700;color:#111827;margin-bottom:5px;line-height:1.3;}
+.mc-chips{display:flex;gap:5px;flex-wrap:wrap;align-items:center;}
+.chip{font-size:10px;font-weight:700;padding:2px 7px;border-radius:8px;white-space:nowrap;}
+.chip-proj{background:#ede9fe;color:#6d28d9;}
+.chip-rec{background:#dcfce7;color:#15803d;}
+.chip-note{background:#fef9c3;color:#92400e;}
+.chip-att{background:#f3f4f6;color:#6b7280;}
+.mc-join{padding:5px 11px;border:1px solid #10b981;border-radius:7px;background:#fff;font-size:11px;font-weight:700;color:#10b981;cursor:pointer;text-decoration:none;display:inline-block;white-space:nowrap;flex-shrink:0;margin-left:auto;align-self:flex-start;}
+.mc-join:hover{background:#f0fdf4;}
+
+/* ── Detail drawer ── */
+.detail-drawer{background:#fff;border:1px solid var(--border,#e5e7eb);border-radius:12px;overflow:hidden;display:flex;flex-direction:column;max-height:calc(100vh - 160px);position:sticky;top:20px;}
+.dd-head{padding:15px 40px 12px 18px;border-bottom:1px solid var(--border,#e5e7eb);position:relative;}
+.dd-head-title{font-size:14px;font-weight:800;color:#111827;line-height:1.3;margin-bottom:4px;}
+.dd-head-meta{font-size:11px;color:var(--muted,#6b7280);}
+.dd-close{position:absolute;right:14px;top:14px;background:none;border:none;font-size:17px;color:#9ca3af;cursor:pointer;line-height:1;padding:2px;}
+.dd-close:hover{color:#374151;}
+.dd-body{padding:15px 18px;overflow-y:auto;flex:1;}
+.sec-lbl{font-size:10px;font-weight:800;color:#9ca3af;text-transform:uppercase;letter-spacing:.06em;margin:14px 0 6px;}
+.sec-lbl:first-child{margin-top:0;}
+.att-row{display:flex;flex-wrap:wrap;gap:4px;}
+.att-chip{font-size:10px;background:#f3f4f6;padding:2px 8px;border-radius:8px;color:#374151;}
+.desc-box{font-size:11px;color:#374151;line-height:1.6;background:#f9fafb;border-radius:6px;padding:8px 10px;max-height:90px;overflow-y:auto;white-space:pre-wrap;}
+.al-green{display:inline-flex;align-items:center;gap:6px;padding:8px 14px;border-radius:8px;font-size:12px;font-weight:700;text-decoration:none;border:1px solid #10b981;color:#10b981;background:#f0fdf4;margin-bottom:12px;}
+.al-green:hover{background:#dcfce7;}
+.asset-card{border-radius:8px;padding:11px 13px;display:flex;align-items:center;gap:10px;margin-bottom:5px;}
+.asset-card.note-c{background:#fefce8;border:1px solid #fde68a;}
+.asset-card.rec-c{background:#f0fdf4;border:1px solid #a7f3d0;}
+.ac-icon{font-size:22px;flex-shrink:0;}
+.ac-info{flex:1;min-width:0;}
+.ac-title{font-size:11px;font-weight:700;line-height:1.3;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+.note-c .ac-title{color:#78350f;}
+.rec-c  .ac-title{color:#065f46;}
+.ac-sub{font-size:10px;color:var(--muted,#6b7280);margin-top:2px;}
+.ac-open{font-size:11px;font-weight:700;text-decoration:none;white-space:nowrap;flex-shrink:0;}
+.note-c .ac-open{color:#d97706;}
+.rec-c  .ac-open{color:#10b981;}
+.ac-open:hover{text-decoration:underline;}
+.no-asset{font-size:11px;color:#9ca3af;background:#f9fafb;border-radius:6px;padding:8px 10px;}
+
+/* ── Notes & Recordings tabs (grid tiles) ── */
+.grid-tip{background:#eff6ff;border:1px solid #bfdbfe;border-radius:10px;padding:13px 16px;margin-bottom:16px;font-size:12px;color:#1d4ed8;line-height:1.55;}
+.rec-grid,.notes-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(250px,1fr));gap:12px;}
+.rec-tile,.note-tile{background:#fff;border:1px solid var(--border,#e5e7eb);border-radius:12px;padding:18px;transition:box-shadow .15s;}
+.rec-tile:hover,.note-tile:hover{box-shadow:0 3px 12px rgba(0,0,0,.07);}
+.tile-icon{font-size:28px;margin-bottom:10px;}
+.tile-title{font-size:13px;font-weight:700;color:#111827;line-height:1.35;margin-bottom:5px;}
+.tile-date{font-size:11px;color:var(--muted,#6b7280);margin-bottom:4px;}
+.tile-size{font-size:10px;color:var(--muted,#6b7280);background:#f3f4f6;padding:2px 8px;border-radius:6px;display:inline-block;margin-bottom:14px;}
+.rec-btn{display:block;width:100%;padding:9px;background:#f0fdf4;border:1px solid #a7f3d0;border-radius:8px;font-size:12px;font-weight:700;color:#15803d;text-align:center;text-decoration:none;transition:background .15s;}
+.rec-btn:hover{background:#dcfce7;}
+.tile-summary{font-size:11px;color:#4b5563;line-height:1.5;margin-bottom:12px;background:#f9fafb;border-radius:6px;padding:7px 9px;}
+.note-btn{display:block;width:100%;padding:9px;background:#fefce8;border:1px solid #fde68a;border-radius:8px;font-size:12px;font-weight:700;color:#92400e;text-align:center;text-decoration:none;transition:background .15s;}
+.note-btn:hover{background:#fef3c7;}
+
+/* ── Empty & pump nudge ── */
+.empty-day{display:flex;flex-direction:column;align-items:center;justify-content:center;min-height:200px;gap:10px;color:var(--muted,#6b7280);background:#fff;border:1px solid var(--border,#e5e7eb);border-radius:12px;padding:40px;text-align:center;}
+.pump-nudge{font-size:12px;background:#fff7ed;border:1px solid #fed7aa;border-radius:8px;padding:10px 14px;color:#92400e;margin-top:12px;}
+/* ── "No sync yet" banner ── */
+.no-data-banner{background:#fff7ed;border:1px solid #fed7aa;border-radius:12px;padding:18px 22px;margin-bottom:16px;display:flex;align-items:flex-start;gap:14px;}
+.ndb-icon{font-size:28px;flex-shrink:0;line-height:1;}
+.ndb-body{flex:1;}
+.ndb-title{font-size:14px;font-weight:800;color:#92400e;margin-bottom:4px;}
+.ndb-text{font-size:12px;color:#78350f;line-height:1.65;}
+.ndb-steps{font-size:12px;color:#78350f;margin-top:6px;padding-left:16px;}
+.ndb-steps li{margin-bottom:2px;}
+.toast{position:fixed;bottom:28px;left:50%;transform:translateX(-50%);background:#1f2937;color:#fff;padding:12px 24px;border-radius:10px;font-size:13px;font-weight:600;z-index:9999;opacity:0;transition:opacity .25s;pointer-events:none;text-align:center;max-width:500px;}
+.toast.show{opacity:1;}
+
+@media(max-width:920px){.cal-layout{flex-direction:column;}.cal-aside{width:100%;}.detail-drawer{position:static;max-height:none;}}
+@media(max-width:600px){.rec-grid,.notes-grid{grid-template-columns:1fr;}}
+</style>
+
+<style id="demoBannerCss">
+#pjmDemoBanner{position:fixed;top:0;left:0;right:0;z-index:99999;background:#8A5CFF;color:#fff;
+ font:600 12px/1.4 system-ui,-apple-system,Segoe UI,sans-serif;padding:7px 44px 7px 16px;text-align:center;
+ letter-spacing:.2px;box-shadow:0 1px 6px rgba(0,0,0,.18)}
+#pjmDemoBanner a{color:#fff;text-decoration:underline}
+#pjmDemoBanner button{position:absolute;right:10px;top:4px;background:none;border:none;color:#fff;
+ font-size:17px;line-height:1;cursor:pointer;padding:4px}
+body.has-demo-banner{padding-top:30px}
+</style>
+<script id="pjmDemoMode">
+/* ===== PUBLIC DEMO BUILD =====
+   All data in this build is fictional. No credentials ship with it and no
+   outbound calls to third-party APIs are permitted. */
+(function(){
+  window.PJM_DEMO = true;
+  var BLOCK = /(api\.linear\.app|api\.github\.com|graphql|googleapis\.com|slack\.com|atlassian\.net)/i;
+  var of = window.fetch;
+  window.fetch = function(input){
+    var u = (typeof input === 'string') ? input : (input && input.url) || '';
+    if (BLOCK.test(u)) {
+      console.info('[demo] blocked outbound call:', u);
+      return Promise.resolve(new Response(JSON.stringify({data:null,demo:true}),
+        {status:200, headers:{'Content-Type':'application/json'}}));
+    }
+    return of.apply(this, arguments);
+  };
+  var ox = window.XMLHttpRequest && window.XMLHttpRequest.prototype.open;
+  if (ox) window.XMLHttpRequest.prototype.open = function(m,u){
+    if (BLOCK.test(String(u))) { console.info('[demo] blocked XHR:', u); u = 'data:application/json,{}'; }
+    return ox.apply(this, [m,u].concat([].slice.call(arguments,2)));
+  };
+  document.addEventListener('DOMContentLoaded', function(){
+    if (sessionStorage.getItem('pjmDemoBannerHidden')) return;
+    var b = document.createElement('div');
+    b.id = 'pjmDemoBanner';
+    b.innerHTML = 'DEMO BUILD \u2014 every person, project, ticket and meeting below is fictional. ' +
+                  'Live integrations are disabled in this build.' +
+                  '<button title="Dismiss" onclick="this.parentNode.remove();' +
+                  'document.body.classList.remove(\'has-demo-banner\');' +
+                  'sessionStorage.setItem(\'pjmDemoBannerHidden\',\'1\')">&times;</button>';
+    document.body.appendChild(b);
+    document.body.classList.add('has-demo-banner');
+  });
+})();
+</script>
+</head>
+<body>
+<div id="loginOverlay"><div class="login-box"><div class="login-logo">⬡</div><h2>Meridian PJM</h2><p>Sign in with your Meridian account to continue.</p><div id="googleSignInBtn"></div><div id="loginError"></div></div></div>
+<div id="pjmSidebarContainer"></div>
+<div class="pjm-main">
+  <div class="module-header">
+    <div>
+      <div class="module-title">📅 Meetings</div>
+      <div class="section-sub">Calendar · Gemini Notes · Recordings — all in one place</div>
+    </div>
+    <div class="module-header-right">
+      <span id="lastSyncedLabel" class="last-synced-label">Never synced</span>
+      <div class="date-badge" id="todayDate"></div>
+      <button class="sync-btn" id="syncBtn" onclick="doSync()"><span class="sync-icon">🔄</span> Sync</button>
+    </div>
+  </div>
+
+  <!-- Main tabs -->
+  <div class="mod-tabs">
+    <button class="mod-tab active" data-tab="calendar" onclick="switchModTab('calendar')">
+      📅 Calendar <span class="tab-cnt" id="tcCal">—</span>
+    </button>
+    <button class="mod-tab" data-tab="notes" onclick="switchModTab('notes')">
+      📝 Gemini Notes <span class="tab-cnt" id="tcNotes">—</span>
+    </button>
+    <button class="mod-tab" data-tab="recordings" onclick="switchModTab('recordings')">
+      🎥 Recordings <span class="tab-cnt" id="tcRecs">—</span>
+    </button>
+  </div>
+
+  <div id="moduleContent"><div class="loading-state"><div class="spinner"></div>Loading…</div></div>
+</div>
+<div id="toastEl" class="toast"></div>
+<script src="shared/pjm-sync.js"></script>
+<script src="shared/pjm-nav.js"></script>
+<script>
+/* ═══════════════════════════════════════
+   CONSTANTS & GLOBALS
+═══════════════════════════════════════ */
+var MODULE_ID = 'meetings';
+var DAY_NAMES   = ['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
+var MONTH_NAMES = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+
+/* IST-safe "today" */
+function getISTNow() {
+  return new Date(new Date().toLocaleString('en-US', { timeZone: 'Asia/Kolkata' }));
+}
+function isoDate(d) {
+  return d.getFullYear() + '-'
+    + String(d.getMonth()+1).padStart(2,'0') + '-'
+    + String(d.getDate()).padStart(2,'0');
+}
+function pad2(n){ return String(n).padStart(2,'0'); }
+
+var TODAY_STR   = isoDate(getISTNow());
+var activeDay   = TODAY_STR;
+var activeTab   = 'calendar';
+var selEventId  = null;
+
+/* ═══════════════════════════════════════
+   STATIC DATA — synced by Claude via MCP
+   To refresh: say "Sync my meetings for this week" to Claude in Cowork.
+   Claude will fetch from Google Calendar & Drive and update this file directly.
+   Last sync: Wed 30 Sep 2026
+═══════════════════════════════════════ */
+
+var PJM_CAL_STATIC = {"ts": 1790000000000, "syncedAt": "2026-09-30T10:15:00+01:00", "byDate": {"2026-09-16": [{"id": "evt_20260916_00", "summary": "Incident Postmortem", "start": {"dateTime": "2026-09-16T09:30:00+01:00", "timeZone": "Europe/London"}, "end": {"dateTime": "2026-09-16T10:30:00+01:00", "timeZone": "Europe/London"}, "attendees": [{"email": "freya.nilsen@meridian.dev"}, {"email": "samir.haddad@northgate.dev"}, {"email": "daniel.okafor@meridian.dev"}], "hangoutLink": "https://meet.example.com/demo-0916-00"}, {"id": "evt_20260916_01", "summary": "Roadmap Checkpoint", "start": {"dateTime": "2026-09-16T10:00:00+01:00", "timeZone": "Europe/London"}, "end": {"dateTime": "2026-09-16T10:15:00+01:00", "timeZone": "Europe/London"}, "attendees": [{"email": "nadia.o@meridian.dev"}, {"email": "rohan.desai@northgate.dev"}, {"email": "grace.mwangi@meridian.dev"}, {"email": "lena.petrova@northgate.dev"}, {"email": "daniel.okafor@meridian.dev"}, {"email": "ines.ferreira@northgate.dev"}], "hangoutLink": "https://meet.example.com/demo-0916-01"}, {"id": "evt_20260916_02", "summary": "Sprint Review", "start": {"dateTime": "2026-09-16T10:30:00+01:00", "timeZone": "Europe/London"}, "end": {"dateTime": "2026-09-16T11:15:00+01:00", "timeZone": "Europe/London"}, "attendees": [{"email": "nadia.o@meridian.dev"}, {"email": "freya.nilsen@meridian.dev"}, {"email": "marcus.vidal@meridian.dev"}, {"email": "kwame.b@northgate.dev"}, {"email": "alina.rowe@meridian.dev"}], "hangoutLink": "https://meet.example.com/demo-0916-02"}, {"id": "evt_20260916_03", "summary": "QA Triage", "start": {"dateTime": "2026-09-16T11:00:00+01:00", "timeZone": "Europe/London"}, "end": {"dateTime": "2026-09-16T12:00:00+01:00", "timeZone": "Europe/London"}, "attendees": [{"email": "kwame.b@northgate.dev"}, {"email": "hana.sato@northgate.dev"}, {"email": "theo.almeida@northgate.dev"}, {"email": "marcus.vidal@meridian.dev"}, {"email": "tomas.berg@meridian.dev"}], "hangoutLink": "https://meet.example.com/demo-0916-03"}, {"id": "evt_20260916_04", "summary": "Partner Integration Sync", "start": {"dateTime": "2026-09-16T11:30:00+01:00", "timeZone": "Europe/London"}, "end": {"dateTime": "2026-09-16T12:30:00+01:00", "timeZone": "Europe/London"}, "attendees": [{"email": "elena.marsh@meridian.dev"}, {"email": "mei.chen@northgate.dev"}, {"email": "ravi.menon@northgate.dev"}, {"email": "rohan.desai@northgate.dev"}], "hangoutLink": "https://meet.example.com/demo-0916-04"}, {"id": "evt_20260916_05", "summary": "Data Pipeline Review", "start": {"dateTime": "2026-09-16T12:00:00+01:00", "timeZone": "Europe/London"}, "end": {"dateTime": "2026-09-16T13:00:00+01:00", "timeZone": "Europe/London"}, "attendees": [{"email": "daniel.okafor@meridian.dev"}, {"email": "samir.haddad@northgate.dev"}, {"email": "freya.nilsen@meridian.dev"}], "hangoutLink": "https://meet.example.com/demo-0916-05"}, {"id": "evt_20260916_06", "summary": "Atlas Daily Standup", "start": {"dateTime": "2026-09-16T13:30:00+01:00", "timeZone": "Europe/London"}, "end": {"dateTime": "2026-09-16T14:15:00+01:00", "timeZone": "Europe/London"}, "attendees": [{"email": "kwame.b@northgate.dev"}, {"email": "priya.anand@northgate.dev"}, {"email": "marcus.vidal@meridian.dev"}], "hangoutLink": "https://meet.example.com/demo-0916-06"}, {"id": "evt_20260916_07", "summary": "All Hands", "start": {"dateTime": "2026-09-16T14:00:00+01:00", "timeZone": "Europe/London"}, "end": {"dateTime": "2026-09-16T14:15:00+01:00", "timeZone": "Europe/London"}, "attendees": [{"email": "hana.sato@northgate.dev"}, {"email": "elena.marsh@meridian.dev"}, {"email": "ines.ferreira@northgate.dev"}, {"email": "sofia.l@meridian.dev"}, {"email": "grace.mwangi@meridian.dev"}, {"email": "rohan.desai@northgate.dev"}, {"email": "nadia.o@meridian.dev"}], "hangoutLink": "https://meet.example.com/demo-0916-07"}], "2026-09-17": [{"id": "evt_20260917_00", "summary": "Ember / Forge Sync", "start": {"dateTime": "2026-09-17T09:30:00+01:00", "timeZone": "Europe/London"}, "end": {"dateTime": "2026-09-17T10:15:00+01:00", "timeZone": "Europe/London"}, "attendees": [{"email": "samir.haddad@northgate.dev"}, {"email": "idris.khan@northgate.dev"}, {"email": "grace.mwangi@meridian.dev"}], "hangoutLink": "https://meet.example.com/demo-0917-00"}, {"id": "evt_20260917_01", "summary": "Architecture Catchup", "start": {"dateTime": "2026-09-17T10:00:00+01:00", "timeZone": "Europe/London"}, "end": {"dateTime": "2026-09-17T10:15:00+01:00", "timeZone": "Europe/London"}, "attendees": [{"email": "idris.khan@northgate.dev"}, {"email": "freya.nilsen@meridian.dev"}, {"email": "grace.mwangi@meridian.dev"}], "hangoutLink": "https://meet.example.com/demo-0917-01"}, {"id": "evt_20260917_02", "summary": "Design Review", "start": {"dateTime": "2026-09-17T10:30:00+01:00", "timeZone": "Europe/London"}, "end": {"dateTime": "2026-09-17T11:15:00+01:00", "timeZone": "Europe/London"}, "attendees": [{"email": "lena.petrova@northgate.dev"}, {"email": "nadia.o@meridian.dev"}, {"email": "theo.almeida@northgate.dev"}, {"email": "sofia.l@meridian.dev"}, {"email": "hana.sato@northgate.dev"}, {"email": "tomas.berg@meridian.dev"}], "hangoutLink": "https://meet.example.com/demo-0917-02"}, {"id": "evt_20260917_03", "summary": "Partner Integration Sync", "start": {"dateTime": "2026-09-17T11:00:00+01:00", "timeZone": "Europe/London"}, "end": {"dateTime": "2026-09-17T11:30:00+01:00", "timeZone": "Europe/London"}, "attendees": [{"email": "rohan.desai@northgate.dev"}, {"email": "ravi.menon@northgate.dev"}, {"email": "mei.chen@northgate.dev"}], "hangoutLink": "https://meet.example.com/demo-0917-03"}, {"id": "evt_20260917_04", "summary": "Incident Postmortem", "start": {"dateTime": "2026-09-17T11:30:00+01:00", "timeZone": "Europe/London"}, "end": {"dateTime": "2026-09-17T12:30:00+01:00", "timeZone": "Europe/London"}, "attendees": [{"email": "samir.haddad@northgate.dev"}, {"email": "daniel.okafor@meridian.dev"}, {"email": "freya.nilsen@meridian.dev"}], "hangoutLink": "https://meet.example.com/demo-0917-04"}, {"id": "evt_20260917_05", "summary": "Onboarding Flow Walkthrough", "start": {"dateTime": "2026-09-17T12:00:00+01:00", "timeZone": "Europe/London"}, "end": {"dateTime": "2026-09-17T12:45:00+01:00", "timeZone": "Europe/London"}, "attendees": [{"email": "theo.almeida@northgate.dev"}, {"email": "nadia.o@meridian.dev"}, {"email": "tomas.berg@meridian.dev"}, {"email": "hana.sato@northgate.dev"}], "hangoutLink": "https://meet.example.com/demo-0917-05"}, {"id": "evt_20260917_06", "summary": "All Hands", "start": {"dateTime": "2026-09-17T13:30:00+01:00", "timeZone": "Europe/London"}, "end": {"dateTime": "2026-09-17T14:30:00+01:00", "timeZone": "Europe/London"}, "attendees": [{"email": "samir.haddad@northgate.dev"}, {"email": "theo.almeida@northgate.dev"}, {"email": "daniel.okafor@meridian.dev"}], "hangoutLink": "https://meet.example.com/demo-0917-06"}, {"id": "evt_20260917_07", "summary": "Backlog Grooming", "start": {"dateTime": "2026-09-17T14:00:00+01:00", "timeZone": "Europe/London"}, "end": {"dateTime": "2026-09-17T14:30:00+01:00", "timeZone": "Europe/London"}, "attendees": [{"email": "alina.rowe@meridian.dev"}, {"email": "marcus.vidal@meridian.dev"}, {"email": "priya.anand@northgate.dev"}, {"email": "ines.ferreira@northgate.dev"}, {"email": "rohan.desai@northgate.dev"}], "hangoutLink": "https://meet.example.com/demo-0917-07"}], "2026-09-18": [{"id": "evt_20260918_00", "summary": "All Hands", "start": {"dateTime": "2026-09-18T09:30:00+01:00", "timeZone": "Europe/London"}, "end": {"dateTime": "2026-09-18T09:45:00+01:00", "timeZone": "Europe/London"}, "attendees": [{"email": "tomas.berg@meridian.dev"}, {"email": "sofia.l@meridian.dev"}, {"email": "oscar.duarte@meridian.dev"}], "hangoutLink": "https://meet.example.com/demo-0918-00"}, {"id": "evt_20260918_01", "summary": "Customer Sandbox Demo", "start": {"dateTime": "2026-09-18T10:00:00+01:00", "timeZone": "Europe/London"}, "end": {"dateTime": "2026-09-18T11:00:00+01:00", "timeZone": "Europe/London"}, "attendees": [{"email": "arjun.nair@northgate.dev"}, {"email": "lena.petrova@northgate.dev"}, {"email": "sofia.l@meridian.dev"}], "hangoutLink": "https://meet.example.com/demo-0918-01"}, {"id": "evt_20260918_02", "summary": "Backlog Grooming", "start": {"dateTime": "2026-09-18T10:30:00+01:00", "timeZone": "Europe/London"}, "end": {"dateTime": "2026-09-18T11:00:00+01:00", "timeZone": "Europe/London"}, "attendees": [{"email": "alina.rowe@meridian.dev"}, {"email": "ravi.menon@northgate.dev"}, {"email": "mei.chen@northgate.dev"}, {"email": "kwame.b@northgate.dev"}, {"email": "ines.ferreira@northgate.dev"}, {"email": "rohan.desai@northgate.dev"}, {"email": "elena.marsh@meridian.dev"}], "hangoutLink": "https://meet.example.com/demo-0918-02"}, {"id": "evt_20260918_03", "summary": "Architecture Catchup", "start": {"dateTime": "2026-09-18T11:00:00+01:00", "timeZone": "Europe/London"}, "end": {"dateTime": "2026-09-18T11:30:00+01:00", "timeZone": "Europe/London"}, "attendees": [{"email": "daniel.okafor@meridian.dev"}, {"email": "grace.mwangi@meridian.dev"}, {"email": "idris.khan@northgate.dev"}, {"email": "oscar.duarte@meridian.dev"}, {"email": "samir.haddad@northgate.dev"}], "hangoutLink": "https://meet.example.com/demo-0918-03"}, {"id": "evt_20260918_04", "summary": "Sprint Planning", "start": {"dateTime": "2026-09-18T11:30:00+01:00", "timeZone": "Europe/London"}, "end": {"dateTime": "2026-09-18T12:30:00+01:00", "timeZone": "Europe/London"}, "attendees": [{"email": "alina.rowe@meridian.dev"}, {"email": "elena.marsh@meridian.dev"}, {"email": "lena.petrova@northgate.dev"}, {"email": "marcus.vidal@meridian.dev"}], "hangoutLink": "https://meet.example.com/demo-0918-04"}, {"id": "evt_20260918_05", "summary": "Data Pipeline Review", "start": {"dateTime": "2026-09-18T12:00:00+01:00", "timeZone": "Europe/London"}, "end": {"dateTime": "2026-09-18T13:00:00+01:00", "timeZone": "Europe/London"}, "attendees": [{"email": "daniel.okafor@meridian.dev"}, {"email": "freya.nilsen@meridian.dev"}, {"email": "samir.haddad@northgate.dev"}], "hangoutLink": "https://meet.example.com/demo-0918-05"}, {"id": "evt_20260918_06", "summary": "Roadmap Checkpoint", "start": {"dateTime": "2026-09-18T13:30:00+01:00", "timeZone": "Europe/London"}, "end": {"dateTime": "2026-09-18T14:30:00+01:00", "timeZone": "Europe/London"}, "attendees": [{"email": "kwame.b@northgate.dev"}, {"email": "ravi.menon@northgate.dev"}, {"email": "grace.mwangi@meridian.dev"}, {"email": "theo.almeida@northgate.dev"}, {"email": "samir.haddad@northgate.dev"}], "hangoutLink": "https://meet.example.com/demo-0918-06"}, {"id": "evt_20260918_07", "summary": "Partner Integration Sync", "start": {"dateTime": "2026-09-18T14:00:00+01:00", "timeZone": "Europe/London"}, "end": {"dateTime": "2026-09-18T15:00:00+01:00", "timeZone": "Europe/London"}, "attendees": [{"email": "elena.marsh@meridian.dev"}, {"email": "rohan.desai@northgate.dev"}, {"email": "ravi.menon@northgate.dev"}, {"email": "mei.chen@northgate.dev"}], "hangoutLink": "https://meet.example.com/demo-0918-07"}], "2026-09-21": [{"id": "evt_20260921_00", "summary": "Weekly Findings", "start": {"dateTime": "2026-09-21T09:30:00+01:00", "timeZone": "Europe/London"}, "end": {"dateTime": "2026-09-21T09:45:00+01:00", "timeZone": "Europe/London"}, "attendees": [{"email": "mei.chen@northgate.dev"}, {"email": "alina.rowe@meridian.dev"}, {"email": "daniel.okafor@meridian.dev"}], "hangoutLink": "https://meet.example.com/demo-0921-00"}, {"id": "evt_20260921_01", "summary": "Onboarding Flow Walkthrough", "start": {"dateTime": "2026-09-21T10:00:00+01:00", "timeZone": "Europe/London"}, "end": {"dateTime": "2026-09-21T10:30:00+01:00", "timeZone": "Europe/London"}, "attendees": [{"email": "theo.almeida@northgate.dev"}, {"email": "hana.sato@northgate.dev"}, {"email": "tomas.berg@meridian.dev"}, {"email": "nadia.o@meridian.dev"}], "hangoutLink": "https://meet.example.com/demo-0921-01"}, {"id": "evt_20260921_02", "summary": "All Hands", "start": {"dateTime": "2026-09-21T10:30:00+01:00", "timeZone": "Europe/London"}, "end": {"dateTime": "2026-09-21T11:30:00+01:00", "timeZone": "Europe/London"}, "attendees": [{"email": "samir.haddad@northgate.dev"}, {"email": "ravi.menon@northgate.dev"}, {"email": "oscar.duarte@meridian.dev"}], "hangoutLink": "https://meet.example.com/demo-0921-02"}, {"id": "evt_20260921_03", "summary": "Atlas Daily Standup", "start": {"dateTime": "2026-09-21T11:00:00+01:00", "timeZone": "Europe/London"}, "end": {"dateTime": "2026-09-21T11:45:00+01:00", "timeZone": "Europe/London"}, "attendees": [{"email": "ines.ferreira@northgate.dev"}, {"email": "priya.anand@northgate.dev"}, {"email": "kwame.b@northgate.dev"}], "hangoutLink": "https://meet.example.com/demo-0921-03"}, {"id": "evt_20260921_04", "summary": "Incident Postmortem", "start": {"dateTime": "2026-09-21T11:30:00+01:00", "timeZone": "Europe/London"}, "end": {"dateTime": "2026-09-21T12:15:00+01:00", "timeZone": "Europe/London"}, "attendees": [{"email": "daniel.okafor@meridian.dev"}, {"email": "samir.haddad@northgate.dev"}, {"email": "freya.nilsen@meridian.dev"}], "hangoutLink": "https://meet.example.com/demo-0921-04"}, {"id": "evt_20260921_05", "summary": "Sprint Planning", "start": {"dateTime": "2026-09-21T12:00:00+01:00", "timeZone": "Europe/London"}, "end": {"dateTime": "2026-09-21T12:45:00+01:00", "timeZone": "Europe/London"}, "attendees": [{"email": "grace.mwangi@meridian.dev"}, {"email": "ravi.menon@northgate.dev"}, {"email": "idris.khan@northgate.dev"}], "hangoutLink": "https://meet.example.com/demo-0921-05"}, {"id": "evt_20260921_06", "summary": "Design Review", "start": {"dateTime": "2026-09-21T13:30:00+01:00", "timeZone": "Europe/London"}, "end": {"dateTime": "2026-09-21T14:30:00+01:00", "timeZone": "Europe/London"}, "attendees": [{"email": "tomas.berg@meridian.dev"}, {"email": "sofia.l@meridian.dev"}, {"email": "hana.sato@northgate.dev"}, {"email": "nadia.o@meridian.dev"}, {"email": "arjun.nair@northgate.dev"}, {"email": "lena.petrova@northgate.dev"}, {"email": "theo.almeida@northgate.dev"}], "hangoutLink": "https://meet.example.com/demo-0921-06"}, {"id": "evt_20260921_07", "summary": "Cobalt Daily Standup", "start": {"dateTime": "2026-09-21T14:00:00+01:00", "timeZone": "Europe/London"}, "end": {"dateTime": "2026-09-21T15:00:00+01:00", "timeZone": "Europe/London"}, "attendees": [{"email": "ravi.menon@northgate.dev"}, {"email": "rohan.desai@northgate.dev"}, {"email": "mei.chen@northgate.dev"}, {"email": "elena.marsh@meridian.dev"}], "hangoutLink": "https://meet.example.com/demo-0921-07"}, {"id": "evt_20260921_08", "summary": "QA Triage", "start": {"dateTime": "2026-09-21T14:30:00+01:00", "timeZone": "Europe/London"}, "end": {"dateTime": "2026-09-21T15:30:00+01:00", "timeZone": "Europe/London"}, "attendees": [{"email": "rohan.desai@northgate.dev"}, {"email": "elena.marsh@meridian.dev"}, {"email": "ines.ferreira@northgate.dev"}, {"email": "tomas.berg@meridian.dev"}], "hangoutLink": "https://meet.example.com/demo-0921-08"}, {"id": "evt_20260921_09", "summary": "Release Readiness", "start": {"dateTime": "2026-09-21T15:00:00+01:00", "timeZone": "Europe/London"}, "end": {"dateTime": "2026-09-21T15:30:00+01:00", "timeZone": "Europe/London"}, "attendees": [{"email": "samir.haddad@northgate.dev"}, {"email": "ines.ferreira@northgate.dev"}, {"email": "kwame.b@northgate.dev"}], "hangoutLink": "https://meet.example.com/demo-0921-09"}, {"id": "evt_20260921_10", "summary": "Roadmap Checkpoint", "start": {"dateTime": "2026-09-21T15:30:00+01:00", "timeZone": "Europe/London"}, "end": {"dateTime": "2026-09-21T15:45:00+01:00", "timeZone": "Europe/London"}, "attendees": [{"email": "rohan.desai@northgate.dev"}, {"email": "ravi.menon@northgate.dev"}, {"email": "elena.marsh@meridian.dev"}, {"email": "sofia.l@meridian.dev"}, {"email": "priya.anand@northgate.dev"}], "hangoutLink": "https://meet.example.com/demo-0921-10"}], "2026-09-22": [{"id": "evt_20260922_00", "summary": "Data Pipeline Review", "start": {"dateTime": "2026-09-22T09:30:00+01:00", "timeZone": "Europe/London"}, "end": {"dateTime": "2026-09-22T10:30:00+01:00", "timeZone": "Europe/London"}, "attendees": [{"email": "samir.haddad@northgate.dev"}, {"email": "freya.nilsen@meridian.dev"}, {"email": "daniel.okafor@meridian.dev"}], "hangoutLink": "https://meet.example.com/demo-0922-00"}, {"id": "evt_20260922_01", "summary": "Weekly Findings", "start": {"dateTime": "2026-09-22T10:00:00+01:00", "timeZone": "Europe/London"}, "end": {"dateTime": "2026-09-22T10:30:00+01:00", "timeZone": "Europe/London"}, "attendees": [{"email": "theo.almeida@northgate.dev"}, {"email": "ines.ferreira@northgate.dev"}, {"email": "oscar.duarte@meridian.dev"}, {"email": "grace.mwangi@meridian.dev"}, {"email": "idris.khan@northgate.dev"}], "hangoutLink": "https://meet.example.com/demo-0922-01"}, {"id": "evt_20260922_02", "summary": "All Hands", "start": {"dateTime": "2026-09-22T10:30:00+01:00", "timeZone": "Europe/London"}, "end": {"dateTime": "2026-09-22T11:30:00+01:00", "timeZone": "Europe/London"}, "attendees": [{"email": "oscar.duarte@meridian.dev"}, {"email": "tomas.berg@meridian.dev"}, {"email": "grace.mwangi@meridian.dev"}, {"email": "samir.haddad@northgate.dev"}, {"email": "elena.marsh@meridian.dev"}], "hangoutLink": "https://meet.example.com/demo-0922-02"}, {"id": "evt_20260922_03", "summary": "Sprint Planning", "start": {"dateTime": "2026-09-22T11:00:00+01:00", "timeZone": "Europe/London"}, "end": {"dateTime": "2026-09-22T12:00:00+01:00", "timeZone": "Europe/London"}, "attendees": [{"email": "theo.almeida@northgate.dev"}, {"email": "elena.marsh@meridian.dev"}, {"email": "priya.anand@northgate.dev"}, {"email": "nadia.o@meridian.dev"}], "hangoutLink": "https://meet.example.com/demo-0922-03"}, {"id": "evt_20260922_04", "summary": "Drift Daily Standup", "start": {"dateTime": "2026-09-22T11:30:00+01:00", "timeZone": "Europe/London"}, "end": {"dateTime": "2026-09-22T11:45:00+01:00", "timeZone": "Europe/London"}, "attendees": [{"email": "sofia.l@meridian.dev"}, {"email": "lena.petrova@northgate.dev"}, {"email": "arjun.nair@northgate.dev"}], "hangoutLink": "https://meet.example.com/demo-0922-04"}, {"id": "evt_20260922_05", "summary": "Backlog Grooming", "start": {"dateTime": "2026-09-22T12:00:00+01:00", "timeZone": "Europe/London"}, "end": {"dateTime": "2026-09-22T12:45:00+01:00", "timeZone": "Europe/London"}, "attendees": [{"email": "alina.rowe@meridian.dev"}, {"email": "priya.anand@northgate.dev"}, {"email": "kwame.b@northgate.dev"}, {"email": "ines.ferreira@northgate.dev"}], "hangoutLink": "https://meet.example.com/demo-0922-05"}, {"id": "evt_20260922_06", "summary": "Roadmap Checkpoint", "start": {"dateTime": "2026-09-22T13:30:00+01:00", "timeZone": "Europe/London"}, "end": {"dateTime": "2026-09-22T13:45:00+01:00", "timeZone": "Europe/London"}, "attendees": [{"email": "ines.ferreira@northgate.dev"}, {"email": "arjun.nair@northgate.dev"}, {"email": "freya.nilsen@meridian.dev"}, {"email": "samir.haddad@northgate.dev"}, {"email": "kwame.b@northgate.dev"}], "hangoutLink": "https://meet.example.com/demo-0922-06"}, {"id": "evt_20260922_07", "summary": "Beacon Daily Standup", "start": {"dateTime": "2026-09-22T14:00:00+01:00", "timeZone": "Europe/London"}, "end": {"dateTime": "2026-09-22T14:30:00+01:00", "timeZone": "Europe/London"}, "attendees": [{"email": "tomas.berg@meridian.dev"}, {"email": "hana.sato@northgate.dev"}, {"email": "nadia.o@meridian.dev"}, {"email": "theo.almeida@northgate.dev"}], "hangoutLink": "https://meet.example.com/demo-0922-07"}, {"id": "evt_20260922_08", "summary": "Partner Integration Sync", "start": {"dateTime": "2026-09-22T14:30:00+01:00", "timeZone": "Europe/London"}, "end": {"dateTime": "2026-09-22T15:00:00+01:00", "timeZone": "Europe/London"}, "attendees": [{"email": "elena.marsh@meridian.dev"}, {"email": "rohan.desai@northgate.dev"}, {"email": "ravi.menon@northgate.dev"}, {"email": "mei.chen@northgate.dev"}], "hangoutLink": "https://meet.example.com/demo-0922-08"}], "2026-09-23": [{"id": "evt_20260923_00", "summary": "Data Pipeline Review", "start": {"dateTime": "2026-09-23T09:30:00+01:00", "timeZone": "Europe/London"}, "end": {"dateTime": "2026-09-23T09:45:00+01:00", "timeZone": "Europe/London"}, "attendees": [{"email": "samir.haddad@northgate.dev"}, {"email": "daniel.okafor@meridian.dev"}, {"email": "freya.nilsen@meridian.dev"}], "hangoutLink": "https://meet.example.com/demo-0923-00"}, {"id": "evt_20260923_01", "summary": "All Hands", "start": {"dateTime": "2026-09-23T10:00:00+01:00", "timeZone": "Europe/London"}, "end": {"dateTime": "2026-09-23T11:00:00+01:00", "timeZone": "Europe/London"}, "attendees": [{"email": "sofia.l@meridian.dev"}, {"email": "rohan.desai@northgate.dev"}, {"email": "samir.haddad@northgate.dev"}, {"email": "theo.almeida@northgate.dev"}], "hangoutLink": "https://meet.example.com/demo-0923-01"}, {"id": "evt_20260923_02", "summary": "Architecture Catchup", "start": {"dateTime": "2026-09-23T10:30:00+01:00", "timeZone": "Europe/London"}, "end": {"dateTime": "2026-09-23T10:45:00+01:00", "timeZone": "Europe/London"}, "attendees": [{"email": "samir.haddad@northgate.dev"}, {"email": "idris.khan@northgate.dev"}, {"email": "grace.mwangi@meridian.dev"}, {"email": "oscar.duarte@meridian.dev"}, {"email": "daniel.okafor@meridian.dev"}, {"email": "freya.nilsen@meridian.dev"}], "hangoutLink": "https://meet.example.com/demo-0923-02"}, {"id": "evt_20260923_03", "summary": "Drift Daily Standup", "start": {"dateTime": "2026-09-23T11:00:00+01:00", "timeZone": "Europe/London"}, "end": {"dateTime": "2026-09-23T11:30:00+01:00", "timeZone": "Europe/London"}, "attendees": [{"email": "arjun.nair@northgate.dev"}, {"email": "sofia.l@meridian.dev"}, {"email": "lena.petrova@northgate.dev"}], "hangoutLink": "https://meet.example.com/demo-0923-03"}, {"id": "evt_20260923_04", "summary": "Incident Postmortem", "start": {"dateTime": "2026-09-23T11:30:00+01:00", "timeZone": "Europe/London"}, "end": {"dateTime": "2026-09-23T11:45:00+01:00", "timeZone": "Europe/London"}, "attendees": [{"email": "samir.haddad@northgate.dev"}, {"email": "freya.nilsen@meridian.dev"}, {"email": "daniel.okafor@meridian.dev"}], "hangoutLink": "https://meet.example.com/demo-0923-04"}, {"id": "evt_20260923_05", "summary": "Roadmap Checkpoint", "start": {"dateTime": "2026-09-23T12:00:00+01:00", "timeZone": "Europe/London"}, "end": {"dateTime": "2026-09-23T12:30:00+01:00", "timeZone": "Europe/London"}, "attendees": [{"email": "samir.haddad@northgate.dev"}, {"email": "lena.petrova@northgate.dev"}, {"email": "nadia.o@meridian.dev"}, {"email": "mei.chen@northgate.dev"}, {"email": "tomas.berg@meridian.dev"}, {"email": "rohan.desai@northgate.dev"}, {"email": "idris.khan@northgate.dev"}], "hangoutLink": "https://meet.example.com/demo-0923-05"}, {"id": "evt_20260923_06", "summary": "Onboarding Flow Walkthrough", "start": {"dateTime": "2026-09-23T13:30:00+01:00", "timeZone": "Europe/London"}, "end": {"dateTime": "2026-09-23T14:00:00+01:00", "timeZone": "Europe/London"}, "attendees": [{"email": "nadia.o@meridian.dev"}, {"email": "tomas.berg@meridian.dev"}, {"email": "theo.almeida@northgate.dev"}], "hangoutLink": "https://meet.example.com/demo-0923-06"}], "2026-09-24": [{"id": "evt_20260924_00", "summary": "Drift Daily Standup", "start": {"dateTime": "2026-09-24T09:30:00+01:00", "timeZone": "Europe/London"}, "end": {"dateTime": "2026-09-24T09:45:00+01:00", "timeZone": "Europe/London"}, "attendees": [{"email": "lena.petrova@northgate.dev"}, {"email": "arjun.nair@northgate.dev"}, {"email": "sofia.l@meridian.dev"}], "hangoutLink": "https://meet.example.com/demo-0924-00"}, {"id": "evt_20260924_01", "summary": "QA Triage", "start": {"dateTime": "2026-09-24T10:00:00+01:00", "timeZone": "Europe/London"}, "end": {"dateTime": "2026-09-24T10:30:00+01:00", "timeZone": "Europe/London"}, "attendees": [{"email": "ravi.menon@northgate.dev"}, {"email": "ines.ferreira@northgate.dev"}, {"email": "kwame.b@northgate.dev"}, {"email": "alina.rowe@meridian.dev"}, {"email": "theo.almeida@northgate.dev"}, {"email": "marcus.vidal@meridian.dev"}, {"email": "mei.chen@northgate.dev"}], "hangoutLink": "https://meet.example.com/demo-0924-01"}, {"id": "evt_20260924_02", "summary": "Incident Postmortem", "start": {"dateTime": "2026-09-24T10:30:00+01:00", "timeZone": "Europe/London"}, "end": {"dateTime": "2026-09-24T11:00:00+01:00", "timeZone": "Europe/London"}, "attendees": [{"email": "freya.nilsen@meridian.dev"}, {"email": "samir.haddad@northgate.dev"}, {"email": "daniel.okafor@meridian.dev"}], "hangoutLink": "https://meet.example.com/demo-0924-02"}, {"id": "evt_20260924_03", "summary": "Partner Integration Sync", "start": {"dateTime": "2026-09-24T11:00:00+01:00", "timeZone": "Europe/London"}, "end": {"dateTime": "2026-09-24T11:15:00+01:00", "timeZone": "Europe/London"}, "attendees": [{"email": "rohan.desai@northgate.dev"}, {"email": "mei.chen@northgate.dev"}, {"email": "elena.marsh@meridian.dev"}, {"email": "ravi.menon@northgate.dev"}], "hangoutLink": "https://meet.example.com/demo-0924-03"}, {"id": "evt_20260924_04", "summary": "Cobalt Daily Standup", "start": {"dateTime": "2026-09-24T11:30:00+01:00", "timeZone": "Europe/London"}, "end": {"dateTime": "2026-09-24T12:30:00+01:00", "timeZone": "Europe/London"}, "attendees": [{"email": "ravi.menon@northgate.dev"}, {"email": "mei.chen@northgate.dev"}, {"email": "rohan.desai@northgate.dev"}, {"email": "elena.marsh@meridian.dev"}], "hangoutLink": "https://meet.example.com/demo-0924-04"}, {"id": "evt_20260924_05", "summary": "Beacon Daily Standup", "start": {"dateTime": "2026-09-24T12:00:00+01:00", "timeZone": "Europe/London"}, "end": {"dateTime": "2026-09-24T12:30:00+01:00", "timeZone": "Europe/London"}, "attendees": [{"email": "hana.sato@northgate.dev"}, {"email": "tomas.berg@meridian.dev"}, {"email": "theo.almeida@northgate.dev"}], "hangoutLink": "https://meet.example.com/demo-0924-05"}, {"id": "evt_20260924_06", "summary": "Weekly Findings", "start": {"dateTime": "2026-09-24T13:30:00+01:00", "timeZone": "Europe/London"}, "end": {"dateTime": "2026-09-24T14:00:00+01:00", "timeZone": "Europe/London"}, "attendees": [{"email": "freya.nilsen@meridian.dev"}, {"email": "sofia.l@meridian.dev"}, {"email": "tomas.berg@meridian.dev"}, {"email": "nadia.o@meridian.dev"}, {"email": "samir.haddad@northgate.dev"}, {"email": "mei.chen@northgate.dev"}, {"email": "alina.rowe@meridian.dev"}], "hangoutLink": "https://meet.example.com/demo-0924-06"}, {"id": "evt_20260924_07", "summary": "Data Pipeline Review", "start": {"dateTime": "2026-09-24T14:00:00+01:00", "timeZone": "Europe/London"}, "end": {"dateTime": "2026-09-24T14:30:00+01:00", "timeZone": "Europe/London"}, "attendees": [{"email": "daniel.okafor@meridian.dev"}, {"email": "samir.haddad@northgate.dev"}, {"email": "freya.nilsen@meridian.dev"}], "hangoutLink": "https://meet.example.com/demo-0924-07"}, {"id": "evt_20260924_08", "summary": "Architecture Catchup", "start": {"dateTime": "2026-09-24T14:30:00+01:00", "timeZone": "Europe/London"}, "end": {"dateTime": "2026-09-24T15:30:00+01:00", "timeZone": "Europe/London"}, "attendees": [{"email": "samir.haddad@northgate.dev"}, {"email": "daniel.okafor@meridian.dev"}, {"email": "oscar.duarte@meridian.dev"}, {"email": "idris.khan@northgate.dev"}, {"email": "freya.nilsen@meridian.dev"}, {"email": "grace.mwangi@meridian.dev"}], "hangoutLink": "https://meet.example.com/demo-0924-08"}], "2026-09-25": [{"id": "evt_20260925_00", "summary": "Weekly Findings", "start": {"dateTime": "2026-09-25T09:30:00+01:00", "timeZone": "Europe/London"}, "end": {"dateTime": "2026-09-25T10:15:00+01:00", "timeZone": "Europe/London"}, "attendees": [{"email": "kwame.b@northgate.dev"}, {"email": "samir.haddad@northgate.dev"}, {"email": "oscar.duarte@meridian.dev"}], "hangoutLink": "https://meet.example.com/demo-0925-00"}, {"id": "evt_20260925_01", "summary": "Sprint Review", "start": {"dateTime": "2026-09-25T10:00:00+01:00", "timeZone": "Europe/London"}, "end": {"dateTime": "2026-09-25T10:15:00+01:00", "timeZone": "Europe/London"}, "attendees": [{"email": "tomas.berg@meridian.dev"}, {"email": "nadia.o@meridian.dev"}, {"email": "hana.sato@northgate.dev"}, {"email": "grace.mwangi@meridian.dev"}, {"email": "arjun.nair@northgate.dev"}, {"email": "priya.anand@northgate.dev"}], "hangoutLink": "https://meet.example.com/demo-0925-01"}, {"id": "evt_20260925_02", "summary": "Design Review", "start": {"dateTime": "2026-09-25T10:30:00+01:00", "timeZone": "Europe/London"}, "end": {"dateTime": "2026-09-25T11:00:00+01:00", "timeZone": "Europe/London"}, "attendees": [{"email": "sofia.l@meridian.dev"}, {"email": "lena.petrova@northgate.dev"}, {"email": "theo.almeida@northgate.dev"}], "hangoutLink": "https://meet.example.com/demo-0925-02"}, {"id": "evt_20260925_03", "summary": "Ember / Forge Sync", "start": {"dateTime": "2026-09-25T11:00:00+01:00", "timeZone": "Europe/London"}, "end": {"dateTime": "2026-09-25T12:00:00+01:00", "timeZone": "Europe/London"}, "attendees": [{"email": "samir.haddad@northgate.dev"}, {"email": "oscar.duarte@meridian.dev"}, {"email": "grace.mwangi@meridian.dev"}, {"email": "daniel.okafor@meridian.dev"}, {"email": "idris.khan@northgate.dev"}], "hangoutLink": "https://meet.example.com/demo-0925-03"}, {"id": "evt_20260925_04", "summary": "All Hands", "start": {"dateTime": "2026-09-25T11:30:00+01:00", "timeZone": "Europe/London"}, "end": {"dateTime": "2026-09-25T12:15:00+01:00", "timeZone": "Europe/London"}, "attendees": [{"email": "rohan.desai@northgate.dev"}, {"email": "samir.haddad@northgate.dev"}, {"email": "freya.nilsen@meridian.dev"}, {"email": "alina.rowe@meridian.dev"}], "hangoutLink": "https://meet.example.com/demo-0925-04"}, {"id": "evt_20260925_05", "summary": "Backlog Grooming", "start": {"dateTime": "2026-09-25T12:00:00+01:00", "timeZone": "Europe/London"}, "end": {"dateTime": "2026-09-25T12:30:00+01:00", "timeZone": "Europe/London"}, "attendees": [{"email": "marcus.vidal@meridian.dev"}, {"email": "kwame.b@northgate.dev"}, {"email": "rohan.desai@northgate.dev"}, {"email": "mei.chen@northgate.dev"}, {"email": "ravi.menon@northgate.dev"}, {"email": "elena.marsh@meridian.dev"}, {"email": "ines.ferreira@northgate.dev"}], "hangoutLink": "https://meet.example.com/demo-0925-05"}, {"id": "evt_20260925_06", "summary": "Beacon Daily Standup", "start": {"dateTime": "2026-09-25T13:30:00+01:00", "timeZone": "Europe/London"}, "end": {"dateTime": "2026-09-25T14:15:00+01:00", "timeZone": "Europe/London"}, "attendees": [{"email": "theo.almeida@northgate.dev"}, {"email": "hana.sato@northgate.dev"}, {"email": "nadia.o@meridian.dev"}, {"email": "tomas.berg@meridian.dev"}], "hangoutLink": "https://meet.example.com/demo-0925-06"}, {"id": "evt_20260925_07", "summary": "Customer Sandbox Demo", "start": {"dateTime": "2026-09-25T14:00:00+01:00", "timeZone": "Europe/London"}, "end": {"dateTime": "2026-09-25T15:00:00+01:00", "timeZone": "Europe/London"}, "attendees": [{"email": "lena.petrova@northgate.dev"}, {"email": "sofia.l@meridian.dev"}, {"email": "arjun.nair@northgate.dev"}], "hangoutLink": "https://meet.example.com/demo-0925-07"}, {"id": "evt_20260925_08", "summary": "Architecture Catchup", "start": {"dateTime": "2026-09-25T14:30:00+01:00", "timeZone": "Europe/London"}, "end": {"dateTime": "2026-09-25T15:00:00+01:00", "timeZone": "Europe/London"}, "attendees": [{"email": "daniel.okafor@meridian.dev"}, {"email": "idris.khan@northgate.dev"}, {"email": "freya.nilsen@meridian.dev"}, {"email": "grace.mwangi@meridian.dev"}, {"email": "samir.haddad@northgate.dev"}, {"email": "oscar.duarte@meridian.dev"}], "hangoutLink": "https://meet.example.com/demo-0925-08"}, {"id": "evt_20260925_09", "summary": "Sprint Planning", "start": {"dateTime": "2026-09-25T15:00:00+01:00", "timeZone": "Europe/London"}, "end": {"dateTime": "2026-09-25T15:45:00+01:00", "timeZone": "Europe/London"}, "attendees": [{"email": "priya.anand@northgate.dev"}, {"email": "oscar.duarte@meridian.dev"}, {"email": "rohan.desai@northgate.dev"}, {"email": "arjun.nair@northgate.dev"}, {"email": "theo.almeida@northgate.dev"}, {"email": "hana.sato@northgate.dev"}, {"email": "elena.marsh@meridian.dev"}], "hangoutLink": "https://meet.example.com/demo-0925-09"}], "2026-09-28": [{"id": "evt_20260928_00", "summary": "Partner Integration Sync", "start": {"dateTime": "2026-09-28T09:30:00+01:00", "timeZone": "Europe/London"}, "end": {"dateTime": "2026-09-28T10:00:00+01:00", "timeZone": "Europe/London"}, "attendees": [{"email": "mei.chen@northgate.dev"}, {"email": "rohan.desai@northgate.dev"}, {"email": "ravi.menon@northgate.dev"}, {"email": "elena.marsh@meridian.dev"}], "hangoutLink": "https://meet.example.com/demo-0928-00"}, {"id": "evt_20260928_01", "summary": "Weekly Findings", "start": {"dateTime": "2026-09-28T10:00:00+01:00", "timeZone": "Europe/London"}, "end": {"dateTime": "2026-09-28T10:30:00+01:00", "timeZone": "Europe/London"}, "attendees": [{"email": "tomas.berg@meridian.dev"}, {"email": "daniel.okafor@meridian.dev"}, {"email": "grace.mwangi@meridian.dev"}], "hangoutLink": "https://meet.example.com/demo-0928-01"}, {"id": "evt_20260928_02", "summary": "All Hands", "start": {"dateTime": "2026-09-28T10:30:00+01:00", "timeZone": "Europe/London"}, "end": {"dateTime": "2026-09-28T11:00:00+01:00", "timeZone": "Europe/London"}, "attendees": [{"email": "arjun.nair@northgate.dev"}, {"email": "grace.mwangi@meridian.dev"}, {"email": "priya.anand@northgate.dev"}, {"email": "idris.khan@northgate.dev"}, {"email": "samir.haddad@northgate.dev"}, {"email": "ines.ferreira@northgate.dev"}, {"email": "nadia.o@meridian.dev"}], "hangoutLink": "https://meet.example.com/demo-0928-02"}, {"id": "evt_20260928_03", "summary": "Architecture Catchup", "start": {"dateTime": "2026-09-28T11:00:00+01:00", "timeZone": "Europe/London"}, "end": {"dateTime": "2026-09-28T11:45:00+01:00", "timeZone": "Europe/London"}, "attendees": [{"email": "idris.khan@northgate.dev"}, {"email": "grace.mwangi@meridian.dev"}, {"email": "freya.nilsen@meridian.dev"}, {"email": "daniel.okafor@meridian.dev"}], "hangoutLink": "https://meet.example.com/demo-0928-03"}, {"id": "evt_20260928_04", "summary": "Ember / Forge Sync", "start": {"dateTime": "2026-09-28T11:30:00+01:00", "timeZone": "Europe/London"}, "end": {"dateTime": "2026-09-28T12:00:00+01:00", "timeZone": "Europe/London"}, "attendees": [{"email": "grace.mwangi@meridian.dev"}, {"email": "oscar.duarte@meridian.dev"}, {"email": "samir.haddad@northgate.dev"}, {"email": "freya.nilsen@meridian.dev"}, {"email": "daniel.okafor@meridian.dev"}, {"email": "idris.khan@northgate.dev"}], "hangoutLink": "https://meet.example.com/demo-0928-04"}, {"id": "evt_20260928_05", "summary": "QA Triage", "start": {"dateTime": "2026-09-28T12:00:00+01:00", "timeZone": "Europe/London"}, "end": {"dateTime": "2026-09-28T12:30:00+01:00", "timeZone": "Europe/London"}, "attendees": [{"email": "priya.anand@northgate.dev"}, {"email": "alina.rowe@meridian.dev"}, {"email": "marcus.vidal@meridian.dev"}, {"email": "tomas.berg@meridian.dev"}, {"email": "nadia.o@meridian.dev"}, {"email": "elena.marsh@meridian.dev"}, {"email": "kwame.b@northgate.dev"}], "hangoutLink": "https://meet.example.com/demo-0928-05"}, {"id": "evt_20260928_06", "summary": "Sprint Planning", "start": {"dateTime": "2026-09-28T13:30:00+01:00", "timeZone": "Europe/London"}, "end": {"dateTime": "2026-09-28T14:00:00+01:00", "timeZone": "Europe/London"}, "attendees": [{"email": "arjun.nair@northgate.dev"}, {"email": "kwame.b@northgate.dev"}, {"email": "oscar.duarte@meridian.dev"}, {"email": "priya.anand@northgate.dev"}, {"email": "mei.chen@northgate.dev"}], "hangoutLink": "https://meet.example.com/demo-0928-06"}], "2026-09-29": [{"id": "evt_20260929_00", "summary": "Sprint Review", "start": {"dateTime": "2026-09-29T09:30:00+01:00", "timeZone": "Europe/London"}, "end": {"dateTime": "2026-09-29T09:45:00+01:00", "timeZone": "Europe/London"}, "attendees": [{"email": "lena.petrova@northgate.dev"}, {"email": "theo.almeida@northgate.dev"}, {"email": "grace.mwangi@meridian.dev"}, {"email": "arjun.nair@northgate.dev"}], "hangoutLink": "https://meet.example.com/demo-0929-00"}, {"id": "evt_20260929_01", "summary": "Roadmap Checkpoint", "start": {"dateTime": "2026-09-29T10:00:00+01:00", "timeZone": "Europe/London"}, "end": {"dateTime": "2026-09-29T10:45:00+01:00", "timeZone": "Europe/London"}, "attendees": [{"email": "arjun.nair@northgate.dev"}, {"email": "elena.marsh@meridian.dev"}, {"email": "mei.chen@northgate.dev"}, {"email": "ines.ferreira@northgate.dev"}, {"email": "ravi.menon@northgate.dev"}, {"email": "theo.almeida@northgate.dev"}, {"email": "nadia.o@meridian.dev"}], "hangoutLink": "https://meet.example.com/demo-0929-01"}, {"id": "evt_20260929_02", "summary": "QA Triage", "start": {"dateTime": "2026-09-29T10:30:00+01:00", "timeZone": "Europe/London"}, "end": {"dateTime": "2026-09-29T11:15:00+01:00", "timeZone": "Europe/London"}, "attendees": [{"email": "alina.rowe@meridian.dev"}, {"email": "mei.chen@northgate.dev"}, {"email": "ines.ferreira@northgate.dev"}, {"email": "rohan.desai@northgate.dev"}, {"email": "marcus.vidal@meridian.dev"}, {"email": "hana.sato@northgate.dev"}, {"email": "kwame.b@northgate.dev"}], "hangoutLink": "https://meet.example.com/demo-0929-02"}, {"id": "evt_20260929_03", "summary": "Beacon Daily Standup", "start": {"dateTime": "2026-09-29T11:00:00+01:00", "timeZone": "Europe/London"}, "end": {"dateTime": "2026-09-29T12:00:00+01:00", "timeZone": "Europe/London"}, "attendees": [{"email": "tomas.berg@meridian.dev"}, {"email": "hana.sato@northgate.dev"}, {"email": "theo.almeida@northgate.dev"}, {"email": "nadia.o@meridian.dev"}], "hangoutLink": "https://meet.example.com/demo-0929-03"}, {"id": "evt_20260929_04", "summary": "Backlog Grooming", "start": {"dateTime": "2026-09-29T11:30:00+01:00", "timeZone": "Europe/London"}, "end": {"dateTime": "2026-09-29T12:00:00+01:00", "timeZone": "Europe/London"}, "attendees": [{"email": "marcus.vidal@meridian.dev"}, {"email": "mei.chen@northgate.dev"}, {"email": "ines.ferreira@northgate.dev"}, {"email": "alina.rowe@meridian.dev"}], "hangoutLink": "https://meet.example.com/demo-0929-04"}, {"id": "evt_20260929_05", "summary": "Partner Integration Sync", "start": {"dateTime": "2026-09-29T12:00:00+01:00", "timeZone": "Europe/London"}, "end": {"dateTime": "2026-09-29T12:30:00+01:00", "timeZone": "Europe/London"}, "attendees": [{"email": "elena.marsh@meridian.dev"}, {"email": "mei.chen@northgate.dev"}, {"email": "ravi.menon@northgate.dev"}, {"email": "rohan.desai@northgate.dev"}], "hangoutLink": "https://meet.example.com/demo-0929-05"}, {"id": "evt_20260929_06", "summary": "Data Pipeline Review", "start": {"dateTime": "2026-09-29T13:30:00+01:00", "timeZone": "Europe/London"}, "end": {"dateTime": "2026-09-29T14:15:00+01:00", "timeZone": "Europe/London"}, "attendees": [{"email": "daniel.okafor@meridian.dev"}, {"email": "samir.haddad@northgate.dev"}, {"email": "freya.nilsen@meridian.dev"}], "hangoutLink": "https://meet.example.com/demo-0929-06"}, {"id": "evt_20260929_07", "summary": "Design Review", "start": {"dateTime": "2026-09-29T14:00:00+01:00", "timeZone": "Europe/London"}, "end": {"dateTime": "2026-09-29T15:00:00+01:00", "timeZone": "Europe/London"}, "attendees": [{"email": "hana.sato@northgate.dev"}, {"email": "theo.almeida@northgate.dev"}, {"email": "nadia.o@meridian.dev"}], "hangoutLink": "https://meet.example.com/demo-0929-07"}, {"id": "evt_20260929_08", "summary": "Release Readiness", "start": {"dateTime": "2026-09-29T14:30:00+01:00", "timeZone": "Europe/London"}, "end": {"dateTime": "2026-09-29T15:15:00+01:00", "timeZone": "Europe/London"}, "attendees": [{"email": "kwame.b@northgate.dev"}, {"email": "freya.nilsen@meridian.dev"}, {"email": "samir.haddad@northgate.dev"}, {"email": "daniel.okafor@meridian.dev"}, {"email": "ines.ferreira@northgate.dev"}, {"email": "priya.anand@northgate.dev"}, {"email": "marcus.vidal@meridian.dev"}], "hangoutLink": "https://meet.example.com/demo-0929-08"}, {"id": "evt_20260929_09", "summary": "Weekly Findings", "start": {"dateTime": "2026-09-29T15:00:00+01:00", "timeZone": "Europe/London"}, "end": {"dateTime": "2026-09-29T15:45:00+01:00", "timeZone": "Europe/London"}, "attendees": [{"email": "sofia.l@meridian.dev"}, {"email": "marcus.vidal@meridian.dev"}, {"email": "theo.almeida@northgate.dev"}, {"email": "rohan.desai@northgate.dev"}, {"email": "kwame.b@northgate.dev"}, {"email": "ines.ferreira@northgate.dev"}, {"email": "hana.sato@northgate.dev"}], "hangoutLink": "https://meet.example.com/demo-0929-09"}, {"id": "evt_20260929_10", "summary": "Drift Daily Standup", "start": {"dateTime": "2026-09-29T15:30:00+01:00", "timeZone": "Europe/London"}, "end": {"dateTime": "2026-09-29T16:00:00+01:00", "timeZone": "Europe/London"}, "attendees": [{"email": "arjun.nair@northgate.dev"}, {"email": "sofia.l@meridian.dev"}, {"email": "lena.petrova@northgate.dev"}], "hangoutLink": "https://meet.example.com/demo-0929-10"}, {"id": "evt_20260929_11", "summary": "Incident Postmortem", "start": {"dateTime": "2026-09-29T16:00:00+01:00", "timeZone": "Europe/London"}, "end": {"dateTime": "2026-09-29T16:45:00+01:00", "timeZone": "Europe/London"}, "attendees": [{"email": "daniel.okafor@meridian.dev"}, {"email": "samir.haddad@northgate.dev"}, {"email": "freya.nilsen@meridian.dev"}], "hangoutLink": "https://meet.example.com/demo-0929-11"}, {"id": "evt_20260929_12", "summary": "Sprint Planning", "start": {"dateTime": "2026-09-29T16:30:00+01:00", "timeZone": "Europe/London"}, "end": {"dateTime": "2026-09-29T17:00:00+01:00", "timeZone": "Europe/London"}, "attendees": [{"email": "idris.khan@northgate.dev"}, {"email": "lena.petrova@northgate.dev"}, {"email": "ravi.menon@northgate.dev"}, {"email": "marcus.vidal@meridian.dev"}, {"email": "freya.nilsen@meridian.dev"}], "hangoutLink": "https://meet.example.com/demo-0929-12"}], "2026-09-30": [{"id": "evt_20260930_00", "summary": "All Hands", "start": {"dateTime": "2026-09-30T09:30:00+01:00", "timeZone": "Europe/London"}, "end": {"dateTime": "2026-09-30T10:00:00+01:00", "timeZone": "Europe/London"}, "attendees": [{"email": "lena.petrova@northgate.dev"}, {"email": "idris.khan@northgate.dev"}, {"email": "kwame.b@northgate.dev"}, {"email": "daniel.okafor@meridian.dev"}, {"email": "mei.chen@northgate.dev"}, {"email": "ines.ferreira@northgate.dev"}], "hangoutLink": "https://meet.example.com/demo-0930-00"}, {"id": "evt_20260930_01", "summary": "Drift Daily Standup", "start": {"dateTime": "2026-09-30T10:00:00+01:00", "timeZone": "Europe/London"}, "end": {"dateTime": "2026-09-30T11:00:00+01:00", "timeZone": "Europe/London"}, "attendees": [{"email": "lena.petrova@northgate.dev"}, {"email": "arjun.nair@northgate.dev"}, {"email": "sofia.l@meridian.dev"}], "hangoutLink": "https://meet.example.com/demo-0930-01"}, {"id": "evt_20260930_02", "summary": "Beacon Daily Standup", "start": {"dateTime": "2026-09-30T10:30:00+01:00", "timeZone": "Europe/London"}, "end": {"dateTime": "2026-09-30T11:00:00+01:00", "timeZone": "Europe/London"}, "attendees": [{"email": "theo.almeida@northgate.dev"}, {"email": "nadia.o@meridian.dev"}, {"email": "hana.sato@northgate.dev"}, {"email": "tomas.berg@meridian.dev"}], "hangoutLink": "https://meet.example.com/demo-0930-02"}, {"id": "evt_20260930_03", "summary": "Architecture Catchup", "start": {"dateTime": "2026-09-30T11:00:00+01:00", "timeZone": "Europe/London"}, "end": {"dateTime": "2026-09-30T11:30:00+01:00", "timeZone": "Europe/London"}, "attendees": [{"email": "freya.nilsen@meridian.dev"}, {"email": "oscar.duarte@meridian.dev"}, {"email": "idris.khan@northgate.dev"}, {"email": "daniel.okafor@meridian.dev"}, {"email": "grace.mwangi@meridian.dev"}, {"email": "samir.haddad@northgate.dev"}], "hangoutLink": "https://meet.example.com/demo-0930-03"}, {"id": "evt_20260930_04", "summary": "Weekly Findings", "start": {"dateTime": "2026-09-30T11:30:00+01:00", "timeZone": "Europe/London"}, "end": {"dateTime": "2026-09-30T12:15:00+01:00", "timeZone": "Europe/London"}, "attendees": [{"email": "grace.mwangi@meridian.dev"}, {"email": "sofia.l@meridian.dev"}, {"email": "daniel.okafor@meridian.dev"}], "hangoutLink": "https://meet.example.com/demo-0930-04"}, {"id": "evt_20260930_05", "summary": "Roadmap Checkpoint", "start": {"dateTime": "2026-09-30T12:00:00+01:00", "timeZone": "Europe/London"}, "end": {"dateTime": "2026-09-30T12:15:00+01:00", "timeZone": "Europe/London"}, "attendees": [{"email": "hana.sato@northgate.dev"}, {"email": "elena.marsh@meridian.dev"}, {"email": "priya.anand@northgate.dev"}, {"email": "marcus.vidal@meridian.dev"}, {"email": "grace.mwangi@meridian.dev"}, {"email": "samir.haddad@northgate.dev"}, {"email": "nadia.o@meridian.dev"}], "hangoutLink": "https://meet.example.com/demo-0930-05"}], "2026-10-01": [{"id": "evt_20261001_00", "summary": "Atlas Daily Standup", "start": {"dateTime": "2026-10-01T09:30:00+01:00", "timeZone": "Europe/London"}, "end": {"dateTime": "2026-10-01T10:00:00+01:00", "timeZone": "Europe/London"}, "attendees": [{"email": "marcus.vidal@meridian.dev"}, {"email": "ines.ferreira@northgate.dev"}, {"email": "kwame.b@northgate.dev"}, {"email": "alina.rowe@meridian.dev"}], "hangoutLink": "https://meet.example.com/demo-1001-00"}, {"id": "evt_20261001_01", "summary": "Design Review", "start": {"dateTime": "2026-10-01T10:00:00+01:00", "timeZone": "Europe/London"}, "end": {"dateTime": "2026-10-01T11:00:00+01:00", "timeZone": "Europe/London"}, "attendees": [{"email": "hana.sato@northgate.dev"}, {"email": "sofia.l@meridian.dev"}, {"email": "lena.petrova@northgate.dev"}, {"email": "arjun.nair@northgate.dev"}, {"email": "theo.almeida@northgate.dev"}, {"email": "tomas.berg@meridian.dev"}], "hangoutLink": "https://meet.example.com/demo-1001-01"}, {"id": "evt_20261001_02", "summary": "Beacon Daily Standup", "start": {"dateTime": "2026-10-01T10:30:00+01:00", "timeZone": "Europe/London"}, "end": {"dateTime": "2026-10-01T11:00:00+01:00", "timeZone": "Europe/London"}, "attendees": [{"email": "hana.sato@northgate.dev"}, {"email": "theo.almeida@northgate.dev"}, {"email": "tomas.berg@meridian.dev"}, {"email": "nadia.o@meridian.dev"}], "hangoutLink": "https://meet.example.com/demo-1001-02"}, {"id": "evt_20261001_03", "summary": "Drift Daily Standup", "start": {"dateTime": "2026-10-01T11:00:00+01:00", "timeZone": "Europe/London"}, "end": {"dateTime": "2026-10-01T11:30:00+01:00", "timeZone": "Europe/London"}, "attendees": [{"email": "sofia.l@meridian.dev"}, {"email": "arjun.nair@northgate.dev"}, {"email": "lena.petrova@northgate.dev"}], "hangoutLink": "https://meet.example.com/demo-1001-03"}, {"id": "evt_20261001_04", "summary": "Partner Integration Sync", "start": {"dateTime": "2026-10-01T11:30:00+01:00", "timeZone": "Europe/London"}, "end": {"dateTime": "2026-10-01T12:15:00+01:00", "timeZone": "Europe/London"}, "attendees": [{"email": "rohan.desai@northgate.dev"}, {"email": "elena.marsh@meridian.dev"}, {"email": "ravi.menon@northgate.dev"}], "hangoutLink": "https://meet.example.com/demo-1001-04"}, {"id": "evt_20261001_05", "summary": "Sprint Planning", "start": {"dateTime": "2026-10-01T12:00:00+01:00", "timeZone": "Europe/London"}, "end": {"dateTime": "2026-10-01T13:00:00+01:00", "timeZone": "Europe/London"}, "attendees": [{"email": "ravi.menon@northgate.dev"}, {"email": "arjun.nair@northgate.dev"}, {"email": "grace.mwangi@meridian.dev"}, {"email": "alina.rowe@meridian.dev"}], "hangoutLink": "https://meet.example.com/demo-1001-05"}, {"id": "evt_20261001_06", "summary": "Weekly Findings", "start": {"dateTime": "2026-10-01T13:30:00+01:00", "timeZone": "Europe/London"}, "end": {"dateTime": "2026-10-01T14:15:00+01:00", "timeZone": "Europe/London"}, "attendees": [{"email": "alina.rowe@meridian.dev"}, {"email": "ines.ferreira@northgate.dev"}, {"email": "theo.almeida@northgate.dev"}, {"email": "priya.anand@northgate.dev"}, {"email": "oscar.duarte@meridian.dev"}, {"email": "daniel.okafor@meridian.dev"}], "hangoutLink": "https://meet.example.com/demo-1001-06"}, {"id": "evt_20261001_07", "summary": "Release Readiness", "start": {"dateTime": "2026-10-01T14:00:00+01:00", "timeZone": "Europe/London"}, "end": {"dateTime": "2026-10-01T15:00:00+01:00", "timeZone": "Europe/London"}, "attendees": [{"email": "freya.nilsen@meridian.dev"}, {"email": "marcus.vidal@meridian.dev"}, {"email": "kwame.b@northgate.dev"}, {"email": "daniel.okafor@meridian.dev"}], "hangoutLink": "https://meet.example.com/demo-1001-07"}], "2026-10-02": [{"id": "evt_20261002_00", "summary": "Incident Postmortem", "start": {"dateTime": "2026-10-02T09:30:00+01:00", "timeZone": "Europe/London"}, "end": {"dateTime": "2026-10-02T09:45:00+01:00", "timeZone": "Europe/London"}, "attendees": [{"email": "samir.haddad@northgate.dev"}, {"email": "daniel.okafor@meridian.dev"}, {"email": "freya.nilsen@meridian.dev"}], "hangoutLink": "https://meet.example.com/demo-1002-00"}, {"id": "evt_20261002_01", "summary": "Sprint Planning", "start": {"dateTime": "2026-10-02T10:00:00+01:00", "timeZone": "Europe/London"}, "end": {"dateTime": "2026-10-02T10:45:00+01:00", "timeZone": "Europe/London"}, "attendees": [{"email": "priya.anand@northgate.dev"}, {"email": "theo.almeida@northgate.dev"}, {"email": "sofia.l@meridian.dev"}, {"email": "tomas.berg@meridian.dev"}, {"email": "ravi.menon@northgate.dev"}], "hangoutLink": "https://meet.example.com/demo-1002-01"}, {"id": "evt_20261002_02", "summary": "Roadmap Checkpoint", "start": {"dateTime": "2026-10-02T10:30:00+01:00", "timeZone": "Europe/London"}, "end": {"dateTime": "2026-10-02T11:15:00+01:00", "timeZone": "Europe/London"}, "attendees": [{"email": "sofia.l@meridian.dev"}, {"email": "mei.chen@northgate.dev"}, {"email": "nadia.o@meridian.dev"}, {"email": "kwame.b@northgate.dev"}, {"email": "daniel.okafor@meridian.dev"}], "hangoutLink": "https://meet.example.com/demo-1002-02"}, {"id": "evt_20261002_03", "summary": "Drift Daily Standup", "start": {"dateTime": "2026-10-02T11:00:00+01:00", "timeZone": "Europe/London"}, "end": {"dateTime": "2026-10-02T11:45:00+01:00", "timeZone": "Europe/London"}, "attendees": [{"email": "lena.petrova@northgate.dev"}, {"email": "sofia.l@meridian.dev"}, {"email": "arjun.nair@northgate.dev"}], "hangoutLink": "https://meet.example.com/demo-1002-03"}, {"id": "evt_20261002_04", "summary": "Atlas Daily Standup", "start": {"dateTime": "2026-10-02T11:30:00+01:00", "timeZone": "Europe/London"}, "end": {"dateTime": "2026-10-02T12:00:00+01:00", "timeZone": "Europe/London"}, "attendees": [{"email": "priya.anand@northgate.dev"}, {"email": "alina.rowe@meridian.dev"}, {"email": "ines.ferreira@northgate.dev"}, {"email": "kwame.b@northgate.dev"}, {"email": "marcus.vidal@meridian.dev"}], "hangoutLink": "https://meet.example.com/demo-1002-04"}, {"id": "evt_20261002_05", "summary": "Beacon Daily Standup", "start": {"dateTime": "2026-10-02T12:00:00+01:00", "timeZone": "Europe/London"}, "end": {"dateTime": "2026-10-02T12:45:00+01:00", "timeZone": "Europe/London"}, "attendees": [{"email": "theo.almeida@northgate.dev"}, {"email": "hana.sato@northgate.dev"}, {"email": "tomas.berg@meridian.dev"}, {"email": "nadia.o@meridian.dev"}], "hangoutLink": "https://meet.example.com/demo-1002-05"}, {"id": "evt_20261002_06", "summary": "Weekly Findings", "start": {"dateTime": "2026-10-02T13:30:00+01:00", "timeZone": "Europe/London"}, "end": {"dateTime": "2026-10-02T14:30:00+01:00", "timeZone": "Europe/London"}, "attendees": [{"email": "mei.chen@northgate.dev"}, {"email": "ravi.menon@northgate.dev"}, {"email": "alina.rowe@meridian.dev"}, {"email": "marcus.vidal@meridian.dev"}], "hangoutLink": "https://meet.example.com/demo-1002-06"}], "2026-10-05": [{"id": "evt_20261005_00", "summary": "Partner Integration Sync", "start": {"dateTime": "2026-10-05T09:30:00+01:00", "timeZone": "Europe/London"}, "end": {"dateTime": "2026-10-05T10:00:00+01:00", "timeZone": "Europe/London"}, "attendees": [{"email": "elena.marsh@meridian.dev"}, {"email": "ravi.menon@northgate.dev"}, {"email": "mei.chen@northgate.dev"}, {"email": "rohan.desai@northgate.dev"}], "hangoutLink": "https://meet.example.com/demo-1005-00"}, {"id": "evt_20261005_01", "summary": "Beacon Daily Standup", "start": {"dateTime": "2026-10-05T10:00:00+01:00", "timeZone": "Europe/London"}, "end": {"dateTime": "2026-10-05T11:00:00+01:00", "timeZone": "Europe/London"}, "attendees": [{"email": "hana.sato@northgate.dev"}, {"email": "theo.almeida@northgate.dev"}, {"email": "nadia.o@meridian.dev"}, {"email": "tomas.berg@meridian.dev"}], "hangoutLink": "https://meet.example.com/demo-1005-01"}, {"id": "evt_20261005_02", "summary": "All Hands", "start": {"dateTime": "2026-10-05T10:30:00+01:00", "timeZone": "Europe/London"}, "end": {"dateTime": "2026-10-05T10:45:00+01:00", "timeZone": "Europe/London"}, "attendees": [{"email": "freya.nilsen@meridian.dev"}, {"email": "daniel.okafor@meridian.dev"}, {"email": "arjun.nair@northgate.dev"}, {"email": "elena.marsh@meridian.dev"}], "hangoutLink": "https://meet.example.com/demo-1005-02"}, {"id": "evt_20261005_03", "summary": "Data Pipeline Review", "start": {"dateTime": "2026-10-05T11:00:00+01:00", "timeZone": "Europe/London"}, "end": {"dateTime": "2026-10-05T11:45:00+01:00", "timeZone": "Europe/London"}, "attendees": [{"email": "freya.nilsen@meridian.dev"}, {"email": "samir.haddad@northgate.dev"}, {"email": "daniel.okafor@meridian.dev"}], "hangoutLink": "https://meet.example.com/demo-1005-03"}, {"id": "evt_20261005_04", "summary": "Design Review", "start": {"dateTime": "2026-10-05T11:30:00+01:00", "timeZone": "Europe/London"}, "end": {"dateTime": "2026-10-05T12:00:00+01:00", "timeZone": "Europe/London"}, "attendees": [{"email": "lena.petrova@northgate.dev"}, {"email": "hana.sato@northgate.dev"}, {"email": "arjun.nair@northgate.dev"}, {"email": "tomas.berg@meridian.dev"}, {"email": "nadia.o@meridian.dev"}], "hangoutLink": "https://meet.example.com/demo-1005-04"}, {"id": "evt_20261005_05", "summary": "Cobalt Daily Standup", "start": {"dateTime": "2026-10-05T12:00:00+01:00", "timeZone": "Europe/London"}, "end": {"dateTime": "2026-10-05T13:00:00+01:00", "timeZone": "Europe/London"}, "attendees": [{"email": "mei.chen@northgate.dev"}, {"email": "rohan.desai@northgate.dev"}, {"email": "ravi.menon@northgate.dev"}, {"email": "elena.marsh@meridian.dev"}], "hangoutLink": "https://meet.example.com/demo-1005-05"}]}};
+/* Compute todayCount */
+(function(){
+  var t = PJM_CAL_STATIC;
+  var today = (function(){ var d=new Date(new Date().toLocaleString('en-US',{timeZone:'Asia/Kolkata'})); return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0'); })();
+  t.todayCount = (t.byDate[today]||[]).length;
+})();
+
+
+/* ── Drive Recordings — 9 files (synced Wed 30 Sep 2026) ── */
+var PJM_RECS_STATIC = {"ts": 1790000000000, "syncedAt": "2026-09-30T10:15:00+01:00", "files": [{"id": "rec_000", "title": "Atlas Daily Standup (Recording)", "date": "2026-09-16", "modifiedTime": "2026-09-16T17:02:11.000Z", "viewUrl": "https://drive.example.com/demo/rec-000", "fileSize": "48 MB"}, {"id": "rec_001", "title": "Beacon Daily Standup (Recording)", "date": "2026-09-17", "modifiedTime": "2026-09-17T17:02:11.000Z", "viewUrl": "https://drive.example.com/demo/rec-001", "fileSize": "281 MB"}, {"id": "rec_002", "title": "Cobalt Daily Standup (Recording)", "date": "2026-09-18", "modifiedTime": "2026-09-18T17:02:11.000Z", "viewUrl": "https://drive.example.com/demo/rec-002", "fileSize": "59 MB"}, {"id": "rec_003", "title": "Drift Daily Standup (Recording)", "date": "2026-09-21", "modifiedTime": "2026-09-21T17:02:11.000Z", "viewUrl": "https://drive.example.com/demo/rec-003", "fileSize": "144 MB"}, {"id": "rec_004", "title": "Ember / Forge Sync (Recording)", "date": "2026-09-22", "modifiedTime": "2026-09-22T17:02:11.000Z", "viewUrl": "https://drive.example.com/demo/rec-004", "fileSize": "83 MB"}, {"id": "rec_005", "title": "Backlog Grooming (Recording)", "date": "2026-09-23", "modifiedTime": "2026-09-23T17:02:11.000Z", "viewUrl": "https://drive.example.com/demo/rec-005", "fileSize": "290 MB"}, {"id": "rec_006", "title": "Sprint Planning (Recording)", "date": "2026-09-24", "modifiedTime": "2026-09-24T17:02:11.000Z", "viewUrl": "https://drive.example.com/demo/rec-006", "fileSize": "250 MB"}, {"id": "rec_007", "title": "Sprint Review (Recording)", "date": "2026-09-25", "modifiedTime": "2026-09-25T17:02:11.000Z", "viewUrl": "https://drive.example.com/demo/rec-007", "fileSize": "191 MB"}, {"id": "rec_008", "title": "Design Review (Recording)", "date": "2026-09-28", "modifiedTime": "2026-09-28T17:02:11.000Z", "viewUrl": "https://drive.example.com/demo/rec-008", "fileSize": "167 MB"}]};
+/* ── Gemini Notes — 62 files (synced Wed 30 Sep 2026) ── */
+/* NOTES — sourced from meeting-notes@example.com emails (Gmail). Last sync: Wed 30 Sep 2026 */
+var PJM_NOTES_STATIC = {"ts": 1790000000000, "syncedAt": "2026-09-30T10:15:00+01:00", "files": [{"id": "note_000", "title": "Atlas Daily Standup - Notes by Meeting AI", "date": "2026-09-16", "viewUrl": "https://docs.example.com/demo/note-000", "summary": "Atlas Daily Standup \u2014 2026-09-16. Attendees: Ines Ferreira, Kwame Boateng, Priya Alina. Confirmed the staging environment is the source of truth for QA sign-off. Action: Ines Ferreira to confirm the release window with the partner team."}, {"id": "note_001", "title": "Beacon Daily Standup - Notes by Meeting AI", "date": "2026-09-17", "viewUrl": "https://docs.example.com/demo/note-001", "summary": "Beacon Daily Standup \u2014 2026-09-17. Attendees: Hana Sato, Tomas Berg, Nadia Oyelaran. Accepted the rollover; scope was larger than estimated at planning. Action: Hana Sato to share the updated sequence diagram with the team."}, {"id": "note_002", "title": "Cobalt Daily Standup - Notes by Meeting AI", "date": "2026-09-18", "viewUrl": "https://docs.example.com/demo/note-002", "summary": "Cobalt Daily Standup \u2014 2026-09-18. Attendees: Elena Marsh, Ravi Menon, Mei Chen. Accepted the rollover; scope was larger than estimated at planning. Action: Elena Marsh to confirm the release window with the partner team. No blockers raised."}, {"id": "note_003", "title": "Drift Daily Standup - Notes by Meeting AI", "date": "2026-09-21", "viewUrl": "https://docs.example.com/demo/note-003", "summary": "Drift Daily Standup \u2014 2026-09-21. Attendees: Sofia Lindqvist, Arjun Nair, Lena Petrova. Parked the redesign until the API contract is frozen. Action: Sofia Lindqvist to share the updated sequence diagram with the team. Blocker: staging database needs reseeding."}, {"id": "note_004", "title": "Ember / Forge Sync - Notes by Meeting AI", "date": "2026-09-22", "viewUrl": "https://docs.example.com/demo/note-004", "summary": "Ember / Forge Sync \u2014 2026-09-22. Attendees: Samir Haddad, Oscar Duarte, Freya Nilsen. Accepted the rollover; scope was larger than estimated at planning. Action: Samir Haddad to share the updated sequence diagram with the team. No blockers raised."}, {"id": "note_005", "title": "Backlog Grooming - Notes by Meeting AI", "date": "2026-09-23", "viewUrl": "https://docs.example.com/demo/note-005", "summary": "Backlog Grooming \u2014 2026-09-23. Attendees: Elena Marsh, Priya Alina, Kwame Boateng. Accepted the rollover; scope was larger than estimated at planning. Action: Elena Marsh to raise a ticket for the flaky integration test."}, {"id": "note_006", "title": "Sprint Planning - Notes by Meeting AI", "date": "2026-09-24", "viewUrl": "https://docs.example.com/demo/note-006", "summary": "Sprint Planning \u2014 2026-09-24. Attendees: Alina Rowe, Samir Haddad, Idris Khan. Agreed to split the migration into two releases to de-risk the cutover. Action: Alina Rowe to raise a ticket for the flaky integration test. No blockers raised."}, {"id": "note_007", "title": "Sprint Review - Notes by Meeting AI", "date": "2026-09-25", "viewUrl": "https://docs.example.com/demo/note-007", "summary": "Sprint Review \u2014 2026-09-25. Attendees: Oscar Duarte, Lena Petrova, Grace Mwangi. Confirmed the staging environment is the source of truth for QA sign-off. Action: Oscar Duarte to unblock the QA environment and confirm in the channel. Risk flagged: dependency on the partner API is still unconfirmed."}, {"id": "note_008", "title": "Design Review - Notes by Meeting AI", "date": "2026-09-28", "viewUrl": "https://docs.example.com/demo/note-008", "summary": "Design Review \u2014 2026-09-28. Attendees: Theo Almeida, Nadia Oyelaran, Sofia Lindqvist. Confirmed the staging environment is the source of truth for QA sign-off. Action: Theo Almeida to raise a ticket for the flaky integration test. Risk flagged: one engineer out next week, capacity is tight."}, {"id": "note_009", "title": "QA Triage - Notes by Meeting AI", "date": "2026-09-29", "viewUrl": "https://docs.example.com/demo/note-009", "summary": "QA Triage \u2014 2026-09-29. Attendees: Rohan Desai, Theo Almeida, Alina Rowe. Chose the queue-based approach over polling; revisit if latency regresses. Action: Rohan Desai to unblock the QA environment and confirm in the channel."}, {"id": "note_010", "title": "Release Readiness - Notes by Meeting AI", "date": "2026-09-30", "viewUrl": "https://docs.example.com/demo/note-010", "summary": "Release Readiness \u2014 2026-09-30. Attendees: Freya Nilsen, Ines Ferreira, Daniel Okafor. Deferred the caching layer to next sprint \u2014 not on the critical path. Action: Freya Nilsen to confirm the release window with the partner team. Risk flagged: dependency on the partner API is still unconfirmed."}, {"id": "note_011", "title": "Architecture Catchup - Notes by Meeting AI", "date": "2026-10-01", "viewUrl": "https://docs.example.com/demo/note-011", "summary": "Architecture Catchup \u2014 2026-10-01. Attendees: Grace Mwangi, Oscar Duarte, Freya Nilsen. Deferred the caching layer to next sprint \u2014 not on the critical path. Action: Grace Mwangi to confirm the release window with the partner team."}, {"id": "note_012", "title": "Roadmap Checkpoint - Notes by Meeting AI", "date": "2026-10-02", "viewUrl": "https://docs.example.com/demo/note-012", "summary": "Roadmap Checkpoint \u2014 2026-10-02. Attendees: Priya Alina, Marcus Vidal, Kwame Boateng. Parked the redesign until the API contract is frozen. Action: Priya Alina to confirm the release window with the partner team. Risk flagged: one engineer out next week, capacity is tight."}, {"id": "note_013", "title": "Partner Integration Sync - Notes by Meeting AI", "date": "2026-10-05", "viewUrl": "https://docs.example.com/demo/note-013", "summary": "Partner Integration Sync \u2014 2026-10-05. Attendees: Mei Chen, Ravi Menon, Rohan Desai. Accepted the rollover; scope was larger than estimated at planning. Action: Mei Chen to pull the latency numbers for the review. Blocker: staging database needs reseeding."}, {"id": "note_014", "title": "Incident Postmortem - Notes by Meeting AI", "date": "2026-09-16", "viewUrl": "https://docs.example.com/demo/note-014", "summary": "Incident Postmortem \u2014 2026-09-16. Attendees: Daniel Okafor, Samir Haddad, Freya Nilsen. Parked the redesign until the API contract is frozen. Action: Daniel Okafor to write up the migration runbook before Thursday. Risk flagged: dependency on the partner API is still unconfirmed."}, {"id": "note_015", "title": "Data Pipeline Review - Notes by Meeting AI", "date": "2026-09-17", "viewUrl": "https://docs.example.com/demo/note-015", "summary": "Data Pipeline Review \u2014 2026-09-17. Attendees: Freya Nilsen, Daniel Okafor, Samir Haddad. Agreed to split the migration into two releases to de-risk the cutover. Action: Freya Nilsen to confirm the release window with the partner team. Blocker: staging database needs reseeding."}, {"id": "note_016", "title": "Onboarding Flow Walkthrough - Notes by Meeting AI", "date": "2026-09-18", "viewUrl": "https://docs.example.com/demo/note-016", "summary": "Onboarding Flow Walkthrough \u2014 2026-09-18. Attendees: Hana Sato, Tomas Berg, Nadia Oyelaran. Deferred the caching layer to next sprint \u2014 not on the critical path. Action: Hana Sato to unblock the QA environment and confirm in the channel."}, {"id": "note_017", "title": "Customer Sandbox Demo - Notes by Meeting AI", "date": "2026-09-21", "viewUrl": "https://docs.example.com/demo/note-017", "summary": "Customer Sandbox Demo \u2014 2026-09-21. Attendees: Sofia Lindqvist, Lena Petrova, Arjun Nair. Parked the redesign until the API contract is frozen. Action: Sofia Lindqvist to write up the migration runbook before Thursday. Blocker: staging database needs reseeding."}, {"id": "note_018", "title": "Weekly Findings - Notes by Meeting AI", "date": "2026-09-22", "viewUrl": "https://docs.example.com/demo/note-018", "summary": "Weekly Findings \u2014 2026-09-22. Attendees: Hana Sato, Nadia Oyelaran, Ines Ferreira. Chose the queue-based approach over polling; revisit if latency regresses. Action: Hana Sato to pull the latency numbers for the review. Blocker: staging database needs reseeding."}, {"id": "note_019", "title": "All Hands - Notes by Meeting AI", "date": "2026-09-23", "viewUrl": "https://docs.example.com/demo/note-019", "summary": "All Hands \u2014 2026-09-23. Attendees: Idris Khan, Marcus Vidal, Samir Haddad. Confirmed the staging environment is the source of truth for QA sign-off. Action: Idris Khan to raise a ticket for the flaky integration test. Blocker: staging database needs reseeding."}, {"id": "note_020", "title": "Atlas Daily Standup - Notes by Meeting AI", "date": "2026-09-24", "viewUrl": "https://docs.example.com/demo/note-020", "summary": "Atlas Daily Standup \u2014 2026-09-24. Attendees: Priya Alina, Kwame Boateng, Ines Ferreira. Chose the queue-based approach over polling; revisit if latency regresses. Action: Priya Alina to write up the migration runbook before Thursday. Blocker: staging database needs reseeding."}, {"id": "note_021", "title": "Beacon Daily Standup - Notes by Meeting AI", "date": "2026-09-25", "viewUrl": "https://docs.example.com/demo/note-021", "summary": "Beacon Daily Standup \u2014 2026-09-25. Attendees: Tomas Berg, Hana Sato, Theo Almeida. Agreed to split the migration into two releases to de-risk the cutover. Action: Tomas Berg to share the updated sequence diagram with the team. Risk flagged: dependency on the partner API is still unconfirmed."}, {"id": "note_022", "title": "Cobalt Daily Standup - Notes by Meeting AI", "date": "2026-09-28", "viewUrl": "https://docs.example.com/demo/note-022", "summary": "Cobalt Daily Standup \u2014 2026-09-28. Attendees: Rohan Desai, Elena Marsh, Mei Chen. Parked the redesign until the API contract is frozen. Action: Rohan Desai to raise a ticket for the flaky integration test. Risk flagged: dependency on the partner API is still unconfirmed."}, {"id": "note_023", "title": "Drift Daily Standup - Notes by Meeting AI", "date": "2026-09-29", "viewUrl": "https://docs.example.com/demo/note-023", "summary": "Drift Daily Standup \u2014 2026-09-29. Attendees: Lena Petrova, Arjun Nair, Sofia Lindqvist. Chose the queue-based approach over polling; revisit if latency regresses. Action: Lena Petrova to share the updated sequence diagram with the team. Risk flagged: dependency on the partner API is still unconfirmed."}, {"id": "note_024", "title": "Ember / Forge Sync - Notes by Meeting AI", "date": "2026-09-30", "viewUrl": "https://docs.example.com/demo/note-024", "summary": "Ember / Forge Sync \u2014 2026-09-30. Attendees: Samir Haddad, Daniel Okafor, Freya Nilsen. Chose the queue-based approach over polling; revisit if latency regresses. Action: Samir Haddad to pull the latency numbers for the review. Risk flagged: one engineer out next week, capacity is tight."}, {"id": "note_025", "title": "Backlog Grooming - Notes by Meeting AI", "date": "2026-10-01", "viewUrl": "https://docs.example.com/demo/note-025", "summary": "Backlog Grooming \u2014 2026-10-01. Attendees: Marcus Vidal, Ravi Menon, Priya Alina. Deferred the caching layer to next sprint \u2014 not on the critical path. Action: Marcus Vidal to pull the latency numbers for the review. Risk flagged: one engineer out next week, capacity is tight."}, {"id": "note_026", "title": "Sprint Planning - Notes by Meeting AI", "date": "2026-10-02", "viewUrl": "https://docs.example.com/demo/note-026", "summary": "Sprint Planning \u2014 2026-10-02. Attendees: Lena Petrova, Rohan Desai, Ines Ferreira. Confirmed the staging environment is the source of truth for QA sign-off. Action: Lena Petrova to raise a ticket for the flaky integration test. No blockers raised."}, {"id": "note_027", "title": "Sprint Review - Notes by Meeting AI", "date": "2026-10-05", "viewUrl": "https://docs.example.com/demo/note-027", "summary": "Sprint Review \u2014 2026-10-05. Attendees: Kwame Boateng, Daniel Okafor, Tomas Berg. Agreed to split the migration into two releases to de-risk the cutover. Action: Kwame Boateng to raise a ticket for the flaky integration test. Risk flagged: dependency on the partner API is still unconfirmed."}, {"id": "note_028", "title": "Design Review - Notes by Meeting AI", "date": "2026-09-16", "viewUrl": "https://docs.example.com/demo/note-028", "summary": "Design Review \u2014 2026-09-16. Attendees: Arjun Nair, Theo Almeida, Nadia Oyelaran. Accepted the rollover; scope was larger than estimated at planning. Action: Arjun Nair to pull the latency numbers for the review. Blocker: staging database needs reseeding."}, {"id": "note_029", "title": "QA Triage - Notes by Meeting AI", "date": "2026-09-17", "viewUrl": "https://docs.example.com/demo/note-029", "summary": "QA Triage \u2014 2026-09-17. Attendees: Elena Marsh, Nadia Oyelaran, Ravi Menon. Accepted the rollover; scope was larger than estimated at planning. Action: Elena Marsh to share the updated sequence diagram with the team. Risk flagged: dependency on the partner API is still unconfirmed."}, {"id": "note_030", "title": "Release Readiness - Notes by Meeting AI", "date": "2026-09-18", "viewUrl": "https://docs.example.com/demo/note-030", "summary": "Release Readiness \u2014 2026-09-18. Attendees: Daniel Okafor, Marcus Vidal, Ines Ferreira. Confirmed the staging environment is the source of truth for QA sign-off. Action: Daniel Okafor to raise a ticket for the flaky integration test. Risk flagged: one engineer out next week, capacity is tight."}, {"id": "note_031", "title": "Architecture Catchup - Notes by Meeting AI", "date": "2026-09-21", "viewUrl": "https://docs.example.com/demo/note-031", "summary": "Architecture Catchup \u2014 2026-09-21. Attendees: Grace Mwangi, Daniel Okafor, Freya Nilsen. Agreed to split the migration into two releases to de-risk the cutover. Action: Grace Mwangi to write up the migration runbook before Thursday."}, {"id": "note_032", "title": "Roadmap Checkpoint - Notes by Meeting AI", "date": "2026-09-22", "viewUrl": "https://docs.example.com/demo/note-032", "summary": "Roadmap Checkpoint \u2014 2026-09-22. Attendees: Priya Alina, Kwame Boateng, Freya Nilsen. Agreed to split the migration into two releases to de-risk the cutover. Action: Priya Alina to raise a ticket for the flaky integration test. Risk flagged: dependency on the partner API is still unconfirmed."}, {"id": "note_033", "title": "Partner Integration Sync - Notes by Meeting AI", "date": "2026-09-23", "viewUrl": "https://docs.example.com/demo/note-033", "summary": "Partner Integration Sync \u2014 2026-09-23. Attendees: Rohan Desai, Mei Chen, Ravi Menon. Agreed to split the migration into two releases to de-risk the cutover. Action: Rohan Desai to share the updated sequence diagram with the team. Risk flagged: dependency on the partner API is still unconfirmed."}, {"id": "note_034", "title": "Incident Postmortem - Notes by Meeting AI", "date": "2026-09-24", "viewUrl": "https://docs.example.com/demo/note-034", "summary": "Incident Postmortem \u2014 2026-09-24. Attendees: Daniel Okafor, Samir Haddad, Freya Nilsen. Parked the redesign until the API contract is frozen. Action: Daniel Okafor to unblock the QA environment and confirm in the channel. Risk flagged: dependency on the partner API is still unconfirmed."}, {"id": "note_035", "title": "Data Pipeline Review - Notes by Meeting AI", "date": "2026-09-25", "viewUrl": "https://docs.example.com/demo/note-035", "summary": "Data Pipeline Review \u2014 2026-09-25. Attendees: Samir Haddad, Freya Nilsen, Daniel Okafor. Deferred the caching layer to next sprint \u2014 not on the critical path. Action: Samir Haddad to raise a ticket for the flaky integration test. Risk flagged: dependency on the partner API is still unconfirmed."}, {"id": "note_036", "title": "Onboarding Flow Walkthrough - Notes by Meeting AI", "date": "2026-09-28", "viewUrl": "https://docs.example.com/demo/note-036", "summary": "Onboarding Flow Walkthrough \u2014 2026-09-28. Attendees: Nadia Oyelaran, Tomas Berg, Hana Sato. Parked the redesign until the API contract is frozen. Action: Nadia Oyelaran to share the updated sequence diagram with the team. Blocker: staging database needs reseeding."}, {"id": "note_037", "title": "Customer Sandbox Demo - Notes by Meeting AI", "date": "2026-09-29", "viewUrl": "https://docs.example.com/demo/note-037", "summary": "Customer Sandbox Demo \u2014 2026-09-29. Attendees: Arjun Nair, Sofia Lindqvist, Lena Petrova. Chose the queue-based approach over polling; revisit if latency regresses. Action: Arjun Nair to confirm the release window with the partner team."}, {"id": "note_038", "title": "Weekly Findings - Notes by Meeting AI", "date": "2026-09-30", "viewUrl": "https://docs.example.com/demo/note-038", "summary": "Weekly Findings \u2014 2026-09-30. Attendees: Theo Almeida, Samir Haddad, Rohan Desai. Parked the redesign until the API contract is frozen. Action: Theo Almeida to unblock the QA environment and confirm in the channel."}, {"id": "note_039", "title": "All Hands - Notes by Meeting AI", "date": "2026-10-01", "viewUrl": "https://docs.example.com/demo/note-039", "summary": "All Hands \u2014 2026-10-01. Attendees: Nadia Oyelaran, Hana Sato, Marcus Vidal. Confirmed the staging environment is the source of truth for QA sign-off. Action: Nadia Oyelaran to share the updated sequence diagram with the team. Risk flagged: dependency on the partner API is still unconfirmed."}, {"id": "note_040", "title": "Atlas Daily Standup - Notes by Meeting AI", "date": "2026-10-02", "viewUrl": "https://docs.example.com/demo/note-040", "summary": "Atlas Daily Standup \u2014 2026-10-02. Attendees: Kwame Boateng, Priya Alina, Marcus Vidal. Deferred the caching layer to next sprint \u2014 not on the critical path. Action: Kwame Boateng to pull the latency numbers for the review. Risk flagged: one engineer out next week, capacity is tight."}, {"id": "note_041", "title": "Beacon Daily Standup - Notes by Meeting AI", "date": "2026-10-05", "viewUrl": "https://docs.example.com/demo/note-041", "summary": "Beacon Daily Standup \u2014 2026-10-05. Attendees: Nadia Oyelaran, Tomas Berg, Theo Almeida. Deferred the caching layer to next sprint \u2014 not on the critical path. Action: Nadia Oyelaran to write up the migration runbook before Thursday. Risk flagged: dependency on the partner API is still unconfirmed."}, {"id": "note_042", "title": "Cobalt Daily Standup - Notes by Meeting AI", "date": "2026-09-16", "viewUrl": "https://docs.example.com/demo/note-042", "summary": "Cobalt Daily Standup \u2014 2026-09-16. Attendees: Rohan Desai, Mei Chen, Ravi Menon. Deferred the caching layer to next sprint \u2014 not on the critical path. Action: Rohan Desai to write up the migration runbook before Thursday. No blockers raised."}, {"id": "note_043", "title": "Drift Daily Standup - Notes by Meeting AI", "date": "2026-09-17", "viewUrl": "https://docs.example.com/demo/note-043", "summary": "Drift Daily Standup \u2014 2026-09-17. Attendees: Arjun Nair, Sofia Lindqvist, Lena Petrova. Agreed to split the migration into two releases to de-risk the cutover. Action: Arjun Nair to share the updated sequence diagram with the team. No blockers raised."}, {"id": "note_044", "title": "Ember / Forge Sync - Notes by Meeting AI", "date": "2026-09-18", "viewUrl": "https://docs.example.com/demo/note-044", "summary": "Ember / Forge Sync \u2014 2026-09-18. Attendees: Daniel Okafor, Grace Mwangi, Oscar Duarte. Chose the queue-based approach over polling; revisit if latency regresses. Action: Daniel Okafor to pull the latency numbers for the review."}, {"id": "note_045", "title": "Backlog Grooming - Notes by Meeting AI", "date": "2026-09-21", "viewUrl": "https://docs.example.com/demo/note-045", "summary": "Backlog Grooming \u2014 2026-09-21. Attendees: Elena Marsh, Ravi Menon, Priya Alina. Chose the queue-based approach over polling; revisit if latency regresses. Action: Elena Marsh to share the updated sequence diagram with the team. Blocker: staging database needs reseeding."}, {"id": "note_046", "title": "Sprint Planning - Notes by Meeting AI", "date": "2026-09-22", "viewUrl": "https://docs.example.com/demo/note-046", "summary": "Sprint Planning \u2014 2026-09-22. Attendees: Ines Ferreira, Hana Sato, Ravi Menon. Confirmed the staging environment is the source of truth for QA sign-off. Action: Ines Ferreira to write up the migration runbook before Thursday. Risk flagged: one engineer out next week, capacity is tight."}, {"id": "note_047", "title": "Sprint Review - Notes by Meeting AI", "date": "2026-09-23", "viewUrl": "https://docs.example.com/demo/note-047", "summary": "Sprint Review \u2014 2026-09-23. Attendees: Idris Khan, Rohan Desai, Tomas Berg. Agreed to split the migration into two releases to de-risk the cutover. Action: Idris Khan to write up the migration runbook before Thursday. Risk flagged: one engineer out next week, capacity is tight."}, {"id": "note_048", "title": "Design Review - Notes by Meeting AI", "date": "2026-09-24", "viewUrl": "https://docs.example.com/demo/note-048", "summary": "Design Review \u2014 2026-09-24. Attendees: Lena Petrova, Hana Sato, Sofia Lindqvist. Parked the redesign until the API contract is frozen. Action: Lena Petrova to raise a ticket for the flaky integration test. Blocker: staging database needs reseeding."}, {"id": "note_049", "title": "QA Triage - Notes by Meeting AI", "date": "2026-09-25", "viewUrl": "https://docs.example.com/demo/note-049", "summary": "QA Triage \u2014 2026-09-25. Attendees: Marcus Vidal, Kwame Boateng, Ravi Menon. Accepted the rollover; scope was larger than estimated at planning. Action: Marcus Vidal to share the updated sequence diagram with the team. Risk flagged: dependency on the partner API is still unconfirmed."}, {"id": "note_050", "title": "Release Readiness - Notes by Meeting AI", "date": "2026-09-28", "viewUrl": "https://docs.example.com/demo/note-050", "summary": "Release Readiness \u2014 2026-09-28. Attendees: Freya Nilsen, Alina Rowe, Ines Ferreira. Accepted the rollover; scope was larger than estimated at planning. Action: Freya Nilsen to unblock the QA environment and confirm in the channel. Blocker: staging database needs reseeding."}, {"id": "note_051", "title": "Architecture Catchup - Notes by Meeting AI", "date": "2026-09-29", "viewUrl": "https://docs.example.com/demo/note-051", "summary": "Architecture Catchup \u2014 2026-09-29. Attendees: Idris Khan, Grace Mwangi, Freya Nilsen. Agreed to split the migration into two releases to de-risk the cutover. Action: Idris Khan to pull the latency numbers for the review. Risk flagged: one engineer out next week, capacity is tight."}, {"id": "note_052", "title": "Roadmap Checkpoint - Notes by Meeting AI", "date": "2026-09-30", "viewUrl": "https://docs.example.com/demo/note-052", "summary": "Roadmap Checkpoint \u2014 2026-09-30. Attendees: Tomas Berg, Nadia Oyelaran, Oscar Duarte. Agreed to split the migration into two releases to de-risk the cutover. Action: Tomas Berg to raise a ticket for the flaky integration test. Blocker: staging database needs reseeding."}, {"id": "note_053", "title": "Partner Integration Sync - Notes by Meeting AI", "date": "2026-10-01", "viewUrl": "https://docs.example.com/demo/note-053", "summary": "Partner Integration Sync \u2014 2026-10-01. Attendees: Ravi Menon, Rohan Desai, Elena Marsh. Accepted the rollover; scope was larger than estimated at planning. Action: Ravi Menon to share the updated sequence diagram with the team. Risk flagged: dependency on the partner API is still unconfirmed."}, {"id": "note_054", "title": "Incident Postmortem - Notes by Meeting AI", "date": "2026-10-02", "viewUrl": "https://docs.example.com/demo/note-054", "summary": "Incident Postmortem \u2014 2026-10-02. Attendees: Freya Nilsen, Daniel Okafor, Samir Haddad. Parked the redesign until the API contract is frozen. Action: Freya Nilsen to raise a ticket for the flaky integration test. No blockers raised."}, {"id": "note_055", "title": "Data Pipeline Review - Notes by Meeting AI", "date": "2026-10-05", "viewUrl": "https://docs.example.com/demo/note-055", "summary": "Data Pipeline Review \u2014 2026-10-05. Attendees: Samir Haddad, Freya Nilsen, Daniel Okafor. Parked the redesign until the API contract is frozen. Action: Samir Haddad to pull the latency numbers for the review. Risk flagged: dependency on the partner API is still unconfirmed."}, {"id": "note_056", "title": "Onboarding Flow Walkthrough - Notes by Meeting AI", "date": "2026-09-16", "viewUrl": "https://docs.example.com/demo/note-056", "summary": "Onboarding Flow Walkthrough \u2014 2026-09-16. Attendees: Nadia Oyelaran, Hana Sato, Theo Almeida. Confirmed the staging environment is the source of truth for QA sign-off. Action: Nadia Oyelaran to pull the latency numbers for the review. Risk flagged: one engineer out next week, capacity is tight."}, {"id": "note_057", "title": "Customer Sandbox Demo - Notes by Meeting AI", "date": "2026-09-17", "viewUrl": "https://docs.example.com/demo/note-057", "summary": "Customer Sandbox Demo \u2014 2026-09-17. Attendees: Sofia Lindqvist, Lena Petrova, Arjun Nair. Confirmed the staging environment is the source of truth for QA sign-off. Action: Sofia Lindqvist to write up the migration runbook before Thursday. Blocker: staging database needs reseeding."}, {"id": "note_058", "title": "Weekly Findings - Notes by Meeting AI", "date": "2026-09-18", "viewUrl": "https://docs.example.com/demo/note-058", "summary": "Weekly Findings \u2014 2026-09-18. Attendees: Idris Khan, Ravi Menon, Mei Chen. Chose the queue-based approach over polling; revisit if latency regresses. Action: Idris Khan to pull the latency numbers for the review. Risk flagged: one engineer out next week, capacity is tight."}, {"id": "note_059", "title": "All Hands - Notes by Meeting AI", "date": "2026-09-21", "viewUrl": "https://docs.example.com/demo/note-059", "summary": "All Hands \u2014 2026-09-21. Attendees: Kwame Boateng, Priya Alina, Nadia Oyelaran. Parked the redesign until the API contract is frozen. Action: Kwame Boateng to confirm the release window with the partner team. Risk flagged: dependency on the partner API is still unconfirmed."}, {"id": "note_060", "title": "Atlas Daily Standup - Notes by Meeting AI", "date": "2026-09-22", "viewUrl": "https://docs.example.com/demo/note-060", "summary": "Atlas Daily Standup \u2014 2026-09-22. Attendees: Ines Ferreira, Marcus Vidal, Alina Rowe. Chose the queue-based approach over polling; revisit if latency regresses. Action: Ines Ferreira to confirm the release window with the partner team. Risk flagged: dependency on the partner API is still unconfirmed."}, {"id": "note_061", "title": "Beacon Daily Standup - Notes by Meeting AI", "date": "2026-09-23", "viewUrl": "https://docs.example.com/demo/note-061", "summary": "Beacon Daily Standup \u2014 2026-09-23. Attendees: Nadia Oyelaran, Tomas Berg, Theo Almeida. Agreed to split the migration into two releases to de-risk the cutover. Action: Nadia Oyelaran to unblock the QA environment and confirm in the channel. No blockers raised."}]};
+
+/* ── Bridge: write calendar + notes data to shared localStorage so Standup Brief
+   and Overview can read today's real meetings without visiting this tab ── */
+(function(){
+  var today = (function(){ var d=new Date(new Date().toLocaleString('en-US',{timeZone:'Asia/Kolkata'})); return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0'); })();
+  var todayEvs = (PJM_CAL_STATIC.byDate && PJM_CAL_STATIC.byDate[today]) || [];
+  try {
+    localStorage.setItem('pjmdemo_pjm_calendar_v1', JSON.stringify({
+      ts: PJM_CAL_STATIC.ts,
+      syncedAt: PJM_CAL_STATIC.syncedAt,
+      byDate: PJM_CAL_STATIC.byDate,
+      today: todayEvs,
+      todayCount: todayEvs.length
+    }));
+    localStorage.setItem('pjmdemo_pjm_notes_v1', JSON.stringify(PJM_NOTES_STATIC));
+  } catch(e) {}
+})();
+
+function getCal()        { return PJM_CAL_STATIC; }
+function getDriveNotes() { return PJM_NOTES_STATIC; }
+function getDriveRecs()  { return PJM_RECS_STATIC; }
+function getGemini()     { try { return JSON.parse(localStorage.getItem('pjmdemo_pjm_gemini_v1')||'null'); } catch(e){ return null; } }
+
+/* ═══════════════════════════════════════
+   UTILITIES
+═══════════════════════════════════════ */
+function esc(s) {
+  if (!s) return '';
+  return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+function fmtTime(iso) {
+  try {
+    return new Date(iso).toLocaleTimeString('en-IN',{
+      hour:'2-digit', minute:'2-digit', timeZone:'Asia/Kolkata', hour12:false
+    });
+  } catch(e) { return ''; }
+}
+function fmtDateShort(iso) {
+  try {
+    var d = new Date(iso);
+    return DAY_NAMES[d.getDay()] + ' ' + d.getDate() + ' ' + MONTH_NAMES[d.getMonth()];
+  } catch(e) { return ''; }
+}
+function fmtDur(startIso, endIso) {
+  var m = Math.round((new Date(endIso) - new Date(startIso)) / 60000);
+  if (m <= 0) return '';
+  return m >= 60 ? Math.floor(m/60)+'h'+(m%60?' '+m%60+'m':'') : m+'min';
+}
+function fmtSize(bytes) {
+  var n = parseInt(bytes||0);
+  if (n > 1e9) return (n/1e9).toFixed(1)+' GB';
+  if (n > 1e6) return (n/1e6).toFixed(0)+' MB';
+  return Math.round(n/1000)+' KB';
+}
+function getEvtStart(ev) { return (ev.start&&ev.start.dateTime)||ev.start||ev.startTime||''; }
+function getEvtEnd(ev)   { return (ev.end&&ev.end.dateTime)||ev.end||ev.endTime||''; }
+function getEvtDate(ev)  { return getEvtStart(ev).substring(0,10); }
+
+function detectProjects(title) {
+  var t=(title||'').toLowerCase(), out=[];
+  if(/\bdsp\b/.test(t))                     out.push('BEACON');
+  if(/\b(cex|dex|exchange)\b/.test(t))      out.push('CEX');
+  if(/\blabs?\b/.test(t))                   out.push('LABS');
+  if(/\bmmp\b/.test(t))                     out.push('EMBER');
+  if(/\bamp\b|agentic|marketplace/.test(t)) out.push('ATLAS');
+  if(/\bbeacon\b/.test(t))                    out.push('BEACON');
+  if(/adtech|ad tech/.test(t))              out.push('ADTECH');
+  return out;
+}
+
+/* Title normalise + score (same logic as Meeting Hub artifact) */
+function normStr(s) {
+  return (s||'').toLowerCase()
+    .replace(/^\[(del|ember|amp|adtech|beacon|cex|dex|labs|del\s*-)\]\s*/gi,'')
+    .replace(/[^a-z0-9\s]/g,' ').replace(/\s+/g,' ').trim();
+}
+function scoreTitle(a, b) {
+  var na = normStr(a), nb = normStr(b);
+  if (!na||!nb) return 0;
+  if (na===nb) return 100;
+  if (na.includes(nb)||nb.includes(na)) return 85;
+  var wa=na.split(' ').filter(function(w){return w.length>3;});
+  var wb=nb.split(' ').filter(function(w){return w.length>3;});
+  if (!wa.length||!wb.length) return 0;
+  var common=wa.filter(function(w){return wb.indexOf(w)>=0;}).length;
+  return (common/Math.max(wa.length,wb.length))*60;
+}
+function parseRecTitle(title) {
+  var m=(title||'').match(/^(.+?)\s*[-–]\s*\d{4}[\/\-]\d{2}[\/\-]\d{2}/);
+  return m ? m[1].trim() : (title||'');
+}
+// Same stripping logic for Gemini notes (title ends "– YYYY/MM/DD HH:MM IST – Notes by Gemini")
+function parseNoteTitle(title) {
+  var m=(title||'').match(/^(.+?)\s*[-–]\s*\d{4}[\/\-]\d{2}[\/\-]\d{2}/);
+  return m ? m[1].trim() : (title||'');
+}
+function parseRecDate(title) {
+  var m=(title||'').match(/(\d{4})[\/\-](\d{2})[\/\-](\d{2})/);
+  return m ? m[1]+'-'+m[2]+'-'+m[3] : '';
+}
+
+/* ─────────────────────────────────────
+   Match Drive items to a calendar event
+   (date-exact: same day + title score)
+───────────────────────────────────────*/
+var MIN_SCORE = 25;
+
+function matchDriveToEvent(evSummary, evDate, driveFiles, isRec) {
+  if (!driveFiles || !driveFiles.length) return [];
+  // Filter by date: use explicit date field first (new Gmail-sourced notes), then title extract, then modifiedTime
+  var dayFiles = driveFiles.filter(function(f){
+    if (f.date) return f.date === evDate;
+    var titleDate = parseRecDate(f.title||f.name||'');
+    if (titleDate) return titleDate === evDate;
+    var mt = (f.modifiedTime || f.createdTime || '').substring(0,10);
+    return mt === evDate;
+  });
+  if (!dayFiles.length) return [];
+  var scored = dayFiles.map(function(f){
+    // For notes: if explicit date field exists, title is already clean; otherwise strip suffix
+    var ft = isRec ? parseRecTitle(f.title||f.name||'') : (f.date ? (f.title||f.name||'') : parseNoteTitle(f.title||f.name||''));
+    return { file: f, score: scoreTitle(evSummary, ft) };
+  }).filter(function(x){ return x.score >= MIN_SCORE; })
+    .sort(function(a,b){ return b.score-a.score; });
+  // Fallback: single file on same day — only use for notes (not recordings),
+  // and only when the title has at least partial overlap (score > 0)
+  if (!scored.length && !isRec && dayFiles.length === 1) {
+    var fb = { file: dayFiles[0], score: scoreTitle(evSummary, parseNoteTitle(dayFiles[0].title||dayFiles[0].name||'')) };
+    if (fb.score > 0) scored = [fb];
+  }
+  return scored.map(function(x){ return x.file; });
+}
+
+/* ═══════════════════════════════════════
+   HEADER DATE PILL
+═══════════════════════════════════════ */
+(function(){
+  var d = getISTNow();
+  var el = document.getElementById('todayDate');
+  if (el) el.textContent = '📅 ' + DAY_NAMES[d.getDay()] + ' ' + MONTH_NAMES[d.getMonth()] + ' ' + d.getDate();
+})();
+
+/* ═══════════════════════════════════════
+   TAB SWITCHING
+═══════════════════════════════════════ */
+function switchModTab(tab) {
+  activeTab = tab;
+  document.querySelectorAll('.mod-tab').forEach(function(b){
+    b.classList.toggle('active', b.dataset.tab === tab);
+  });
+  render();
+}
+
+/* ═══════════════════════════════════════
+   WEEK NAVIGATION
+═══════════════════════════════════════ */
+function getWeekDays() {
+  var d = getISTNow(), dow = d.getDay();
+  var monday = new Date(d);
+  monday.setDate(d.getDate() - (dow===0 ? 6 : dow-1));
+  monday.setHours(0,0,0,0);
+  var days = [];
+  for (var i=0;i<7;i++) { var dd=new Date(monday); dd.setDate(monday.getDate()+i); days.push(dd); }
+  return days;
+}
+
+function switchDay(ds) { activeDay=ds; selEventId=null; render(); }
+function selectEvent(id) {
+  selEventId = (selEventId===id) ? null : id;
+  render();
+}
+
+/* ═══════════════════════════════════════
+   CALENDAR TAB RENDERING
+═══════════════════════════════════════ */
+function getEventsForDate(dateStr) {
+  var cal = getCal();
+  if (cal && cal.byDate && cal.byDate[dateStr]) return cal.byDate[dateStr];
+  return [];
+}
+
+function renderCalTab() {
+  var cal  = getCal();
+  var isLive = !!(cal && cal.ts);
+  var now  = new Date();
+  var today = isoDate(getISTNow());
+
+  // ── Next meeting strip
+  var todayEvs = getEventsForDate(today);
+  var todayCnt = isLive ? (cal.todayCount||todayEvs.length) : todayEvs.length;
+  var upcoming = todayEvs.filter(function(e){
+    return new Date(getEvtStart(e)) > now;
+  }).sort(function(a,b){ return new Date(getEvtStart(a))-new Date(getEvtStart(b)); });
+
+  var stripHtml;
+  if (upcoming.length) {
+    var nxt = upcoming[0];
+    var minsLeft = Math.max(0, Math.round((new Date(getEvtStart(nxt))-now)/60000));
+    var hrs=Math.floor(minsLeft/60), mins=minsLeft%60;
+    var cntLabel = hrs>0 ? hrs+'h '+mins+'m away' : mins+'m away';
+    stripHtml = '<div class="next-strip">'
+      +'<div class="ns-left"><div class="ns-label">Next Meeting</div>'
+      +'<div class="ns-title">'+esc(nxt.summary||nxt.title)+'</div>'
+      +'<div class="ns-time">'+fmtTime(getEvtStart(nxt))+' IST · '+(nxt.attendees||[]).length+' people</div></div>'
+      +'<span class="cntdown">⏰ '+cntLabel+'</span>'
+      +'<div class="tdy-cnt">'+(isLive?'<span class="live-dot"></span>':'')+todayCnt+' meetings today</div>'
+      +'</div>';
+  } else {
+    stripHtml = '<div class="next-strip">'
+      +'<div class="ns-left"><div class="ns-label">Next Meeting</div>'
+      +'<div class="ns-title">No more meetings today</div></div>'
+      +'<div class="tdy-cnt" style="margin-left:auto">'+(isLive?'<span class="live-dot"></span>':'')+todayCnt+' today</div>'
+      +'</div>';
+  }
+
+  // ── Week pills
+  var evByDay = {};
+  if (cal && cal.byDate) {
+    Object.keys(cal.byDate).forEach(function(d){ evByDay[d] = cal.byDate[d]; });
+  }
+  var pillsHtml = '<div class="week-pills">'
+    + getWeekDays().map(function(d){
+        var ds = isoDate(d), cnt = (evByDay[ds]||[]).length;
+        return '<button class="day-pill'+(ds===today?' today':'')+(ds===activeDay?' active':'')+'" onclick="switchDay(\''+ds+'\')">'
+          +DAY_NAMES[d.getDay()]+'<span class="dp-num">'+d.getDate()+'</span>'
+          +(cnt?'<span class="dp-dot"></span>':'')+'</button>';
+      }).join('')
+    +'</div>';
+
+  // ── Meeting cards
+  var dayEvs = getEventsForDate(activeDay).slice()
+    .sort(function(a,b){ return new Date(getEvtStart(a))-new Date(getEvtStart(b)); });
+
+  var cardsHtml;
+  if (!dayEvs.length) {
+    cardsHtml = '<div class="empty-day"><div style="font-size:36px">📭</div>'
+      +'<div style="font-weight:700;color:#374151">No meetings on this day</div>'
+      +(isLive ? '' : '<div class="pump-nudge">Run the Data Pump to load your live Google Calendar events.</div>')
+      +'</div>';
+  } else {
+    var driveNotes = getDriveNotes();
+    var driveRecs  = getDriveRecs();
+    var dnFiles = driveNotes && driveNotes.files ? driveNotes.files : [];
+    var drFiles = driveRecs  && driveRecs.files  ? driveRecs.files  : [];
+
+    cardsHtml = dayEvs.map(function(ev){
+      var evId     = ev.id || ev.uid || ev.summary;
+      var isPast   = new Date(getEvtEnd(ev)||getEvtStart(ev)).getTime() < now.getTime();
+      var isSel    = selEventId === evId;
+      var projs    = detectProjects(ev.summary||ev.title||'');
+      var evDate   = getEvtDate(ev);
+      var matchedNotes = matchDriveToEvent(ev.summary||ev.title, evDate, dnFiles, false);
+      var matchedRecs  = matchDriveToEvent(ev.summary||ev.title, evDate, drFiles, true);
+      var dur = getEvtEnd(ev) ? fmtDur(getEvtStart(ev), getEvtEnd(ev)) : '';
+      var cUrl = ev.conferenceUrl || ev.hangoutLink || '';
+
+      return '<div class="mc'+(isPast?' mc-past':'')+(isSel?' mc-sel':'')+'" onclick="selectEvent(\''+esc(evId)+'\')">'
+        +'<div class="mc-time-col"><div class="mc-time">'+fmtTime(getEvtStart(ev))+'</div>'
+        +(dur?'<div class="mc-dur">'+dur+'</div>':'')+'</div>'
+        +'<div class="mc-body">'
+        +'<div class="mc-title">'+esc(ev.summary||ev.title)+'</div>'
+        +'<div class="mc-chips">'
+        +projs.map(function(p){return '<span class="chip chip-proj">'+p+'</span>';}).join('')
+        +(matchedNotes.length?'<span class="chip chip-note">📄 Notes</span>':'')
+        +(matchedRecs.length?'<span class="chip chip-rec">🎬 Rec</span>':'')
+        +'<span class="chip chip-att">👥 '+(ev.attendees||[]).length+'</span>'
+        +'</div></div>'
+        +(cUrl?'<a class="mc-join" href="'+esc(cUrl)+'" target="_blank" onclick="event.stopPropagation()">🎥 Join</a>':'')
+        +'</div>';
+    }).join('');
+  }
+
+  // ── Drawer
+  var drawerHtml = selEventId
+    ? '<div class="cal-aside" id="drawerAside">'+buildDrawer(dayEvs)+'</div>'
+    : '<div class="cal-aside" id="drawerAside"></div>';
+
+  // Banner when data is stale (over 8 hours old)
+  var ageHrs = isLive ? Math.round((Date.now() - getCal().ts) / 3600000) : 0;
+  var noBanner = (!isLive || ageHrs > 8)
+    ? '<div class="no-data-banner">'
+      +'<div class="ndb-icon">🔄</div>'
+      +'<div class="ndb-body">'
+      +'<div class="ndb-title">'+(isLive ? 'Data is '+ageHrs+'h old — sync to refresh' : 'No calendar data embedded')+'</div>'
+      +'<div class="ndb-text">To refresh: say <strong>"Sync my meetings for this week"</strong> to Claude in Cowork. Claude will fetch from your Google Calendar & Drive and update this file instantly.</div>'
+      +'</div></div>'
+    : '';
+
+  return noBanner + stripHtml + pillsHtml
+    + '<div class="cal-layout"><div class="cal-main">'+cardsHtml+'</div>'+drawerHtml+'</div>';
+}
+
+function buildDrawer(dayEvs) {
+  var selEv = null;
+  for (var i=0;i<dayEvs.length;i++){
+    var eid = dayEvs[i].id||dayEvs[i].uid||dayEvs[i].summary;
+    if (eid === selEventId) { selEv = dayEvs[i]; break; }
+  }
+  if (!selEv) return '';
+
+  var evDate = getEvtDate(selEv);
+  var driveNotes = getDriveNotes();
+  var driveRecs  = getDriveRecs();
+  var dnFiles = driveNotes && driveNotes.files ? driveNotes.files : [];
+  var drFiles = driveRecs  && driveRecs.files  ? driveRecs.files  : [];
+
+  var matchedNotes = matchDriveToEvent(selEv.summary||selEv.title, evDate, dnFiles, false);
+  var matchedRecs  = matchDriveToEvent(selEv.summary||selEv.title, evDate, drFiles, true);
+  var attendees = selEv.attendees || [];
+  var cUrl = selEv.conferenceUrl || selEv.hangoutLink || '';
+  var desc = (selEv.description||'').replace(/<br\s*\/?>/gi,'\n').replace(/<[^>]+>/g,'').replace(/&[a-z]+;/gi,' ').trim();
+
+  var evId = selEv.id||selEv.uid||selEv.summary;
+
+  // Notes HTML
+  var notesHtml = matchedNotes.length
+    ? matchedNotes.map(function(f){
+        var url = f.viewUrl||'https://docs.google.com/document/d/'+f.id+'/edit';
+        return '<div class="asset-card note-c">'
+          +'<div class="ac-icon">📄</div>'
+          +'<div class="ac-info"><div class="ac-title">'+esc(f.title||f.name)+'</div>'
+          +'<div class="ac-sub">Updated '+fmtDateShort(f.date ? f.date+'T12:00:00' : f.modifiedTime)+'</div></div>'
+          +'<a class="ac-open" href="'+esc(url)+'" target="_blank">Open →</a>'
+          +'</div>';
+      }).join('')
+    : '<div class="no-asset">No Gemini notes found for this meeting yet. Enable "Take notes for me" in Google Meet to generate them automatically.</div>';
+
+  // Recordings HTML
+  var recsHtml = matchedRecs.length
+    ? matchedRecs.map(function(f){
+        var url = f.viewUrl||'https://drive.google.com/file/d/'+f.id+'/view';
+        var mt  = parseRecTitle(f.title||f.name||'');
+        return '<div class="asset-card rec-c">'
+          +'<div class="ac-icon">🎬</div>'
+          +'<div class="ac-info"><div class="ac-title">'+esc(mt)+'</div>'
+          +'<div class="ac-sub">'+fmtDateShort(parseRecDate(f.title||f.name||'')||f.modifiedTime)+'</div></div>'
+          +'<a class="ac-open" href="'+esc(url)+'" target="_blank">Open →</a>'
+          +'</div>';
+      }).join('')
+    : '<div class="no-asset">No recording found for this meeting.</div>';
+
+  return '<div class="detail-drawer">'
+    +'<div class="dd-head">'
+    +'<div class="dd-head-title">'+esc(selEv.summary||selEv.title)+'</div>'
+    +'<div class="dd-head-meta">'
+    +fmtTime(getEvtStart(selEv))
+    +(getEvtEnd(selEv)?' – '+fmtTime(getEvtEnd(selEv)):'')
+    +' IST'+(getEvtEnd(selEv)?' · '+fmtDur(getEvtStart(selEv),getEvtEnd(selEv)):'')
+    +'</div>'
+    +'<button class="dd-close" onclick="selectEvent(\''+esc(evId)+'\')">✕</button>'
+    +'</div>'
+    +'<div class="dd-body">'
+    +(cUrl?'<a class="al-green" href="'+esc(cUrl)+'" target="_blank">🎥 Join on Google Meet →</a>':'')
+    +'<div class="sec-lbl">Attendees ('+attendees.length+')</div>'
+    +'<div class="att-row">'+attendees.map(function(a){
+        var name = a.displayName||(a.email||a).split('@')[0];
+        return '<span class="att-chip">'+esc(name)+'</span>';
+      }).join('')+'</div>'
+    +(desc?'<div class="sec-lbl">Agenda</div><div class="desc-box">'+esc(desc)+'</div>':'')
+    +'<div class="sec-lbl">📝 Gemini Notes</div>'+notesHtml
+    +'<div class="sec-lbl">🎬 Recording</div>'+recsHtml
+    +'</div></div>';
+}
+
+/* ═══════════════════════════════════════
+   NOTES TAB RENDERING
+═══════════════════════════════════════ */
+function renderNotesTab() {
+  var dn = getDriveNotes();
+  var tip = '<div class="grid-tip">'
+    +'📬 <strong>Sourced from Gmail</strong> — notes arrive from <code>meeting-notes@example.com</code> within minutes of each meeting ending. '
+    +'Each tile shows the Gemini-generated summary. Click <strong>Open Notes</strong> to read the full doc with action items. '
+    +'Say <strong>"Sync my meetings"</strong> to Claude to refresh this list.'
+    +'</div>';
+
+  if (!dn || !dn.files || !dn.files.length) {
+    return tip + '<div class="empty-day"><div style="font-size:36px">📝</div>'
+      +'<div style="font-weight:700;color:#374151">No meeting docs yet</div>'
+      +'<div class="pump-nudge">Run the Data Pump to fetch Gemini-generated notes from your Google Drive.</div>'
+      +'</div>';
+  }
+  // Sort newest first
+  var sorted = dn.files.slice().sort(function(a,b){
+    return (b.date||'').localeCompare(a.date||'');
+  });
+  return tip + '<div class="notes-grid">' + sorted.map(function(f){
+    var url = f.viewUrl||'https://docs.google.com/document/d/'+f.id+'/edit';
+    // Support both new format (clean title + date field) and old format (long title with date suffix)
+    var cleanTitle = f.date ? (f.title||f.name||'') : parseNoteTitle(f.title||f.name||'');
+    var meetingDate = f.date || parseRecDate(f.title||f.name||'');
+    var dateLabel = meetingDate ? fmtDateShort(meetingDate+'T12:00:00') : fmtDateShort(f.createdTime||f.modifiedTime||'');
+    var summaryHtml = f.summary ? '<div class="tile-summary">'+esc(f.summary)+'</div>' : '';
+    return '<div class="note-tile">'
+      +'<div class="tile-icon">📄</div>'
+      +'<div class="tile-title">'+esc(cleanTitle)+'</div>'
+      +'<div class="tile-date">📅 '+esc(dateLabel)+'</div>'
+      +summaryHtml
+      +'<a class="note-btn" href="'+esc(url)+'" target="_blank">📝 Open Notes</a>'
+      +'</div>';
+  }).join('') + '</div>';
+}
+
+/* ═══════════════════════════════════════
+   RECORDINGS TAB RENDERING
+═══════════════════════════════════════ */
+function renderRecsTab() {
+  var dr = getDriveRecs();
+  if (!dr || !dr.files || !dr.files.length) {
+    return '<div class="empty-day"><div style="font-size:36px">🎥</div>'
+      +'<div style="font-weight:700;color:#374151">No recordings yet</div>'
+      +'<div class="pump-nudge">Run the Data Pump to fetch Google Meet recordings from your Google Drive.</div>'
+      +'</div>';
+  }
+  return '<div class="rec-grid">' + dr.files.map(function(r){
+    var url = r.viewUrl||'https://drive.google.com/file/d/'+r.id+'/view';
+    var mt  = parseRecTitle(r.title||r.name||'');
+    var rd  = parseRecDate(r.title||r.name||'');
+    return '<div class="rec-tile">'
+      +'<div class="tile-icon">🎬</div>'
+      +'<div class="tile-title">'+esc(mt)+'</div>'
+      +'<div class="tile-date">📅 '+esc(fmtDateShort(rd?rd+'T12:00:00':r.modifiedTime))+'</div>'
+      +(r.fileSize?'<div class="tile-size">'+fmtSize(r.fileSize)+'</div>':'')
+      +'<a class="rec-btn" href="'+esc(url)+'" target="_blank">▶ Open Recording</a>'
+      +'</div>';
+  }).join('') + '</div>';
+}
+
+/* ═══════════════════════════════════════
+   MASTER RENDER
+═══════════════════════════════════════ */
+function updateTabCounts() {
+  var cal = getCal();
+  var dn  = getDriveNotes();
+  var dr  = getDriveRecs();
+  var today = isoDate(getISTNow());
+  var todayCnt = 0;
+  if (cal && cal.byDate && cal.byDate[today]) todayCnt = cal.byDate[today].length;
+  else if (cal && cal.todayCount) todayCnt = cal.todayCount;
+  var notesCnt = dn && dn.files ? dn.files.length : 0;
+  var recsCnt  = dr && dr.files ? dr.files.length : 0;
+  document.getElementById('tcCal').textContent   = todayCnt || '—';
+  document.getElementById('tcNotes').textContent = notesCnt || '—';
+  document.getElementById('tcRecs').textContent  = recsCnt  || '—';
+}
+
+function render() {
+  updateTabCounts();
+  var html = '';
+  if      (activeTab === 'calendar')   html = renderCalTab();
+  else if (activeTab === 'notes')      html = renderNotesTab();
+  else if (activeTab === 'recordings') html = renderRecsTab();
+  document.getElementById('moduleContent').innerHTML = html;
+}
+
+/* ═══════════════════════════════════════
+   SYNC
+═══════════════════════════════════════ */
+function showToast(msg) {
+  var t = document.getElementById('toastEl');
+  if (!t) return;
+  t.textContent = msg;
+  t.classList.add('show');
+  setTimeout(function(){ t.classList.remove('show'); }, 4000);
+}
+
+function doSync() {
+  /* Data is embedded statically — Claude does the sync via MCP and rewrites the file.
+     Show a prompt toast just like the Dashboard does. */
+  showToast('📅 Say "Sync my meetings for this week" to Claude — it will fetch from Google Calendar & Drive and update this file automatically');
+  var cal = getCal(), dn = getDriveNotes(), dr = getDriveRecs();
+  var today = isoDate(getISTNow());
+  var todayCnt = (cal && cal.byDate && cal.byDate[today]) ? cal.byDate[today].length : (cal&&cal.todayCount||0);
+  PJMSync.markSynced(MODULE_ID, { todayMeetings: todayCnt, notes: dn&&dn.files?dn.files.length:0, recordings: dr&&dr.files?dr.files.length:0 });
+}
+
+/* ═══════════════════════════════════════
+   BOOT
+═══════════════════════════════════════ */
+document.addEventListener('DOMContentLoaded', function(){
+  PJMNav.render(MODULE_ID);
+  PJMSync.initModule(MODULE_ID, doSync);
+  render();
+  /* Mark synced with counts from the embedded static data */
+  var cal = getCal(), dn = getDriveNotes(), dr = getDriveRecs();
+  var today = isoDate(getISTNow());
+  var todayCnt = (cal && cal.byDate && cal.byDate[today]) ? cal.byDate[today].length : (cal&&cal.todayCount||0);
+  PJMSync.markSynced(MODULE_ID, { todayMeetings: todayCnt, notes: dn&&dn.files?dn.files.length:0, recordings: dr&&dr.files?dr.files.length:0 });
+});
+</script>
+</body>
+</html>

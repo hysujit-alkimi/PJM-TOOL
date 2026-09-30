@@ -1,0 +1,233 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Meridian PJM — Dashboard Hub</title>
+<script src="https://accounts.google.com/gsi/client" async defer></script>
+<link rel="stylesheet" href="shared/pjm.css">
+<style>
+.hub-main { margin-left:var(--sidebar-w); flex:1; padding:24px 32px; min-height:100vh; }
+.hub-hero  { margin-bottom:28px; }
+.hub-hero h1 { font-size:26px; font-weight:800; margin-bottom:4px; }
+.hub-hero p  { font-size:14px; color:var(--muted); }
+
+.sync-health-bar {
+  background:var(--card); border:1px solid var(--border);
+  border-radius:var(--radius); padding:16px 20px;
+  margin-bottom:28px; display:flex; align-items:center;
+  justify-content:space-between; flex-wrap:wrap; gap:12px;
+}
+.sync-health-bar .shb-label { font-size:13px; font-weight:700; }
+.shb-dots  { display:flex; gap:8px; flex-wrap:wrap; align-items:center; }
+.shb-dot   { display:flex; align-items:center; gap:5px; font-size:11px; color:var(--muted); }
+.shb-dot .dot { width:8px; height:8px; border-radius:50%; display:inline-block; }
+.shb-dot .dot.fresh   { background:var(--green); }
+.shb-dot .dot.stale   { background:var(--orange); }
+.shb-dot .dot.loading { background:var(--primary); animation:pulse 1s infinite; }
+.shb-dot .dot.error   { background:var(--red); }
+.shb-dot .dot.never   { background:#d1d5db; }
+@keyframes pulse { 0%,100%{opacity:1}50%{opacity:.3} }
+.shb-legend { display:flex; gap:12px; font-size:11px; color:var(--muted); margin-top:4px; }
+.shb-legend span { display:flex; align-items:center; gap:4px; }
+.open-all-btn {
+  display:flex; align-items:center; gap:7px;
+  padding:8px 16px; background:var(--primary); color:#fff;
+  border:none; border-radius:8px; font-size:13px; font-weight:600; cursor:pointer;
+}
+.open-all-btn:hover { opacity:.85; }
+
+.module-grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(280px,1fr)); gap:16px; }
+.module-card {
+  background:var(--card); border:1px solid var(--border);
+  border-radius:var(--radius); padding:20px;
+  text-decoration:none; color:var(--text);
+  display:flex; flex-direction:column; gap:8px;
+  transition:all .15s; position:relative; border-left:4px solid var(--border);
+}
+.module-card:hover { box-shadow:0 4px 20px rgba(0,0,0,.08); transform:translateY(-2px); }
+.module-card.fresh { border-left-color:var(--green); }
+.module-card.stale { border-left-color:var(--orange); }
+.module-card.error { border-left-color:var(--red); }
+.module-card.never { border-left-color:#d1d5db; }
+.mc-header  { display:flex; align-items:center; justify-content:space-between; }
+.mc-icon    { font-size:24px; }
+.mc-dot     { width:10px; height:10px; border-radius:50%; background:#d1d5db; }
+.mc-dot.fresh { background:var(--green); }
+.mc-dot.stale { background:var(--orange); }
+.mc-dot.error { background:var(--red); }
+.mc-dot.loading { background:var(--primary); animation:pulse 1s infinite; }
+.mc-title   { font-size:15px; font-weight:700; }
+.mc-sub     { font-size:12px; color:var(--muted); line-height:1.5; flex:1; }
+.mc-footer  { font-size:11px; color:var(--muted); padding-top:8px; border-top:1px solid var(--border); display:flex; justify-content:space-between; align-items:center; margin-top:auto; }
+.mc-open    { font-size:11px; font-weight:700; color:var(--primary); background:none; border:none; cursor:pointer; }
+
+.hub-section-title { font-size:12px; font-weight:700; color:var(--muted); text-transform:uppercase; letter-spacing:.5px; margin:24px 0 12px; }
+
+/* Sidebar nav links on hub */
+</style>
+
+<style id="demoBannerCss">
+#pjmDemoBanner{position:fixed;top:0;left:0;right:0;z-index:99999;background:#8A5CFF;color:#fff;
+ font:600 12px/1.4 system-ui,-apple-system,Segoe UI,sans-serif;padding:7px 44px 7px 16px;text-align:center;
+ letter-spacing:.2px;box-shadow:0 1px 6px rgba(0,0,0,.18)}
+#pjmDemoBanner a{color:#fff;text-decoration:underline}
+#pjmDemoBanner button{position:absolute;right:10px;top:4px;background:none;border:none;color:#fff;
+ font-size:17px;line-height:1;cursor:pointer;padding:4px}
+body.has-demo-banner{padding-top:30px}
+</style>
+<script id="pjmDemoMode">
+/* ===== PUBLIC DEMO BUILD =====
+   All data in this build is fictional. No credentials ship with it and no
+   outbound calls to third-party APIs are permitted. */
+(function(){
+  window.PJM_DEMO = true;
+  var BLOCK = /(api\.linear\.app|api\.github\.com|graphql|googleapis\.com|slack\.com|atlassian\.net)/i;
+  var of = window.fetch;
+  window.fetch = function(input){
+    var u = (typeof input === 'string') ? input : (input && input.url) || '';
+    if (BLOCK.test(u)) {
+      console.info('[demo] blocked outbound call:', u);
+      return Promise.resolve(new Response(JSON.stringify({data:null,demo:true}),
+        {status:200, headers:{'Content-Type':'application/json'}}));
+    }
+    return of.apply(this, arguments);
+  };
+  var ox = window.XMLHttpRequest && window.XMLHttpRequest.prototype.open;
+  if (ox) window.XMLHttpRequest.prototype.open = function(m,u){
+    if (BLOCK.test(String(u))) { console.info('[demo] blocked XHR:', u); u = 'data:application/json,{}'; }
+    return ox.apply(this, [m,u].concat([].slice.call(arguments,2)));
+  };
+  document.addEventListener('DOMContentLoaded', function(){
+    if (sessionStorage.getItem('pjmDemoBannerHidden')) return;
+    var b = document.createElement('div');
+    b.id = 'pjmDemoBanner';
+    b.innerHTML = 'DEMO BUILD \u2014 every person, project, ticket and meeting below is fictional. ' +
+                  'Live integrations are disabled in this build.' +
+                  '<button title="Dismiss" onclick="this.parentNode.remove();' +
+                  'document.body.classList.remove(\'has-demo-banner\');' +
+                  'sessionStorage.setItem(\'pjmDemoBannerHidden\',\'1\')">&times;</button>';
+    document.body.appendChild(b);
+    document.body.classList.add('has-demo-banner');
+  });
+})();
+</script>
+</head>
+<body>
+
+<!-- Login Overlay -->
+<div id="loginOverlay">
+  <div class="login-box">
+    <div class="login-logo">⬡</div>
+    <h2>Meridian PJM</h2>
+    <p>Senior Project Manager Dashboard<br>Sign in with your Meridian account to continue.</p>
+    <div id="googleSignInBtn"></div>
+    <div id="loginError"></div>
+  </div>
+</div>
+
+<!-- Sidebar injected here -->
+<div id="pjmSidebarContainer"></div>
+
+<!-- Hub content -->
+<div class="hub-main">
+
+  <div class="hub-hero">
+    <h1>⬡ Meridian PJM Hub</h1>
+    <p id="hubSubline">Loading…</p>
+  </div>
+
+  <!-- Global Sync Health Bar -->
+  <div class="sync-health-bar">
+    <div>
+      <div class="shb-label">🛡 Sync Health — All Modules</div>
+      <div class="shb-legend">
+        <span><span style="width:7px;height:7px;border-radius:50%;background:var(--green);display:inline-block"></span> Fresh</span>
+        <span><span style="width:7px;height:7px;border-radius:50%;background:var(--orange);display:inline-block"></span> Stale</span>
+        <span><span style="width:7px;height:7px;border-radius:50%;background:#d1d5db;display:inline-block"></span> Not yet synced</span>
+        <span><span style="width:7px;height:7px;border-radius:50%;background:var(--red);display:inline-block"></span> Error</span>
+      </div>
+    </div>
+    <div class="shb-dots" id="shbDots"></div>
+    <button class="open-all-btn" onclick="openOverview()">📊 Open Overview</button>
+  </div>
+
+  <!-- Module Cards -->
+  <div class="hub-section-title">All Modules</div>
+  <div class="module-grid" id="moduleGrid"></div>
+
+</div>
+
+<script src="shared/pjm-sync.js"></script>
+<script src="shared/pjm-nav.js"></script>
+<script>
+
+var MODULE_DESC = {
+  'overview':           'Live KPIs aggregated across all modules — sprint health, blockers, open items.',
+  'projects':           'Active sprint status across all JIRA & Linear projects. Live board data.',
+  'resources':          'Team workload, bandwidth grid, org chart & project resource mapping.',
+  'sprint-plans':       'Sprint selector (S1–S21, 2025–2026) with embedded plan view & Confluence links.',
+  'sprint-review':      'Last closed sprint retrospective — completion %, velocity & rollover by project.',
+  'releases':           'Planned & shipped releases from JIRA fixVersion per project board.',
+  'project-priorities': 'Current strategic priorities — embedded priorities view per project.',
+  'key-deliverables':   '2026 key deliverables from the MERIDIAN spreadsheet — Labs, AdTech, EMBER, ATLAS.',
+  'product-roadmap':    'Strategic roadmap by quarter — Labs via Confluence + AdTech + all projects.',
+  'pr-dashboard':       'Live GitHub PRs from Meridian-Exchange org — review status, pipeline, authors.',
+  'action-items':       'My action items compiled from Slack, JIRA & Fireflies/Gemini meeting notes.',
+  'meetings':           'Today\'s meetings, last 24h notes from Gemini, next meeting countdown.',
+  'standup-brief':      'On-demand standup brief — today\'s meetings, notes and open items.',
+  'sprint-planning':    'Sprint planning workspace — current sprint stats, history and next-sprint prompt.'
+};
+
+function renderHub() {
+  var all  = PJMSync.getAll();
+  var now  = new Date();
+  var days   = ['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday'];
+  var months = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+  document.getElementById('hubSubline').textContent =
+    days[now.getDay()] + ', ' + months[now.getMonth()] + ' ' + now.getDate() + ', ' + now.getFullYear() +
+    '  ·  ' + PJMSync.Sprint.getIndicator();
+
+  // Health dots
+  var dotsHtml = PJMSync.MODULE_ORDER.map(function(id) {
+    var dot = all[id].dotClass || 'never';
+    return '<div class="shb-dot" title="' + all[id].meta.label + '">' +
+             '<span class="dot ' + dot + '"></span>' +
+             all[id].meta.icon +
+           '</div>';
+  }).join('');
+  document.getElementById('shbDots').innerHTML = dotsHtml;
+
+  // Module cards
+  var cardsHtml = PJMSync.MODULE_ORDER.map(function(id, i) {
+    var m   = all[id];
+    var dot = m.dotClass || 'never';
+    var num = (i + 1 < 10 ? '0' : '') + (i + 1);
+    return '<a class="module-card ' + dot + '" href="' + m.meta.path + '">' +
+      '<div class="mc-header">' +
+        '<span class="mc-icon">' + m.meta.icon + '</span>' +
+        '<span class="mc-dot ' + dot + '"></span>' +
+      '</div>' +
+      '<div class="mc-title">' + num + '. ' + m.meta.label + '</div>' +
+      '<div class="mc-sub">' + (MODULE_DESC[id] || '') + '</div>' +
+      '<div class="mc-footer">' +
+        '<span>' + m.lastText + '</span>' +
+        '<button class="mc-open" onclick="event.preventDefault();window.open(\'' + m.meta.path + '\',\'_blank\')">Open →</button>' +
+      '</div>' +
+    '</a>';
+  }).join('');
+  document.getElementById('moduleGrid').innerHTML = cardsHtml;
+}
+
+function openOverview() {
+  window.location.href = '01-overview.html';
+}
+
+document.addEventListener('DOMContentLoaded', function() {
+  // Redirect to Overview as the default landing page.
+  // Navigate to hub.html directly if you want the module cards view.
+  window.location.replace('01-overview.html');
+});
+</script>
+</body>
+</html>

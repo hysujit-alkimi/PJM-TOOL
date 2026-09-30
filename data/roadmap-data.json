@@ -1,0 +1,549 @@
+{
+ "nextId": 55,
+ "roadmap": {
+  "labs": [
+   {
+    "id": 1,
+    "initiative": "XP Portal V1 Launch",
+    "q1": false,
+    "q2": true,
+    "q3": false,
+    "q4": false,
+    "status": "IN PROGRESS",
+    "owner": "Samir Haddad"
+   },
+   {
+    "id": 2,
+    "initiative": "Affiliate Links & Social Login",
+    "q1": false,
+    "q2": true,
+    "q3": false,
+    "q4": false,
+    "status": "IN PROGRESS",
+    "owner": "Nadia Oyelaran"
+   },
+   {
+    "id": 3,
+    "initiative": "Buy Back Mechanism",
+    "q1": false,
+    "q2": true,
+    "q3": false,
+    "q4": false,
+    "status": "IN PROGRESS",
+    "owner": "Nadia Oyelaran"
+   },
+   {
+    "id": 4,
+    "initiative": "Labs V5 Architecture",
+    "q1": false,
+    "q2": false,
+    "q3": true,
+    "q4": false,
+    "status": "PLANNING",
+    "owner": "Nadia Oyelaran"
+   },
+   {
+    "id": 5,
+    "initiative": "Community Features V2",
+    "q1": false,
+    "q2": false,
+    "q3": false,
+    "q4": true,
+    "status": "PLANNED",
+    "owner": "Grace Mwangi"
+   },
+   {
+    "id": 52,
+    "initiative": "Labs V4.0 Launch",
+    "q1": true,
+    "q2": false,
+    "q3": false,
+    "q4": false,
+    "status": "COMPLETED",
+    "owner": "Tomas Berg"
+   },
+   {
+    "id": 53,
+    "initiative": "Q1 Rewards Roll Out",
+    "q1": false,
+    "q2": true,
+    "q3": false,
+    "q4": false,
+    "status": "COMPLETED",
+    "owner": "Sofia Lindqvist"
+   }
+  ],
+  "exchange": [
+   {
+    "id": 6,
+    "initiative": "US UK Cluster Setup (BEACON Onboarding)",
+    "q1": true,
+    "q2": false,
+    "q3": false,
+    "q4": false,
+    "status": "COMPLETED",
+    "owner": "Ravi Menon"
+   },
+   {
+    "id": 7,
+    "initiative": "PMP",
+    "q1": true,
+    "q2": false,
+    "q3": false,
+    "q4": false,
+    "status": "COMPLETED",
+    "owner": "Ines Ferreira"
+   },
+   {
+    "id": 8,
+    "initiative": "NET vs Gross",
+    "q1": true,
+    "q2": false,
+    "q3": false,
+    "q4": false,
+    "status": "COMPLETED",
+    "owner": "Hana Sato"
+   },
+   {
+    "id": 9,
+    "initiative": "Change Log History",
+    "q1": true,
+    "q2": true,
+    "q3": false,
+    "q4": false,
+    "status": "COMPLETED",
+    "owner": "Freya Nilsen"
+   },
+   {
+    "id": 10,
+    "initiative": "Viewability in Bid Request",
+    "q1": false,
+    "q2": true,
+    "q3": false,
+    "q4": false,
+    "status": "COMPLETED",
+    "owner": "Ines Ferreira"
+   },
+   {
+    "id": 11,
+    "initiative": "BEACON Level Targetings",
+    "q1": false,
+    "q2": true,
+    "q3": true,
+    "q4": true,
+    "status": "TO DO",
+    "owner": "Jonas Weber"
+   },
+   {
+    "id": 12,
+    "initiative": "Viewability",
+    "q1": false,
+    "q2": true,
+    "q3": false,
+    "q4": false,
+    "status": "IN PROGRESS",
+    "owner": "Lena Petrova"
+   },
+   {
+    "id": 13,
+    "initiative": "BEACON Dashboard",
+    "q1": false,
+    "q2": true,
+    "q3": false,
+    "q4": false,
+    "status": "IN PROGRESS",
+    "owner": "Clara Bennett"
+   },
+   {
+    "id": 14,
+    "initiative": "BEACON \u2013 Allow or Block Domains",
+    "q1": false,
+    "q2": true,
+    "q3": false,
+    "q4": false,
+    "status": "TO DO",
+    "owner": "Clara Bennett"
+   },
+   {
+    "id": 15,
+    "initiative": "BEACON \u2013 Allow or Block Mobile App IDs",
+    "q1": false,
+    "q2": true,
+    "q3": false,
+    "q4": false,
+    "status": "TO DO",
+    "owner": "Clara Bennett"
+   },
+   {
+    "id": 16,
+    "initiative": "Publisher Request Reject Reason",
+    "q1": false,
+    "q2": false,
+    "q3": true,
+    "q4": false,
+    "status": "TO DO",
+    "owner": "Oscar Duarte"
+   },
+   {
+    "id": 17,
+    "initiative": "BEACON \u2013 QPS for Each Cluster Based Endpoints",
+    "q1": false,
+    "q2": false,
+    "q3": true,
+    "q4": false,
+    "status": "TO DO",
+    "owner": "Nadia Oyelaran"
+   },
+   {
+    "id": 18,
+    "initiative": "Publisher Profiling",
+    "q1": false,
+    "q2": false,
+    "q3": true,
+    "q4": true,
+    "status": "TO DO",
+    "owner": "Mei Chen"
+   },
+   {
+    "id": 19,
+    "initiative": "BEACON Profiling",
+    "q1": false,
+    "q2": false,
+    "q3": true,
+    "q4": true,
+    "status": "TO DO",
+    "owner": "Mei Chen"
+   },
+   {
+    "id": 20,
+    "initiative": "Brand Safety",
+    "q1": false,
+    "q2": false,
+    "q3": true,
+    "q4": true,
+    "status": "TO DO",
+    "owner": "Alina Rowe"
+   }
+  ],
+  "beacon": [
+   {
+    "id": 21,
+    "initiative": "BEACON Migration (US UK Cluster Setup)",
+    "q1": true,
+    "q2": true,
+    "q3": false,
+    "q4": false,
+    "status": "IN PROGRESS",
+    "owner": "Arjun Nair"
+   },
+   {
+    "id": 22,
+    "initiative": "Stop Loss Feature",
+    "q1": false,
+    "q2": true,
+    "q3": false,
+    "q4": false,
+    "status": "IN PROGRESS",
+    "owner": "Samir Haddad"
+   },
+   {
+    "id": 23,
+    "initiative": "Campaign Bulk Edit Feature",
+    "q1": false,
+    "q2": true,
+    "q3": true,
+    "q4": false,
+    "status": "IN PROGRESS",
+    "owner": "Nadia Oyelaran"
+   },
+   {
+    "id": 24,
+    "initiative": "Account Profiling",
+    "q1": false,
+    "q2": false,
+    "q3": false,
+    "q4": true,
+    "status": "TO DO",
+    "owner": "Idris Khan"
+   },
+   {
+    "id": 42,
+    "initiative": "Change Log History",
+    "q1": true,
+    "q2": false,
+    "q3": false,
+    "q4": false,
+    "status": "COMPLETED",
+    "owner": "Alina Rowe"
+   }
+  ],
+  "beacon": [
+   {
+    "id": 25,
+    "initiative": "BEACON Platform V1 Launch",
+    "q1": true,
+    "q2": true,
+    "q3": false,
+    "q4": false,
+    "status": "IN PROGRESS",
+    "owner": "Kwame Boateng"
+   },
+   {
+    "id": 26,
+    "initiative": "Publisher Dashboard",
+    "q1": false,
+    "q2": true,
+    "q3": false,
+    "q4": false,
+    "status": "SYSTEM TESTING",
+    "owner": "Jonas Weber"
+   },
+   {
+    "id": 27,
+    "initiative": "FinOps Admin Dashboard",
+    "q1": false,
+    "q2": true,
+    "q3": false,
+    "q4": false,
+    "status": "IN PROGRESS",
+    "owner": "Tomas Berg"
+   },
+   {
+    "id": 43,
+    "initiative": "LP Dashboard",
+    "q1": false,
+    "q2": true,
+    "q3": false,
+    "q4": false,
+    "status": "PLANNED",
+    "owner": "Idris Khan"
+   }
+  ],
+  "ember": [
+   {
+    "id": 28,
+    "initiative": "CEX + DEX Bots V1 Launch",
+    "q1": true,
+    "q2": true,
+    "q3": true,
+    "q4": false,
+    "status": "SYSTEM TESTING",
+    "owner": "Samir Haddad"
+   },
+   {
+    "id": 29,
+    "initiative": "Risk Management System",
+    "q1": false,
+    "q2": true,
+    "q3": false,
+    "q4": false,
+    "status": "IN PROGRESS",
+    "owner": "Theo Almeida"
+   },
+   {
+    "id": 31,
+    "initiative": "Multi-Exchange Expansion",
+    "q1": false,
+    "q2": true,
+    "q3": true,
+    "q4": false,
+    "status": "IN PROGRESS",
+    "owner": "Idris Khan"
+   },
+   {
+    "id": 32,
+    "initiative": "Institutional API",
+    "q1": false,
+    "q2": false,
+    "q3": false,
+    "q4": true,
+    "status": "PLANNED",
+    "owner": "Sofia Lindqvist"
+   },
+   {
+    "id": 44,
+    "initiative": "Quant Model Update",
+    "q1": false,
+    "q2": true,
+    "q3": false,
+    "q4": false,
+    "status": "IN PROGRESS",
+    "owner": "Alina Rowe"
+   }
+  ],
+  "amp": [
+   {
+    "id": 33,
+    "initiative": "ATLAS MVP Launch",
+    "q1": true,
+    "q2": true,
+    "q3": false,
+    "q4": false,
+    "status": "IN PROGRESS",
+    "owner": "Daniel Okafor"
+   },
+   {
+    "id": 34,
+    "initiative": "ATLAS - Agentic Marketplace Integration",
+    "q1": false,
+    "q2": true,
+    "q3": false,
+    "q4": false,
+    "status": "TO DO",
+    "owner": "Arjun Nair"
+   },
+   {
+    "id": 35,
+    "initiative": "AI Optimization Engine",
+    "q1": false,
+    "q2": false,
+    "q3": true,
+    "q4": false,
+    "status": "PLANNED",
+    "owner": "Priya Anand"
+   },
+   {
+    "id": 36,
+    "initiative": "ATLAS Self-Serve Portal",
+    "q1": false,
+    "q2": false,
+    "q3": false,
+    "q4": true,
+    "status": "PLANNED",
+    "owner": "Theo Almeida"
+   }
+  ],
+  "agentic": [
+   {
+    "id": 37,
+    "initiative": "Agentic Atlas Pro",
+    "q1": false,
+    "q2": true,
+    "q3": false,
+    "q4": false,
+    "status": "IN PROGRESS",
+    "owner": "Samir Haddad"
+   },
+   {
+    "id": 38,
+    "initiative": "Agentic Marketplace Lite",
+    "q1": false,
+    "q2": true,
+    "q3": false,
+    "q4": false,
+    "status": "IN PROGRESS",
+    "owner": "Elena Marsh"
+   },
+   {
+    "id": 39,
+    "initiative": "Agent Execution Framework",
+    "q1": false,
+    "q2": false,
+    "q3": true,
+    "q4": false,
+    "status": "PLANNED",
+    "owner": "Mei Chen"
+   },
+   {
+    "id": 40,
+    "initiative": "Marketplace Public Launch",
+    "q1": false,
+    "q2": false,
+    "q3": true,
+    "q4": false,
+    "status": "PLANNED",
+    "owner": "Rohan Desai"
+   },
+   {
+    "id": 41,
+    "initiative": "Agent Monetization",
+    "q1": false,
+    "q2": false,
+    "q3": false,
+    "q4": true,
+    "status": "PLANNED",
+    "owner": "Hana Sato"
+   },
+   {
+    "id": 45,
+    "initiative": "Microsite 2.0",
+    "q1": false,
+    "q2": true,
+    "q3": false,
+    "q4": false,
+    "status": "DEV COMPLETED",
+    "owner": "Theo Almeida"
+   },
+   {
+    "id": 46,
+    "initiative": "ATLAS Integration",
+    "q1": false,
+    "q2": true,
+    "q3": false,
+    "q4": false,
+    "status": "IN PROGRESS",
+    "owner": "Clara Bennett"
+   },
+   {
+    "id": 47,
+    "initiative": "AdTech integration",
+    "q1": false,
+    "q2": true,
+    "q3": false,
+    "q4": false,
+    "status": "IN PROGRESS",
+    "owner": "Idris Khan"
+   },
+   {
+    "id": 48,
+    "initiative": "Account + RBAC + Profile Normalization",
+    "q1": false,
+    "q2": true,
+    "q3": false,
+    "q4": false,
+    "status": "IN PROGRESS",
+    "owner": "Kwame Boateng"
+   },
+   {
+    "id": 49,
+    "initiative": "Folio Integration",
+    "q1": false,
+    "q2": true,
+    "q3": false,
+    "q4": false,
+    "status": "DEV COMPLETED",
+    "owner": "Hana Sato"
+   },
+   {
+    "id": 50,
+    "initiative": "APF",
+    "q1": false,
+    "q2": true,
+    "q3": true,
+    "q4": false,
+    "status": "IN PROGRESS",
+    "owner": "Freya Nilsen"
+   },
+   {
+    "id": 51,
+    "initiative": "Harness",
+    "q1": false,
+    "q2": true,
+    "q3": true,
+    "q4": false,
+    "status": "PLANNED",
+    "owner": "Theo Almeida"
+   },
+   {
+    "id": 54,
+    "initiative": "Pilot",
+    "q1": false,
+    "q2": true,
+    "q3": false,
+    "q4": false,
+    "status": "IN PROGRESS",
+    "owner": "Sofia Lindqvist"
+   }
+  ]
+ }
+}

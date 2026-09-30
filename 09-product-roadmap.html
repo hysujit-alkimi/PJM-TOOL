@@ -1,0 +1,629 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Product Roadmap — Meridian PJM</title>
+<script src="https://accounts.google.com/gsi/client" async defer></script>
+<link rel="stylesheet" href="shared/pjm.css">
+<style>
+/* ── Sub-tabs ── */
+.sub-tabs{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:18px;}
+.sub-tab{padding:7px 16px;border-radius:20px;border:1px solid var(--border,#e5e7eb);background:#fff;font-size:13px;font-weight:600;cursor:pointer;color:var(--muted,#6b7280);transition:all .15s;}
+.sub-tab.active{background:var(--primary,#3B82F6);color:#fff;border-color:var(--primary,#3B82F6);}
+.sub-tab:hover:not(.active){background:#f3f4f6;}
+
+/* ── Roadmap table ── */
+.roadmap-table{width:100%;border-collapse:collapse;font-size:13px;}
+.roadmap-table th{background:#f9fafb;padding:9px 12px;text-align:left;font-weight:600;font-size:12px;color:var(--muted,#6b7280);border-bottom:1px solid var(--border,#e5e7eb);white-space:nowrap;}
+.roadmap-table th.q-header{text-align:center;min-width:90px;}
+.roadmap-table th.no-col{width:38px;text-align:center;}
+.roadmap-table td{padding:10px 12px;border-bottom:1px solid #f3f4f6;vertical-align:middle;}
+.roadmap-table tr:hover td{background:#f9fafb;}
+.q-cell{text-align:center;}
+.no-cell{text-align:center;color:#9ca3af;font-size:12px;font-weight:600;}
+
+/* ── Quarter pills ── */
+.q-pill{display:inline-flex;align-items:center;justify-content:center;padding:3px 14px;border-radius:12px;font-size:11px;font-weight:700;white-space:nowrap;}
+.q-pill.q1{background:#fef3c7;color:#92400e;}
+.q-pill.q2{background:#dbeafe;color:#1d4ed8;}
+.q-pill.q2.done{background:#d1fae5;color:#065f46;}
+.q-pill.q1.done{background:#d1fae5;color:#065f46;}
+.q-pill.q3{background:#ede9fe;color:#6d28d9;}
+.q-pill.q4{background:#f3f4f6;color:#6b7280;}
+
+/* ── Status badges ── */
+.status-badge{display:inline-flex;align-items:center;padding:3px 9px;border-radius:12px;font-size:11px;font-weight:700;white-space:nowrap;}
+.status-badge.in-progress{background:#dbeafe;color:#1d4ed8;}
+.status-badge.system-testing{background:#ede9fe;color:#6d28d9;}
+.status-badge.dev-completed{background:#d1fae5;color:#065f46;}
+.status-badge.done,.status-badge.completed{background:#d1fae5;color:#065f46;}
+.status-badge.to-do{background:#f3f4f6;color:#6b7280;}
+.status-badge.blocked{background:#fee2e2;color:#991b1b;}
+.status-badge.planning{background:#fef3c7;color:#92400e;}
+.status-badge.planned{background:#f3f4f6;color:#6b7280;}
+
+/* ── Row action buttons ── */
+.row-edit{background:transparent;color:#667eea;border:none;padding:5px 7px;border-radius:4px;cursor:pointer;font-size:15px;transition:all .2s;}
+.row-edit:hover{background:#f0f2ff;}
+.row-del{background:transparent;color:#ff4757;border:none;padding:5px 7px;border-radius:4px;cursor:pointer;font-size:15px;transition:all .2s;}
+.row-del:hover{background:#fff1f0;}
+
+/* ── Legend ── */
+.legend{display:flex;gap:14px;flex-wrap:wrap;margin-bottom:16px;align-items:center;font-size:12px;color:var(--muted,#6b7280);}
+.legend-item{display:flex;align-items:center;gap:5px;}
+
+/* ── Controls bar ── */
+.rm-controls{display:flex;gap:10px;align-items:center;margin-bottom:14px;flex-wrap:wrap;}
+.rm-btn{padding:8px 16px;border:none;border-radius:8px;font-size:13px;font-weight:600;cursor:pointer;transition:all .2s;}
+.rm-btn-primary{background:#3B82F6;color:#fff;}
+.rm-btn-primary:hover{background:#2563eb;}
+.rm-btn-secondary{background:#fff;color:#3B82F6;border:1.5px solid #3B82F6;}
+.rm-btn-secondary:hover{background:#3B82F6;color:#fff;}
+
+/* ── JSON connect banner ── */
+#rmJsonBanner{display:flex;align-items:center;gap:12px;background:#fff8e1;border:1.5px solid #ffe082;border-radius:10px;padding:12px 16px;margin-bottom:16px;font-size:13px;}
+#rmJsonBanner.connected{background:#e8f5e9;border-color:#a5d6a7;}
+#rmJsonBanner .banner-icon{font-size:20px;}
+#rmJsonBanner .banner-msg{flex:1;color:#555;}
+#rmJsonBanner.connected .banner-msg{color:#2e7d32;}
+#rmJsonBanner button{white-space:nowrap;}
+
+/* ── Save indicator ── */
+#rmSaveIndicator{font-size:11px;color:#999;transition:color .3s;}
+#rmSaveIndicator.saving{color:#3B82F6;}
+#rmSaveIndicator.saved{color:#43a047;}
+#rmSaveIndicator.error{color:#e53935;}
+
+/* ── Modal ── */
+.rm-modal{display:none;position:fixed;inset:0;background:rgba(0,0,0,.45);z-index:9000;justify-content:center;align-items:center;}
+.rm-modal.active{display:flex;}
+.rm-modal-box{background:#fff;padding:28px;border-radius:14px;max-width:520px;width:92%;max-height:92vh;overflow-y:auto;box-shadow:0 20px 60px rgba(0,0,0,.25);}
+.rm-modal-title{font-size:18px;font-weight:700;color:#3B82F6;margin-bottom:20px;}
+.rm-field{margin-bottom:14px;}
+.rm-field label{display:block;font-size:13px;font-weight:600;color:#444;margin-bottom:6px;}
+.rm-field input,.rm-field select{width:100%;padding:9px 11px;border:1.5px solid #dde3ed;border-radius:8px;font-size:13px;box-sizing:border-box;}
+.rm-field input:focus,.rm-field select:focus{outline:none;border-color:#3B82F6;}
+.rm-quarters{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;}
+.rm-quarter-check{display:flex;flex-direction:column;align-items:center;gap:4px;font-size:12px;font-weight:600;color:#555;}
+.rm-quarter-check input[type=checkbox]{width:18px;height:18px;cursor:pointer;accent-color:#3B82F6;}
+.rm-modal-actions{display:flex;gap:10px;margin-top:20px;}
+.rm-modal-actions button{flex:1;}
+
+/* ── Toast ── */
+.toast{position:fixed;bottom:28px;left:50%;transform:translateX(-50%);background:#1f2937;color:#fff;padding:12px 24px;border-radius:10px;font-size:13px;font-weight:600;z-index:9999;opacity:0;transition:opacity .25s;pointer-events:none;}
+.toast.show{opacity:1;}
+</style>
+
+<style id="demoBannerCss">
+#pjmDemoBanner{position:fixed;top:0;left:0;right:0;z-index:99999;background:#8A5CFF;color:#fff;
+ font:600 12px/1.4 system-ui,-apple-system,Segoe UI,sans-serif;padding:7px 44px 7px 16px;text-align:center;
+ letter-spacing:.2px;box-shadow:0 1px 6px rgba(0,0,0,.18)}
+#pjmDemoBanner a{color:#fff;text-decoration:underline}
+#pjmDemoBanner button{position:absolute;right:10px;top:4px;background:none;border:none;color:#fff;
+ font-size:17px;line-height:1;cursor:pointer;padding:4px}
+body.has-demo-banner{padding-top:30px}
+</style>
+<script id="pjmDemoMode">
+/* ===== PUBLIC DEMO BUILD =====
+   All data in this build is fictional. No credentials ship with it and no
+   outbound calls to third-party APIs are permitted. */
+(function(){
+  window.PJM_DEMO = true;
+  var BLOCK = /(api\.linear\.app|api\.github\.com|graphql|googleapis\.com|slack\.com|atlassian\.net)/i;
+  var of = window.fetch;
+  window.fetch = function(input){
+    var u = (typeof input === 'string') ? input : (input && input.url) || '';
+    if (BLOCK.test(u)) {
+      console.info('[demo] blocked outbound call:', u);
+      return Promise.resolve(new Response(JSON.stringify({data:null,demo:true}),
+        {status:200, headers:{'Content-Type':'application/json'}}));
+    }
+    return of.apply(this, arguments);
+  };
+  var ox = window.XMLHttpRequest && window.XMLHttpRequest.prototype.open;
+  if (ox) window.XMLHttpRequest.prototype.open = function(m,u){
+    if (BLOCK.test(String(u))) { console.info('[demo] blocked XHR:', u); u = 'data:application/json,{}'; }
+    return ox.apply(this, [m,u].concat([].slice.call(arguments,2)));
+  };
+  document.addEventListener('DOMContentLoaded', function(){
+    if (sessionStorage.getItem('pjmDemoBannerHidden')) return;
+    var b = document.createElement('div');
+    b.id = 'pjmDemoBanner';
+    b.innerHTML = 'DEMO BUILD \u2014 every person, project, ticket and meeting below is fictional. ' +
+                  'Live integrations are disabled in this build.' +
+                  '<button title="Dismiss" onclick="this.parentNode.remove();' +
+                  'document.body.classList.remove(\'has-demo-banner\');' +
+                  'sessionStorage.setItem(\'pjmDemoBannerHidden\',\'1\')">&times;</button>';
+    document.body.appendChild(b);
+    document.body.classList.add('has-demo-banner');
+  });
+})();
+</script>
+</head>
+<body>
+<div id="loginOverlay"><div class="login-box"><div class="login-logo">⬡</div><h2>Meridian PJM</h2><p>Sign in with your Meridian account to continue.</p><div id="googleSignInBtn"></div><div id="loginError"></div></div></div>
+<div id="pjmSidebarContainer"></div>
+<div class="pjm-main">
+  <div class="module-header">
+    <div>
+      <div class="module-title">🗺️ Product Roadmap</div>
+    </div>
+    <div class="module-header-right">
+      <span id="rmSaveIndicator">—</span>
+      <span id="lastSyncedLabel" class="last-synced-label">Never synced</span>
+      <div class="date-badge" id="todayDate"></div>
+      <button class="sync-btn" id="syncBtn" onclick="doSync()"><span class="sync-icon">🔄</span> Sync</button>
+    </div>
+  </div>
+  <div id="moduleContent"><div class="loading-state"><div class="spinner"></div>Loading…</div></div>
+</div>
+<div id="toastEl" class="toast"></div>
+
+<!-- ── Add / Edit Modal ── -->
+<div class="rm-modal" id="rmModal">
+  <div class="rm-modal-box">
+    <div class="rm-modal-title" id="rmModalTitle">Add Initiative</div>
+    <form id="rmForm">
+      <div class="rm-field">
+        <label>Tab</label>
+        <select id="rmTab">
+          <option value="labs">🧪 Labs</option>
+          <option value="exchange">📡 Exchange</option>
+          <option value="beacon">🎯 BEACON</option>
+          <option value="beacon">💰 Beacon</option>
+          <option value="ember">🔄 EMBER</option>
+          <option value="amp">🤖 ATLAS</option>
+          <option value="agentic">🌐 Agentic</option>
+        </select>
+      </div>
+      <div class="rm-field">
+        <label>Initiative Name</label>
+        <input type="text" id="rmInitiative" required placeholder="e.g. Publisher Profiling">
+      </div>
+      <div class="rm-field">
+        <label>Quarters</label>
+        <div class="rm-quarters">
+          <div class="rm-quarter-check"><span>Q1 2026</span><input type="checkbox" id="rmQ1"></div>
+          <div class="rm-quarter-check"><span>Q2 2026</span><input type="checkbox" id="rmQ2"></div>
+          <div class="rm-quarter-check"><span>Q3 2026</span><input type="checkbox" id="rmQ3"></div>
+          <div class="rm-quarter-check"><span>Q4 2026</span><input type="checkbox" id="rmQ4"></div>
+        </div>
+      </div>
+      <div class="rm-field">
+        <label>Status</label>
+        <select id="rmStatus">
+          <option value="IN PROGRESS">IN PROGRESS</option>
+          <option value="TO DO">TO DO</option>
+          <option value="COMPLETED">COMPLETED</option>
+          <option value="PLANNED">PLANNED</option>
+          <option value="PLANNING">PLANNING</option>
+          <option value="SYSTEM TESTING">SYSTEM TESTING</option>
+          <option value="DEV COMPLETED">DEV COMPLETED</option>
+          <option value="BLOCKED">BLOCKED</option>
+        </select>
+      </div>
+      <div class="rm-field">
+        <label>Owner</label>
+        <input type="text" id="rmOwner" placeholder="e.g. Ines, Grace">
+      </div>
+      <div class="rm-modal-actions">
+        <button type="submit" class="rm-btn rm-btn-primary" id="rmSubmitBtn">Add Initiative</button>
+        <button type="button" class="rm-btn rm-btn-secondary" onclick="closeRmModal()">Cancel</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<script src="shared/pjm-sync.js"></script>
+<script src="shared/pjm-nav.js"></script>
+<script>
+(function(){var d=new Date();var days=['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];var months=['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];var el=document.getElementById('todayDate');if(el)el.textContent='📅 '+days[d.getDay()]+' '+months[d.getMonth()]+' '+d.getDate();})();
+
+var MODULE_ID = 'product-roadmap';
+var activeTab = 'labs';
+var editingId = null;
+var nextId = 42;
+var jsonFileHandle = null;
+
+/* ── Default data ── */
+var roadmap = {
+  labs: [
+    {id:1,initiative:"XP Portal V1 Launch",q1:false,q2:true,q3:false,q4:false,status:"IN PROGRESS",owner:"Grace"},
+    {id:2,initiative:"Affiliate Links & Social Login",q1:false,q2:true,q3:false,q4:false,status:"IN PROGRESS",owner:"Grace"},
+    {id:3,initiative:"Buy Back Mechanism",q1:false,q2:true,q3:false,q4:false,status:"IN PROGRESS",owner:"Grace"},
+    {id:4,initiative:"Labs V5 Architecture",q1:false,q2:false,q3:true,q4:false,status:"PLANNING",owner:"Rohan"},
+    {id:5,initiative:"Community Features V2",q1:false,q2:false,q3:false,q4:true,status:"PLANNED",owner:"TBD"}
+  ],
+  exchange: [
+    {id:6,initiative:"US UK Cluster Setup (BEACON Onboarding)",q1:true,q2:false,q3:false,q4:false,status:"COMPLETED",owner:"Ines"},
+    {id:7,initiative:"PMP",q1:true,q2:false,q3:false,q4:false,status:"COMPLETED",owner:"Ines"},
+    {id:8,initiative:"NET vs Gross",q1:true,q2:false,q3:false,q4:false,status:"COMPLETED",owner:"Ines"},
+    {id:9,initiative:"Change Log History",q1:true,q2:true,q3:false,q4:false,status:"COMPLETED",owner:"Ines"},
+    {id:10,initiative:"Viewability in Bid Request",q1:false,q2:true,q3:false,q4:false,status:"COMPLETED",owner:"Ines"},
+    {id:11,initiative:"BEACON Level Targetings",q1:false,q2:true,q3:true,q4:true,status:"TO DO",owner:"Ines"},
+    {id:12,initiative:"Viewability",q1:false,q2:true,q3:false,q4:false,status:"IN PROGRESS",owner:"Ines"},
+    {id:13,initiative:"BEACON Dashboard",q1:false,q2:true,q3:false,q4:false,status:"IN PROGRESS",owner:"Ines"},
+    {id:14,initiative:"BEACON – Allow or Block Domains",q1:false,q2:true,q3:false,q4:false,status:"TO DO",owner:"Ines"},
+    {id:15,initiative:"BEACON – Allow or Block Mobile App IDs",q1:false,q2:true,q3:false,q4:false,status:"TO DO",owner:"Ines"},
+    {id:16,initiative:"Publisher Request Reject Reason",q1:false,q2:false,q3:true,q4:false,status:"TO DO",owner:"Ines"},
+    {id:17,initiative:"BEACON – QPS for Each Cluster Based Endpoints",q1:false,q2:false,q3:true,q4:false,status:"TO DO",owner:"Ines"},
+    {id:18,initiative:"Publisher Profiling",q1:false,q2:false,q3:true,q4:true,status:"TO DO",owner:"Ines"},
+    {id:19,initiative:"BEACON Profiling",q1:false,q2:false,q3:true,q4:true,status:"TO DO",owner:"Ines"},
+    {id:20,initiative:"Brand Safety",q1:false,q2:false,q3:true,q4:true,status:"TO DO",owner:"Ines"}
+  ],
+  beacon: [
+    {id:21,initiative:"BEACON Migration (US UK Cluster Setup)",q1:true,q2:true,q3:false,q4:false,status:"COMPLETED",owner:"Ines"},
+    {id:22,initiative:"Stop Loss Feature",q1:false,q2:true,q3:false,q4:false,status:"IN PROGRESS",owner:"Ines"},
+    {id:23,initiative:"Campaign Bulk Edit Feature",q1:false,q2:true,q3:true,q4:false,status:"IN PROGRESS",owner:"Ines"},
+    {id:24,initiative:"Account Profiling",q1:false,q2:false,q3:false,q4:true,status:"TO DO",owner:"Ines"}
+  ],
+  beacon: [
+    {id:25,initiative:"BEACON Platform V1 Launch",q1:false,q2:true,q3:false,q4:false,status:"IN PROGRESS",owner:"Sujit / Alina"},
+    {id:26,initiative:"Smart Contract V2",q1:false,q2:false,q3:true,q4:false,status:"PLANNED",owner:"Elena"},
+    {id:27,initiative:"BEACON Mobile App",q1:false,q2:false,q3:true,q4:false,status:"PLANNED",owner:"TBD"}
+  ],
+  ember: [
+    {id:28,initiative:"CEX + DEX Bots V1 Launch",q1:false,q2:true,q3:false,q4:false,status:"SYSTEM TESTING",owner:"Samir / Kannan"},
+    {id:29,initiative:"Risk Management System",q1:false,q2:true,q3:false,q4:false,status:"IN PROGRESS",owner:"Samir"},
+    {id:30,initiative:"Live P&L Dashboard",q1:false,q2:true,q3:false,q4:false,status:"IN PROGRESS",owner:"Team EMBER"},
+    {id:31,initiative:"Multi-Exchange Expansion",q1:false,q2:false,q3:true,q4:false,status:"PLANNED",owner:"TBD"},
+    {id:32,initiative:"Institutional API",q1:false,q2:false,q3:false,q4:true,status:"PLANNED",owner:"TBD"}
+  ],
+  amp: [
+    {id:33,initiative:"ATLAS MVP Launch",q1:false,q2:true,q3:false,q4:false,status:"IN PROGRESS",owner:"Prem / Sagar"},
+    {id:34,initiative:"Multi-BEACON Integration V2",q1:false,q2:false,q3:true,q4:false,status:"PLANNED",owner:"Prem"},
+    {id:35,initiative:"AI Optimization Engine",q1:false,q2:false,q3:true,q4:false,status:"PLANNED",owner:"Prem"},
+    {id:36,initiative:"ATLAS Self-Serve Portal",q1:false,q2:false,q3:false,q4:true,status:"PLANNED",owner:"TBD"}
+  ],
+  agentic: [
+    {id:37,initiative:"Agentic Marketplace MVP",q1:false,q2:true,q3:false,q4:false,status:"IN PROGRESS",owner:"Prem / Rohan"},
+    {id:38,initiative:"Agent Registry & Discovery",q1:false,q2:true,q3:false,q4:false,status:"IN PROGRESS",owner:"Prem"},
+    {id:39,initiative:"Agent Execution Framework",q1:false,q2:false,q3:true,q4:false,status:"PLANNED",owner:"Sagar"},
+    {id:40,initiative:"Marketplace Public Launch",q1:false,q2:false,q3:true,q4:false,status:"PLANNED",owner:"TBD"},
+    {id:41,initiative:"Agent Monetization",q1:false,q2:false,q3:false,q4:true,status:"PLANNED",owner:"TBD"}
+  ]
+};
+
+const tabDefs=[
+  {key:'labs',label:'🧪 Labs'},
+  {key:'exchange',label:'📡 Exchange'},
+  {key:'beacon',label:'🎯 BEACON'},
+  {key:'beacon',label:'💰 Beacon'},
+  {key:'ember',label:'🔄 EMBER'},
+  {key:'amp',label:'🤖 ATLAS'},
+  {key:'agentic',label:'🌐 Agentic'}
+];
+
+/* ════════════════════════════════════════
+   INDEXEDDB — persist file handle
+════════════════════════════════════════ */
+var IDB_NAME='PJMTool', IDB_STORE='handles', IDB_KEY='roadmapJSON';
+function idbOpen(){
+  return new Promise(function(resolve,reject){
+    var req=indexedDB.open(IDB_NAME,1);
+    req.onupgradeneeded=function(e){e.target.result.createObjectStore(IDB_STORE);};
+    req.onsuccess=function(e){resolve(e.target.result);};
+    req.onerror=function(e){reject(e.target.error);};
+  });
+}
+async function idbPutHandle(h){try{var db=await idbOpen();return new Promise(function(res,rej){var tx=db.transaction(IDB_STORE,'readwrite');tx.objectStore(IDB_STORE).put(h,IDB_KEY);tx.oncomplete=res;tx.onerror=function(e){rej(e.target.error);};});}catch(e){console.warn(e);}}
+async function idbGetHandle(){try{var db=await idbOpen();return new Promise(function(res,rej){var tx=db.transaction(IDB_STORE,'readonly');var r=tx.objectStore(IDB_STORE).get(IDB_KEY);r.onsuccess=function(e){res(e.target.result||null);};r.onerror=function(e){rej(e.target.error);};});}catch(e){return null;}}
+
+/* ════════════════════════════════════════
+   JSON PERSISTENCE
+════════════════════════════════════════ */
+async function loadFromHandle(handle){
+  var file=await handle.getFile();
+  var text=await file.text();
+  var data=JSON.parse(text);
+  roadmap=data.roadmap||roadmap;
+  nextId=data.nextId||nextId;
+  jsonFileHandle=handle;
+  setBannerConnected(file.name);
+  render();
+}
+
+async function connectJSON(){
+  try{
+    var handles=await window.showOpenFilePicker({types:[{description:'JSON',accept:{'application/json':['.json']}}],multiple:false});
+    var handle=handles[0];
+    await loadFromHandle(handle);
+    await idbPutHandle(handle);
+    setSaveIndicator('saved','Loaded from '+handle.name);
+  }catch(e){if(e.name!=='AbortError'){setSaveIndicator('error','Could not open file');}}
+}
+
+async function tryAutoConnect(){
+  var handle=await idbGetHandle();
+  if(!handle)return;
+  try{
+    var perm=await handle.queryPermission({mode:'readwrite'});
+    if(perm==='granted'){await loadFromHandle(handle);setSaveIndicator('saved','✓ Auto-reconnected');}
+    else if(perm==='prompt'){showReconnectBanner(handle);}
+  }catch(e){console.warn(e);}
+}
+
+function showReconnectBanner(handle){
+  var banner=document.getElementById('rmJsonBanner');
+  document.getElementById('rmBannerMsg').innerHTML='🔑 <strong>'+handle.name+'</strong> was connected last time. Click to restore.';
+  var btn=banner.querySelector('button');btn.textContent='Reconnect';
+  btn.onclick=async function(){try{var p=await handle.requestPermission({mode:'readwrite'});if(p==='granted'){await loadFromHandle(handle);await idbPutHandle(handle);setSaveIndicator('saved','Reconnected');}}catch(e){console.error(e);}};
+}
+
+async function saveToJSON(){
+  if(!jsonFileHandle)return;
+  setSaveIndicator('saving','Saving…');
+  try{
+    var writable=await jsonFileHandle.createWritable();
+    await writable.write(JSON.stringify({nextId:nextId,roadmap:roadmap},null,2));
+    await writable.close();
+    setSaveIndicator('saved','✓ Saved');
+    PJMSync.markSynced(MODULE_ID,{});
+  }catch(e){setSaveIndicator('error','Save failed');console.error(e);}
+}
+
+function setBannerConnected(filename){
+  var banner=document.getElementById('rmJsonBanner');
+  banner.classList.add('connected');
+  document.getElementById('rmBannerMsg').innerHTML='✅ Connected to <strong>'+filename+'</strong> — changes save automatically.';
+  banner.querySelector('button').style.display='none';
+}
+
+function setSaveIndicator(state,msg){
+  var el=document.getElementById('rmSaveIndicator');
+  el.className=state;el.textContent=msg;
+  if(state==='saved')setTimeout(function(){el.textContent='';el.className='';},3000);
+}
+
+/* ════════════════════════════════════════
+   RENDER HELPERS
+════════════════════════════════════════ */
+function statusClass(s){
+  var m={'IN PROGRESS':'in-progress','SYSTEM TESTING':'system-testing','DEV COMPLETED':'dev-completed','DONE':'done','COMPLETED':'completed','TO DO':'to-do','BLOCKED':'blocked','PLANNING':'planning','PLANNED':'planned'};
+  return m[s]||'planned';
+}
+
+function qPill(active,qLabel,qKey,status){
+  if(!active)return '<span style="color:#e5e7eb;font-size:16px;">—</span>';
+  var isDone=(status==='DEV COMPLETED'||status==='DONE'||status==='COMPLETED');
+  return '<span class="q-pill '+qKey+(isDone?' done':'')+'">'+qLabel+'</span>';
+}
+
+function renderTabs(){
+  return '<div class="sub-tabs">'+tabDefs.map(function(t){
+    return '<button class="sub-tab'+(t.key===activeTab?' active':'')+'" onclick="switchTab(\''+t.key+'\')">'+t.label+'</button>';
+  }).join('')+'</div>';
+}
+
+function switchTab(key){activeTab=key;render();}
+
+function renderLegend(){
+  return '<div class="legend">'
+    +'<span style="font-weight:600;color:var(--muted);">Legend:</span>'
+    +'<div class="legend-item"><span class="q-pill q1" style="padding:2px 10px;">■</span><span>Q1</span></div>'
+    +'<div class="legend-item"><span class="q-pill q2" style="padding:2px 10px;">■</span><span>Q2 (Active)</span></div>'
+    +'<div class="legend-item"><span class="q-pill q3" style="padding:2px 10px;">■</span><span>Q3 (Upcoming)</span></div>'
+    +'<div class="legend-item"><span class="q-pill q4" style="padding:2px 10px;">■</span><span>Q4 (Future)</span></div>'
+    +'<div class="legend-item"><span class="q-pill q2 done" style="padding:2px 10px;">■</span><span>Completed</span></div>'
+    +'</div>';
+}
+
+function renderTable(items){
+  if(!items||!items.length)return '<p style="color:var(--muted);font-size:13px;padding:20px;">No items. Click "Add Initiative" to get started.</p>';
+  var sorted=sortItems(items);
+  var rows=sorted.map(function(d,idx){
+    return '<tr>'
+      +'<td class="no-cell">'+(idx+1)+'</td>'
+      +'<td style="font-weight:600;max-width:260px;">'+esc(d.initiative)+'</td>'
+      +'<td class="q-cell">'+qPill(d.q1,'Q1 2026','q1',d.status)+'</td>'
+      +'<td class="q-cell">'+qPill(d.q2,'Q2 2026','q2',d.status)+'</td>'
+      +'<td class="q-cell">'+qPill(d.q3,'Q3 2026','q3',d.status)+'</td>'
+      +'<td class="q-cell">'+qPill(d.q4,'Q4 2026','q4',d.status)+'</td>'
+      +'<td><span class="status-badge '+statusClass(d.status)+'">'+d.status+'</span></td>'
+      +'<td style="font-size:12px;color:var(--muted);">'+esc(d.owner||'')+'</td>'
+      +'<td style="white-space:nowrap;">'
+        +'<button class="row-edit" onclick="editItem('+d.id+',\''+activeTab+'\')">✎</button>'
+        +'<button class="row-del" onclick="deleteItem('+d.id+',\''+activeTab+'\')">✕</button>'
+      +'</td>'
+      +'</tr>';
+  }).join('');
+  return '<div style="overflow-x:auto;"><table class="roadmap-table"><thead><tr>'
+    +'<th class="no-col">#</th>'
+    +'<th>Initiative</th>'
+    +'<th class="q-header">Q1 2026</th>'
+    +'<th class="q-header">Q2 2026</th>'
+    +'<th class="q-header">Q3 2026</th>'
+    +'<th class="q-header">Q4 2026</th>'
+    +'<th>Status</th><th>Owner</th><th>Actions</th>'
+    +'</tr></thead><tbody>'+rows+'</tbody></table></div>';
+}
+
+function esc(str){return String(str||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');}
+
+/* ── Sort helpers: earliest quarter → status priority ── */
+function earliestQuarter(item){
+  if(item.q1)return 1;
+  if(item.q2)return 2;
+  if(item.q3)return 3;
+  if(item.q4)return 4;
+  return 5;
+}
+function statusOrder(s){
+  var o={'COMPLETED':1,'DEV COMPLETED':2,'IN PROGRESS':3,'SYSTEM TESTING':4,'TO DO':5,'PLANNING':6,'PLANNED':7,'BLOCKED':8};
+  return o[s]||9;
+}
+function sortItems(items){
+  return items.slice().sort(function(a,b){
+    var qDiff=earliestQuarter(a)-earliestQuarter(b);
+    if(qDiff!==0)return qDiff;
+    return statusOrder(a.status)-statusOrder(b.status);
+  });
+}
+
+function showToast(msg){
+  var t=document.getElementById('toastEl');if(!t)return;
+  t.textContent=msg;t.classList.add('show');
+  setTimeout(function(){t.classList.remove('show');},3500);
+}
+
+/* ════════════════════════════════════════
+   MAIN RENDER
+════════════════════════════════════════ */
+function render(){
+  var items=roadmap[activeTab]||[];
+  var html='';
+
+  /* JSON banner */
+  html+='<div id="rmJsonBanner">'
+    +'<span class="banner-icon">📂</span>'
+    +'<span class="banner-msg" id="rmBannerMsg">Connect <strong>roadmap-data.json</strong> to enable auto-save. Changes will persist every time you open this page.</span>'
+    +'<button class="rm-btn rm-btn-primary" onclick="connectJSON()">Connect JSON</button>'
+    +'</div>';
+
+  /* re-apply connected state if handle exists */
+  if(jsonFileHandle){
+    setTimeout(function(){
+      var b=document.getElementById('rmJsonBanner');
+      if(b&&!b.classList.contains('connected')){
+        b.classList.add('connected');
+        var msg=document.getElementById('rmBannerMsg');
+        if(msg)msg.innerHTML='✅ Connected — changes save automatically.';
+        var btn=b.querySelector('button');if(btn)btn.style.display='none';
+      }
+    },0);
+  }
+
+  html+=renderTabs();
+  html+='<div class="rm-controls">'
+    +'<button class="rm-btn rm-btn-primary" onclick="openAddModal()">➕ Add Initiative</button>'
+    +'</div>';
+  html+=renderLegend();
+  html+=renderTable(items);
+
+  document.getElementById('moduleContent').innerHTML=html;
+}
+
+/* ════════════════════════════════════════
+   ADD / EDIT / DELETE
+════════════════════════════════════════ */
+function openAddModal(){
+  editingId=null;
+  document.getElementById('rmModalTitle').textContent='Add Initiative';
+  document.getElementById('rmSubmitBtn').textContent='Add Initiative';
+  document.getElementById('rmForm').reset();
+  document.getElementById('rmTab').value=activeTab;
+  document.getElementById('rmModal').classList.add('active');
+}
+
+function editItem(id,tabKey){
+  var list=roadmap[tabKey]||[];
+  var item=list.find(function(x){return x.id===id;});
+  if(!item)return;
+  editingId={id:id,tab:tabKey};
+  document.getElementById('rmModalTitle').textContent='Edit Initiative';
+  document.getElementById('rmSubmitBtn').textContent='Update Initiative';
+  document.getElementById('rmTab').value=tabKey;
+  document.getElementById('rmInitiative').value=item.initiative||'';
+  document.getElementById('rmQ1').checked=!!item.q1;
+  document.getElementById('rmQ2').checked=!!item.q2;
+  document.getElementById('rmQ3').checked=!!item.q3;
+  document.getElementById('rmQ4').checked=!!item.q4;
+  document.getElementById('rmStatus').value=item.status||'TO DO';
+  document.getElementById('rmOwner').value=item.owner||'';
+  document.getElementById('rmModal').classList.add('active');
+}
+
+function deleteItem(id,tabKey){
+  if(!confirm('Delete this initiative?'))return;
+  roadmap[tabKey]=(roadmap[tabKey]||[]).filter(function(x){return x.id!==id;});
+  saveToJSON();
+  render();
+  showToast('Initiative deleted.');
+}
+
+function closeRmModal(){
+  document.getElementById('rmModal').classList.remove('active');
+  document.getElementById('rmForm').reset();
+  editingId=null;
+}
+
+document.getElementById('rmForm').addEventListener('submit',function(e){
+  e.preventDefault();
+  var tabKey=document.getElementById('rmTab').value;
+  var data={
+    initiative:document.getElementById('rmInitiative').value.trim(),
+    q1:document.getElementById('rmQ1').checked,
+    q2:document.getElementById('rmQ2').checked,
+    q3:document.getElementById('rmQ3').checked,
+    q4:document.getElementById('rmQ4').checked,
+    status:document.getElementById('rmStatus').value,
+    owner:document.getElementById('rmOwner').value.trim()
+  };
+
+  if(editingId){
+    /* If tab changed, move item */
+    var oldTab=editingId.tab;
+    var id=editingId.id;
+    if(oldTab!==tabKey){
+      roadmap[oldTab]=(roadmap[oldTab]||[]).filter(function(x){return x.id!==id;});
+      roadmap[tabKey]=roadmap[tabKey]||[];
+      roadmap[tabKey].push(Object.assign({id:id},data));
+    } else {
+      var idx=(roadmap[tabKey]||[]).findIndex(function(x){return x.id===id;});
+      if(idx!==-1)roadmap[tabKey][idx]=Object.assign({},roadmap[tabKey][idx],data);
+    }
+    activeTab=tabKey;
+    showToast('Initiative updated.');
+  } else {
+    roadmap[tabKey]=roadmap[tabKey]||[];
+    roadmap[tabKey].push(Object.assign({id:nextId++},data));
+    activeTab=tabKey;
+    showToast('Initiative added.');
+  }
+
+  saveToJSON();
+  closeRmModal();
+  render();
+});
+
+/* close on outside click */
+document.getElementById('rmModal').addEventListener('click',function(e){if(e.target.id==='rmModal')closeRmModal();});
+
+/* ════════════════════════════════════════
+   SYNC
+════════════════════════════════════════ */
+function doSync(){
+  PJMSync.markLoading(MODULE_ID);
+  PJMSync.setSyncBtnState(true);
+  if(jsonFileHandle){
+    jsonFileHandle.getFile().then(function(file){return file.text();}).then(function(text){
+      var data=JSON.parse(text);
+      roadmap=data.roadmap||roadmap;
+      nextId=data.nextId||nextId;
+      render();
+      PJMSync.markSynced(MODULE_ID,{});
+      PJMSync.setSyncBtnState(false);
+      setSaveIndicator('saved','✓ Refreshed from file');
+    }).catch(function(){PJMSync.setSyncBtnState(false);setSaveIndicator('error','Refresh failed');});
+  } else {
+    setTimeout(function(){
+      render();
+      PJMSync.markSynced(MODULE_ID,{});
+      PJMSync.setSyncBtnState(false);
+      showToast('Live Confluence + Sheets integration coming — data reflects current planning');
+    },700);
+  }
+}
+
+/* ════════════════════════════════════════
+   INIT
+════════════════════════════════════════ */
+document.addEventListener('DOMContentLoaded',function(){
+  PJMNav.render(MODULE_ID);
+  PJMSync.initModule(MODULE_ID,doSync);
+  render();              // always paint immediately with built-in data
+  tryAutoConnect();      // silently reconnect JSON in background if previously connected
+});
+</script>
+</body>
+</html>

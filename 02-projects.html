@@ -1,0 +1,914 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Meridian — Projects (Active Sprints)</title>
+<script src="https://accounts.google.com/gsi/client" async defer></script>
+<link rel="stylesheet" href="shared/pjm.css">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+:root{
+  --bg:#f0f2f5;--card:#fff;--primary:#3b82f6;--accent:#6366f1;
+  --green:#10b981;--orange:#f59e0b;--red:#ef4444;--purple:#8b5cf6;
+  --cyan:#06b6d4;--text:#1f2937;--muted:#6b7280;--border:#e5e7eb;
+  --radius:12px
+}
+body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;background:var(--bg);color:var(--text);min-height:100vh}
+
+/* ── TOP HEADER BAR ── */
+.top-bar{background:var(--card);border-bottom:1px solid var(--border);padding:14px 28px;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:50;box-shadow:0 1px 4px rgba(0,0,0,.06)}
+.top-bar-left{display:flex;align-items:center;gap:14px}
+.top-bar-logo{font-size:18px;font-weight:700;letter-spacing:-.4px}
+.top-bar-logo span{color:var(--primary)}
+.top-bar-title{font-size:15px;font-weight:600;color:var(--text)}
+.top-bar-sep{color:var(--border);font-size:18px}
+.top-bar-right{display:flex;align-items:center;gap:10px}
+.date-chip{font-size:13px;color:var(--muted);background:var(--bg);padding:6px 14px;border-radius:8px;border:1px solid var(--border)}
+.clocks{display:flex;gap:16px;font-size:11px;color:var(--muted)}
+.clocks .ck-label{font-weight:600;color:#9ca3af}
+.clocks .ck-val{color:#d1d5db;font-variant-numeric:tabular-nums}
+
+/* ── MAIN CONTENT ── */
+.main{padding:24px 28px;max-width:1600px;margin:0 auto}
+
+/* ── SECTION TITLE ── */
+.section-title{font-size:20px;font-weight:700;margin-bottom:4px}
+.section-sub{font-size:14px;color:var(--muted);margin-bottom:18px}
+.section-title-row{display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:6px}
+.section-title-row .section-title{margin-bottom:0}
+
+/* ── FILTER BAR ── */
+.filter-bar{display:flex;gap:12px;margin-bottom:20px;flex-wrap:wrap;align-items:center}
+.filter-bar input{padding:8px 14px;border:1px solid var(--border);border-radius:8px;font-size:14px;background:var(--card);outline:none;width:260px}
+.filter-bar input:focus{border-color:var(--primary)}
+.filter-bar select{padding:8px 14px;border:1px solid var(--border);border-radius:8px;font-size:14px;background:var(--card);outline:none;cursor:pointer}
+.filter-bar .count{font-size:13px;color:var(--muted);margin-left:auto}
+
+/* ── REFRESH BUTTON ── */
+.refresh-btn{display:inline-flex;align-items:center;gap:6px;padding:7px 14px;border-radius:8px;border:1px solid var(--border);background:var(--card);color:var(--muted);font-size:12px;font-weight:500;cursor:pointer;transition:all .2s;white-space:nowrap}
+.refresh-btn:hover{border-color:var(--primary);color:var(--primary);background:#eff6ff}
+.refresh-btn.spinning .refresh-icon{display:inline-block;animation:spin .7s linear infinite}
+.refresh-btn.success{border-color:var(--green);color:var(--green);background:#f0fdf4}
+.refresh-btn.error{border-color:var(--red);color:var(--red);background:#fef2f2}
+@keyframes spin{to{transform:rotate(360deg)}}
+
+/* ── KPI STRIP ── */
+#activeSprintKpis{display:grid;grid-template-columns:repeat(auto-fit,minmax(130px,1fr));gap:12px;margin-bottom:20px}
+
+/* ── ACTIVE SPRINT PROJECT CARDS ── */
+.asp-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(380px,1fr));gap:16px;margin-bottom:24px}
+.asp-card{background:var(--card);border:1px solid var(--border);border-radius:var(--radius);padding:20px;display:flex;flex-direction:column;gap:0;transition:box-shadow .2s,transform .2s}
+.asp-card:hover{box-shadow:0 6px 24px rgba(0,0,0,.09);transform:translateY(-2px)}
+.asp-card-header{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:14px}
+.asp-proj-name{font-size:15px;font-weight:700;color:var(--text)}
+.asp-sprint-tag{font-size:11px;font-weight:600;background:#EEF2FF;color:#4F46E5;padding:3px 10px;border-radius:10px;white-space:nowrap}
+.asp-health{font-size:11px;font-weight:600;padding:3px 10px;border-radius:10px;white-space:nowrap;margin-top:4px;display:inline-block}
+.asp-strong{background:#D1FAE5;color:#065F46}
+.asp-moderate{background:#FEF3C7;color:#92400E}
+.asp-attention{background:#FEE2E2;color:#991B1B}
+.asp-progress{height:8px;background:#f1f5f9;border-radius:4px;overflow:hidden;display:flex;margin:4px 0 14px}
+.done-seg{height:100%;background:#10b981}
+.ip-seg{height:100%;background:#3b82f6}
+.todo-seg{height:100%;background:#e5e7eb}
+.asp-metrics{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-bottom:16px}
+.asp-metric{text-align:center;background:#f8fafc;border-radius:8px;padding:8px 4px}
+.mv{font-size:22px;font-weight:700;line-height:1}
+.ml{font-size:11px;color:var(--muted);margin-top:3px}
+.asp-links{display:flex;align-items:center;justify-content:space-between;padding-top:12px;border-top:1px solid var(--border);gap:8px;margin-top:auto}
+.asp-link{font-size:12px;color:var(--primary);text-decoration:none;font-weight:600;padding:5px 12px;background:#EFF6FF;border-radius:8px;transition:background .15s}
+.asp-link:hover{background:#DBEAFE}
+.asp-detail-btn{font-size:12px;font-weight:700;padding:7px 16px;background:linear-gradient(135deg,#6C63FF 0%,#3B82F6 100%);color:#fff;border:none;border-radius:8px;cursor:pointer;transition:opacity .15s,transform .15s;white-space:nowrap;letter-spacing:.01em}
+.asp-detail-btn:hover{opacity:.88;transform:translateY(-1px)}
+
+/* ── DETAIL VIEW BACK BAR ── */
+.asp-back-bar{display:flex;align-items:center;gap:14px;margin-bottom:18px}
+.asp-back-btn{display:inline-flex;align-items:center;gap:7px;padding:8px 18px;background:var(--card);border:1px solid var(--border);border-radius:var(--radius);font-size:13px;font-weight:600;color:var(--text);cursor:pointer;transition:all .15s}
+.asp-back-btn:hover{border-color:var(--primary);color:var(--primary);background:#EFF6FF}
+.asp-back-context{font-size:14px;color:var(--muted);font-weight:500}
+
+/* ── SPRINT REVIEW SHARED LAYOUT (used in detail view) ── */
+.sr-panel{background:var(--card);border:1px solid var(--border);border-radius:var(--radius);overflow:hidden}
+.sr-report-header{color:#fff;padding:24px 32px;border-radius:var(--radius) var(--radius) 0 0;margin-bottom:0}
+.sr-report-header h2{font-size:1.5rem;font-weight:700;margin-bottom:4px}
+.sr-report-meta{opacity:.85;font-size:.85rem}
+.sr-inner-tabs{background:#fff;border-bottom:2px solid var(--border);padding:0 24px;display:flex;gap:2px;overflow-x:auto;position:sticky;top:56px;z-index:10;box-shadow:0 2px 8px rgba(0,0,0,.06)}
+.sr-inner-btn{padding:12px 18px;border:none;background:none;font-size:.85rem;font-weight:500;color:var(--muted);cursor:pointer;border-bottom:3px solid transparent;margin-bottom:-2px;white-space:nowrap;transition:all .15s}
+.sr-inner-btn:hover{color:#6C63FF;background:#F8FAFF}
+.sr-inner-btn.active{color:#6C63FF;border-bottom-color:#6C63FF;font-weight:600}
+.sr-inner-pane{display:none}
+.sr-inner-pane.active{display:block}
+.sr-pane-body{padding:28px 32px}
+.sr-section{margin-bottom:36px}
+.sr-section-title{font-size:.95rem;font-weight:600;color:var(--text);margin-bottom:14px;display:flex;align-items:center;gap:8px}
+.sr-section-title::before{content:'';display:block;width:4px;height:18px;background:#6C63FF;border-radius:2px}
+.sr-kpi-row{display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:12px}
+.sr-kpi-c{background:#fff;border-radius:10px;padding:16px 18px;border:1px solid var(--border);border-left:4px solid #6C63FF}
+.sr-kpi-c.success{border-left-color:#10B981}
+.sr-kpi-c.warning{border-left-color:#F59E0B}
+.sr-kpi-c.danger{border-left-color:#EF4444}
+.sr-kpi-c.info{border-left-color:#3B82F6}
+.sr-kv{font-size:1.8rem;font-weight:700;line-height:1;margin-bottom:4px}
+.sr-kl{font-size:.7rem;color:var(--muted);text-transform:uppercase;letter-spacing:.05em}
+.sr-ks{font-size:.75rem;color:var(--muted);margin-top:3px}
+.sr-breakdown-card{background:#fff;border-radius:10px;padding:18px 22px;border:1px solid var(--border)}
+.sr-prog-row{display:flex;align-items:center;gap:10px;margin-bottom:8px}
+.sr-prog-label{font-size:.8rem;color:var(--text);min-width:140px}
+.sr-prog-wrap{flex:1;background:#F1F5F9;border-radius:4px;height:8px;overflow:hidden}
+.sr-prog-fill{height:100%;border-radius:4px;transition:width .3s}
+.sr-prog-cnt{font-size:.78rem;font-weight:600;color:var(--muted);min-width:24px;text-align:right}
+.sr-charts-grid{display:grid;grid-template-columns:1fr 1fr;gap:18px}
+.sr-chart-card{background:#fff;border-radius:10px;padding:18px 22px;border:1px solid var(--border)}
+.sr-chart-card h3{font-size:.72rem;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:.05em;margin-bottom:12px}
+.sr-chart-wrap{position:relative;height:220px}
+.sr-health-card{background:#fff;border-radius:10px;padding:22px;border:1px solid var(--border)}
+.sr-health-bar{height:12px;background:var(--border);border-radius:6px;overflow:hidden;margin-top:8px}
+.sr-health-fill{height:100%;border-radius:6px}
+.health-good{background:linear-gradient(90deg,#10B981,#34D399)}
+.health-ok{background:linear-gradient(90deg,#F59E0B,#FCD34D)}
+.health-concern{background:linear-gradient(90deg,#EF4444,#F87171)}
+.sr-health-facts{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-top:14px}
+.sr-hf{background:#F8FAFC;border-radius:8px;padding:10px 12px;font-size:.8rem}
+.sr-hf-label{color:var(--muted);font-size:.7rem;text-transform:uppercase;margin-bottom:3px}
+.sr-hf-val{font-weight:700;font-size:.95rem}
+.sr-sprint-meta-bar{background:#fff;border-radius:8px;padding:12px 18px;display:flex;gap:20px;align-items:center;border:1px solid var(--border);margin-bottom:20px;flex-wrap:wrap}
+.sr-sprint-label{font-weight:700;color:#6C63FF;font-size:.95rem}
+.sr-sprint-dates{color:var(--muted);font-size:.82rem}
+.sr-sprint-type{padding:3px 12px;border-radius:20px;font-size:.75rem;font-weight:600;background:#EEF2FF;color:#4F46E5}
+.sr-table-card{background:#fff;border-radius:10px;border:1px solid var(--border);overflow:hidden;margin-bottom:8px}
+.sr-full-table{width:100%;border-collapse:collapse;font-size:.82rem}
+.sr-full-table th{background:#F8FAFC;padding:9px 12px;text-align:left;font-weight:600;font-size:.72rem;color:var(--muted);text-transform:uppercase;letter-spacing:.04em;border-bottom:1px solid var(--border)}
+.sr-full-table td{padding:8px 12px;border-top:1px solid var(--border);vertical-align:middle}
+.sr-full-table tr:hover td{background:#FAFBFF}
+.sr-status-badge{display:inline-block;padding:2px 8px;border-radius:10px;font-size:.68rem;font-weight:500}
+.sr-done{background:#D1FAE5;color:#065F46}
+.sr-progress{background:#DBEAFE;color:#1E40AF}
+.sr-testing{background:#FEF3C7;color:#92400E}
+.sr-todo{background:#F1F5F9;color:#475569}
+.sr-blocked{background:#FEE2E2;color:#991B1B}
+.sr-devdone{background:#E0E7FF;color:#3730A3}
+.sr-type-badge{display:inline-block;padding:2px 8px;border-radius:10px;font-size:.68rem;font-weight:500}
+.sr-story{background:#EEF2FF;color:#4F46E5}
+.sr-task{background:#F0FDF4;color:#15803D}
+.sr-bug{background:#FEF2F2;color:#DC2626}
+.sr-subtask{background:#F0F9FF;color:#0369A1}
+.sr-epic{background:#F5F3FF;color:#7C3AED}
+.sr-issue-link{color:var(--primary);text-decoration:none;font-size:11px;font-weight:600}
+.sr-issue-link:hover{text-decoration:underline}
+
+
+@media(max-width:900px){
+  .sr-charts-grid{grid-template-columns:1fr}
+  .sr-health-facts{grid-template-columns:1fr 1fr}
+  .sr-kpi-row{grid-template-columns:1fr 1fr}
+  .asp-metrics{grid-template-columns:repeat(2,1fr)}
+  .asp-grid{grid-template-columns:1fr}
+  .top-bar{flex-wrap:wrap;gap:10px}
+  .clocks{display:none}
+}
+</style>
+
+<style id="demoBannerCss">
+#pjmDemoBanner{position:fixed;top:0;left:0;right:0;z-index:99999;background:#8A5CFF;color:#fff;
+ font:600 12px/1.4 system-ui,-apple-system,Segoe UI,sans-serif;padding:7px 44px 7px 16px;text-align:center;
+ letter-spacing:.2px;box-shadow:0 1px 6px rgba(0,0,0,.18)}
+#pjmDemoBanner a{color:#fff;text-decoration:underline}
+#pjmDemoBanner button{position:absolute;right:10px;top:4px;background:none;border:none;color:#fff;
+ font-size:17px;line-height:1;cursor:pointer;padding:4px}
+body.has-demo-banner{padding-top:30px}
+</style>
+<script id="pjmDemoMode">
+/* ===== PUBLIC DEMO BUILD =====
+   All data in this build is fictional. No credentials ship with it and no
+   outbound calls to third-party APIs are permitted. */
+(function(){
+  window.PJM_DEMO = true;
+  var BLOCK = /(api\.linear\.app|api\.github\.com|graphql|googleapis\.com|slack\.com|atlassian\.net)/i;
+  var of = window.fetch;
+  window.fetch = function(input){
+    var u = (typeof input === 'string') ? input : (input && input.url) || '';
+    if (BLOCK.test(u)) {
+      console.info('[demo] blocked outbound call:', u);
+      return Promise.resolve(new Response(JSON.stringify({data:null,demo:true}),
+        {status:200, headers:{'Content-Type':'application/json'}}));
+    }
+    return of.apply(this, arguments);
+  };
+  var ox = window.XMLHttpRequest && window.XMLHttpRequest.prototype.open;
+  if (ox) window.XMLHttpRequest.prototype.open = function(m,u){
+    if (BLOCK.test(String(u))) { console.info('[demo] blocked XHR:', u); u = 'data:application/json,{}'; }
+    return ox.apply(this, [m,u].concat([].slice.call(arguments,2)));
+  };
+  document.addEventListener('DOMContentLoaded', function(){
+    if (sessionStorage.getItem('pjmDemoBannerHidden')) return;
+    var b = document.createElement('div');
+    b.id = 'pjmDemoBanner';
+    b.innerHTML = 'DEMO BUILD \u2014 every person, project, ticket and meeting below is fictional. ' +
+                  'Live integrations are disabled in this build.' +
+                  '<button title="Dismiss" onclick="this.parentNode.remove();' +
+                  'document.body.classList.remove(\'has-demo-banner\');' +
+                  'sessionStorage.setItem(\'pjmDemoBannerHidden\',\'1\')">&times;</button>';
+    document.body.appendChild(b);
+    document.body.classList.add('has-demo-banner');
+  });
+})();
+</script>
+</head>
+<body>
+<div id="loginOverlay"><div class="login-box"><div class="login-logo">⬡</div><h2>Meridian PJM</h2><p>Sign in with your Meridian account to continue.</p><div id="googleSignInBtn"></div><div id="loginError"></div></div></div>
+<div id="pjmSidebarContainer"></div>
+<div class="pjm-main">
+
+<!-- TOP HEADER BAR -->
+<div class="top-bar" style="display:flex;align-items:center;justify-content:space-between;padding:0 20px;gap:12px">
+  <div class="top-bar-left">
+    <div class="top-bar-logo">&#x2B21; <span>Meridian</span> PJM</div>
+    <span class="top-bar-sep">/</span>
+    <div class="top-bar-title">&#x1F4C1; Projects</div>
+  </div>
+  <!-- SOURCE TABS -->
+  <div class="top-bar-right">
+    <div class="clocks">
+      <div><span class="ck-label">IST: </span><span class="ck-val" id="clockIST"></span></div>
+      <div><span class="ck-label">UK: </span><span class="ck-val" id="clockUK"></span></div>
+    </div>
+    <div class="date-chip">&#x1F4C5; <span id="liveDateText"></span></div>
+    <span id="lastRefresh" style="font-size:10px;opacity:.7;padding:2px 8px;background:rgba(255,255,255,.15);border-radius:10px">Linear synced 30 Sep 2026 &middot; Active: 13 &middot; Snapshot: 23</span>
+    <button class="refresh-btn" id="refreshBtn" onclick="handleLinearRefresh(this)"><span class="refresh-icon">&#x1F504;</span> <span>Refresh</span></button>
+    <button id="linearTokenBtn" class="refresh-btn" style="border-color:#5e6ad2;color:#5e6ad2" onclick="openLinearTokenModal()">&#x1F511; Linear Key</button>
+  </div>
+</div>
+
+<!-- MAIN CONTENT -->
+<div class="main">
+
+  <!-- PROJECTS OVERVIEW (card grid) -->
+
+<div id="linearPanel">
+  <div id="linearOverview">
+    <div style="display:flex;align-items:baseline;gap:10px;margin-bottom:10px">
+      <div style="font-size:15px;font-weight:700;color:var(--text)">Active Monitoring &mdash; this sprint's projects</div>
+      <div style="font-size:12px;color:var(--muted)">Matched against the current Sprint Plan (Sprint 21), plus PM-flagged priorities &mdash; full issue-level detail</div>
+    </div>
+    <div id="linearKpis" style="display:grid;grid-template-columns:repeat(5,1fr);gap:12px;margin-bottom:20px"></div>
+    <div style="display:flex;align-items:center;gap:10px;margin-bottom:16px">
+      <input id="linearSearch" type="text" placeholder="Search active projects..." oninput="renderLinearSection()" style="flex:1;padding:8px 12px;border-radius:8px;border:1px solid var(--border);background:var(--card);color:var(--text);font-size:13px">
+      <span id="linearCount" style="font-size:12px;color:var(--muted)"></span>
+    </div>
+    <div id="linearCards" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(340px,1fr));gap:16px"></div>
+
+    <div id="trackingGapsBanner" style="margin:24px 0 16px"></div>
+
+    <div style="display:flex;align-items:baseline;gap:10px;margin:8px 0 12px">
+      <div style="font-size:15px;font-weight:700;color:var(--text)">Snapshot &mdash; other Linear projects</div>
+      <div style="font-size:12px;color:var(--muted)">Not matched to the current sprint &mdash; name / status / lead only, no issue-level fetch</div>
+    </div>
+    <div id="snapshotTable"></div>
+  </div>
+  <div id="linearDetailWrap" style="display:none"></div>
+</div>
+
+  <!-- DETAIL VIEW (hidden until "View Details" clicked) -->
+
+</div>
+
+<!-- JIRA TOKEN MODAL -->
+
+<script>
+// ============================================================
+// DATE DISPLAY
+// ============================================================
+(function(){
+  var d=new Date();
+  var days=['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday'];
+  var months=['January','February','March','April','May','June','July','August','September','October','November','December'];
+  document.getElementById('liveDateText').textContent=days[d.getDay()]+', '+months[d.getMonth()]+' '+d.getDate()+', '+d.getFullYear();
+})();
+
+// ============================================================
+// LIVE CLOCKS
+// ============================================================
+function updateClocks(){
+  var now=new Date();
+  var months=['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+  var days=['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
+  var dateStr=days[now.getUTCDay()]+', '+months[now.getUTCMonth()]+' '+now.getUTCDate()+', '+now.getUTCFullYear();
+  var clockDate=document.getElementById('clockDate');
+  if(clockDate) clockDate.textContent=dateStr;
+  var istOffset=5.5*60*60*1000;
+  var istTime=new Date(now.getTime()+now.getTimezoneOffset()*60*1000+istOffset);
+  var istH=istTime.getHours(),istM=istTime.getMinutes(),istS=istTime.getSeconds();
+  var istAP=istH>=12?'PM':'AM'; istH=istH%12||12;
+  var clockIST=document.getElementById('clockIST');
+  if(clockIST) clockIST.textContent=('0'+istH).slice(-2)+':'+('0'+istM).slice(-2)+':'+('0'+istS).slice(-2)+' '+istAP;
+  var ukStr=now.toLocaleString('en-GB',{timeZone:'Europe/London',hour:'2-digit',minute:'2-digit',second:'2-digit',hour12:true});
+  var clockUK=document.getElementById('clockUK');
+  if(clockUK) clockUK.textContent=ukStr.toUpperCase();
+}
+updateClocks();
+setInterval(updateClocks,1000);
+
+// ============================================================
+// HELPERS
+// ============================================================
+function statusBadge(s){
+  var m={"IN PROGRESS":"ip","COMPLETED":"done","RELEASED":"released","TO DO":"todo","BLOCKED":"blocked","SYSTEM TESTING":"systest","READY TO GO LIVE":"rtg","Kick Off & Research":"kickoff","DEV COMPLETED":"devcomp","BACKLOG":"todo","NOT STARTED":"nodata","⚠️ STALE SPRINT":"blocked"};
+  return '<span style="display:inline-block;padding:3px 10px;border-radius:20px;font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:.3px;background:'+(m[s]==='ip'?'#dbeafe':m[s]==='done'?'#d1fae5':m[s]==='blocked'?'#fee2e2':'#f3f4f6')+';color:'+(m[s]==='ip'?'#1d4ed8':m[s]==='done'?'#065f46':m[s]==='blocked'?'#991b1b':'#4b5563')+'">'+s+'</span>';
+}
+function pct(v,t){return t?Math.round(v/t*100):0}
+
+// Sprint review helpers (used in detail view)
+function srGetStatusBadge(status,cat){
+  var s=(status||'').toLowerCase();
+  if(cat==='done'||s.indexOf('release')>=0) return '<span class="sr-status-badge sr-done">'+status+'</span>';
+  if(s.indexOf('complet')>=0&&cat==='done') return '<span class="sr-status-badge sr-done">'+status+'</span>';
+  if(s.indexOf('system')>=0||s.indexOf('testing')>=0) return '<span class="sr-status-badge sr-testing">'+status+'</span>';
+  if(s.indexOf('dev')>=0&&s.indexOf('complet')>=0) return '<span class="sr-status-badge sr-devdone">'+status+'</span>';
+  if(s.indexOf('progress')>=0) return '<span class="sr-status-badge sr-progress">'+status+'</span>';
+  if(s.indexOf('block')>=0||s.indexOf('hold')>=0) return '<span class="sr-status-badge sr-blocked">'+status+'</span>';
+  if(cat==='done') return '<span class="sr-status-badge sr-done">'+status+'</span>';
+  if(cat==='new') return '<span class="sr-status-badge sr-todo">'+status+'</span>';
+  return '<span class="sr-status-badge sr-progress">'+status+'</span>';
+}
+function srGetTypeBadge(type){
+  var t=(type||'').toLowerCase();
+  if(t.indexOf('bug')>=0) return '<span class="sr-type-badge sr-bug">Bug</span>';
+  if(t.indexOf('story')>=0) return '<span class="sr-type-badge sr-story">Story</span>';
+  if(t.indexOf('sub')>=0) return '<span class="sr-type-badge sr-subtask">Sub-task</span>';
+  if(t.indexOf('epic')>=0) return '<span class="sr-type-badge sr-epic">Epic</span>';
+  return '<span class="sr-type-badge sr-task">Task</span>';
+}
+function buildIssueRow(issue){
+  return '<tr>'+
+    '<td><a class="sr-issue-link" href="https://meridian.atlassian.net/browse/'+issue.key+'" target="_blank">'+issue.key+'</a></td>'+
+    '<td>'+issue.summary+'</td>'+
+    '<td>'+srGetTypeBadge(issue.type)+'</td>'+
+    '<td style="color:var(--muted);font-size:12px">'+(issue.assignee||'Unassigned')+'</td>'+
+    '<td>'+srGetStatusBadge(issue.status,issue.cat)+'</td>'+
+  '</tr>';
+}
+function buildIssueTable(issues){
+  if(!issues.length) return '<div style="padding:20px;color:var(--muted);text-align:center">No issues in this category</div>';
+  var thead='<thead><tr><th>Issue</th><th>Summary</th><th>Type</th><th>Assignee</th><th>Status</th></tr></thead>';
+  return '<div class="sr-table-card"><table class="sr-full-table">'+thead+'<tbody>'+issues.map(buildIssueRow).join('')+'</tbody></table></div>';
+}
+
+// ============================================================
+// LINEAR PROJECT DATA — tiered per Projects Tab Sync Rule
+// Active Monitoring = Linear projects matching a squad in the
+// CURRENT sprint (sprint-plans/sprint_data.json -> sections[]).
+// Everything else is a lightweight Snapshot -- no issue-level
+// fetch, since other departments share this Linear workspace.
+// See memory "Projects Tab Sync Rule" for rationale + gaps.
+// Live snapshot -- 30 Sep 2026, cross-checked against Sprint 21 (Linear Cycle 11).
+// ============================================================
+var ACTIVE_TIER_NAMES=["Marketplace", "LABS", "Harness", "Summit-Bench", "APF Media Negotiation Framework", "Connectors", "meridian.dev landing page rebuild", "Meridian Support Tool", "Beacon (non-tech)", "sme", "DSS", "AI-OPS", "Evals"];
+
+function fmtD(iso){ if(!iso) return ''; var d=new Date(iso); return d.toLocaleDateString('en-GB',{day:'numeric',month:'short',year:'numeric'}); }
+
+var linearProjectData = {"MARK": {"name": "Atlas Marketplace", "fullName": "Atlas Marketplace", "total": 327, "done": 21, "inProgress": 217, "toDo": 81, "blocked": 8, "cancelled": 0, "pct": 6, "statusBreakdown": {"Done": 21, "In Progress": 217, "Todo": 81, "Hold or Blocked": 8}, "assigneeWorkload": {}, "milestones": [{"name": "Discovery", "date": "2026-09-18", "sort": 0, "pct": 0}, {"name": "Alpha", "date": "2026-10-02", "sort": 1, "pct": 0}, {"name": "Private Beta", "date": "2026-10-31", "sort": 2, "pct": 0}], "lead": "Alina Rowe", "linearUrl": "https://linear.example.com/demo/project/atlas-marketplace", "hasCycle": true, "cycleName": "Cycle 11", "cycleStart": "28 Sep 2026", "cycleEnd": "10 Oct 2026", "velocity": [], "sprint": "Atlas Marketplace", "start": "28 Sep 2026", "end": "10 Oct 2026", "issues": [], "priority": 1, "projStatus": "In Progress"}, "LABS": {"name": "Forge Labs", "fullName": "Forge Labs", "total": 51, "done": 0, "inProgress": 47, "toDo": 3, "blocked": 1, "cancelled": 0, "pct": 0, "statusBreakdown": {"In Progress": 47, "Todo": 3, "Hold or Blocked": 1}, "assigneeWorkload": {}, "milestones": [], "lead": "Marcus Vidal", "linearUrl": "https://linear.example.com/demo/project/forge-labs", "hasCycle": true, "cycleName": "Cycle 11", "cycleStart": "28 Sep 2026", "cycleEnd": "10 Oct 2026", "velocity": [], "sprint": "Forge Labs", "start": "28 Sep 2026", "end": "10 Oct 2026", "issues": [], "priority": 3, "projStatus": "In Progress"}, "HARN": {"name": "Test Harness", "fullName": "Test Harness", "total": 39, "done": 1, "inProgress": 30, "toDo": 8, "blocked": 0, "cancelled": 0, "pct": 3, "statusBreakdown": {"Done": 1, "In Progress": 30, "Todo": 8}, "assigneeWorkload": {}, "milestones": [{"name": "Private Beta", "date": "2026-10-31", "sort": 0, "pct": 0}, {"name": "Public Beta", "date": null, "sort": 1, "pct": 0}, {"name": "GA", "date": null, "sort": 2, "pct": 0}], "lead": "Nadia Oyelaran", "linearUrl": "https://linear.example.com/demo/project/test-harness", "hasCycle": true, "cycleName": "Cycle 11", "cycleStart": "28 Sep 2026", "cycleEnd": "10 Oct 2026", "velocity": [], "sprint": "Test Harness", "start": "28 Sep 2026", "end": "10 Oct 2026", "issues": [], "priority": 1, "projStatus": "In Progress"}, "CONC": {"name": "Summit Bench", "fullName": "Summit Bench", "total": 30, "done": 16, "inProgress": 6, "toDo": 0, "blocked": 8, "cancelled": 0, "pct": 53, "statusBreakdown": {"Done": 16, "In Progress": 6, "Hold or Blocked": 8}, "assigneeWorkload": {}, "milestones": [{"name": "Public Beta", "date": null, "sort": 0, "pct": 100}, {"name": "GA", "date": null, "sort": 1, "pct": 0}, {"name": "Hardening", "date": null, "sort": 2, "pct": 0}, {"name": "Stage 1", "date": null, "sort": 3, "pct": 0}, {"name": "Stage 2", "date": null, "sort": 4, "pct": 0}, {"name": "Stage 3", "date": null, "sort": 5, "pct": 0}, {"name": "Pilot", "date": null, "sort": 6, "pct": 100}, {"name": "Rollout", "date": null, "sort": 7, "pct": 100}, {"name": "Post-launch Review", "date": null, "sort": 8, "pct": 0}, {"name": "M1: Foundations", "date": null, "sort": 9, "pct": 100}, {"name": "M2: Core Flows", "date": null, "sort": 10, "pct": 0}, {"name": "M3: Integrations", "date": null, "sort": 11, "pct": 0}, {"name": "M4: Performance", "date": null, "sort": 12, "pct": 0}, {"name": "Discovery", "date": null, "sort": 13, "pct": 0}, {"name": "Alpha", "date": null, "sort": 14, "pct": 0}, {"name": "Private Beta", "date": null, "sort": 15, "pct": 0}], "lead": "Tomas Berg", "linearUrl": "https://linear.example.com/demo/project/summit-bench", "hasCycle": true, "cycleName": "Cycle 11", "cycleStart": "28 Sep 2026", "cycleEnd": "10 Oct 2026", "velocity": [], "sprint": "Summit Bench", "start": "28 Sep 2026", "end": "10 Oct 2026", "issues": [], "priority": 1, "projStatus": "In Progress"}, "RMNF": {"name": "Adaptive Pricing Framework", "fullName": "Adaptive Pricing Framework", "total": 30, "done": 0, "inProgress": 14, "toDo": 16, "blocked": 0, "cancelled": 0, "pct": 0, "statusBreakdown": {"In Progress": 14, "Todo": 16}, "assigneeWorkload": {}, "milestones": [{"name": "GA", "date": "2026-05-23", "sort": 0, "pct": 100}, {"name": "Hardening", "date": "2026-05-30", "sort": 1, "pct": 100}, {"name": "Stage 1", "date": "2026-06-06", "sort": 2, "pct": 0}, {"name": "Stage 2", "date": "2026-06-13", "sort": 3, "pct": 0}, {"name": "Stage 3", "date": "2026-06-20", "sort": 4, "pct": 0}, {"name": "Pilot", "date": "2026-07-04", "sort": 5, "pct": 0}, {"name": "Rollout", "date": "2026-07-11", "sort": 6, "pct": 0}, {"name": "Post-launch Review", "date": "2026-07-25", "sort": 7, "pct": 0}, {"name": "M1: Foundations", "date": null, "sort": 8, "pct": 0}, {"name": "M2: Core Flows", "date": null, "sort": 9, "pct": 0}, {"name": "M3: Integrations", "date": null, "sort": 10, "pct": 0}], "lead": "Priya Anand", "linearUrl": "https://linear.example.com/demo/project/adaptive-pricing-framework", "hasCycle": true, "cycleName": "Cycle 11", "cycleStart": "28 Sep 2026", "cycleEnd": "10 Oct 2026", "velocity": [], "sprint": "Adaptive Pricing Framework", "start": "28 Sep 2026", "end": "10 Oct 2026", "issues": [], "priority": 1, "projStatus": "In Progress"}, "CONN": {"name": "Connectors", "fullName": "Connectors", "total": 27, "done": 1, "inProgress": 17, "toDo": 1, "blocked": 8, "cancelled": 0, "pct": 4, "statusBreakdown": {"Done": 1, "In Progress": 17, "Todo": 1, "Hold or Blocked": 8}, "assigneeWorkload": {}, "milestones": [{"name": "Hardening", "date": "2026-10-31", "sort": 0, "pct": 0}], "lead": "Rohan Desai", "linearUrl": "https://linear.example.com/demo/project/connectors", "hasCycle": true, "cycleName": "Cycle 11", "cycleStart": "28 Sep 2026", "cycleEnd": "10 Oct 2026", "velocity": [], "sprint": "Connectors", "start": "28 Sep 2026", "end": "10 Oct 2026", "issues": [], "priority": 1, "projStatus": "In Progress"}, "ALPR": {"name": "Marketing Site Rebuild", "fullName": "Marketing Site Rebuild", "total": 17, "done": 17, "inProgress": 0, "toDo": 0, "blocked": 0, "cancelled": 0, "pct": 100, "statusBreakdown": {"Done": 17}, "assigneeWorkload": {}, "milestones": [], "lead": "Elena Marsh", "linearUrl": "https://linear.example.com/demo/project/marketing-site-rebuild", "hasCycle": true, "cycleName": "Cycle 11", "cycleStart": "28 Sep 2026", "cycleEnd": "10 Oct 2026", "velocity": [], "sprint": "Marketing Site Rebuild", "start": "28 Sep 2026", "end": "10 Oct 2026", "issues": [], "priority": 1, "projStatus": "In Progress"}, "AST": {"name": "Support Tool", "fullName": "Support Tool", "total": 15, "done": 0, "inProgress": 14, "toDo": 1, "blocked": 0, "cancelled": 0, "pct": 0, "statusBreakdown": {"In Progress": 14, "Todo": 1}, "assigneeWorkload": {}, "milestones": [], "lead": "Unassigned", "linearUrl": "https://linear.example.com/demo/project/support-tool", "hasCycle": true, "cycleName": "Cycle 3", "cycleStart": "21 Sep 2026", "cycleEnd": "4 Oct 2026", "velocity": [], "sprint": "Support Tool", "start": "21 Sep 2026", "end": "4 Oct 2026", "issues": [], "priority": 1, "projStatus": "In Progress"}, "AN": {"name": "Beacon (non-tech)", "fullName": "Beacon (non-tech)", "total": 8, "done": 0, "inProgress": 3, "toDo": 3, "blocked": 2, "cancelled": 0, "pct": 0, "statusBreakdown": {"In Progress": 3, "Todo": 3, "Hold or Blocked": 2}, "assigneeWorkload": {}, "milestones": [], "lead": "Sofia Lindqvist", "linearUrl": "https://linear.example.com/demo/project/beacon-non-tech", "hasCycle": true, "cycleName": "Cycle 11", "cycleStart": "28 Sep 2026", "cycleEnd": "10 Oct 2026", "velocity": [], "sprint": "Beacon (non-tech)", "start": "28 Sep 2026", "end": "10 Oct 2026", "issues": [], "priority": 4, "projStatus": "In Progress"}, "SME": {"name": "smb", "fullName": "smb", "total": 8, "done": 1, "inProgress": 7, "toDo": 0, "blocked": 0, "cancelled": 0, "pct": 12, "statusBreakdown": {"Done": 1, "In Progress": 7}, "assigneeWorkload": {}, "milestones": [], "lead": "Arjun Nair", "linearUrl": "https://linear.example.com/demo/project/smb", "hasCycle": true, "cycleName": "Cycle 11", "cycleStart": "28 Sep 2026", "cycleEnd": "10 Oct 2026", "velocity": [], "sprint": "smb", "start": "28 Sep 2026", "end": "10 Oct 2026", "issues": [], "priority": 4, "projStatus": "In Progress"}, "DSS": {"name": "Delivery Service", "fullName": "Delivery Service", "total": 2, "done": 0, "inProgress": 2, "toDo": 0, "blocked": 0, "cancelled": 0, "pct": 0, "statusBreakdown": {"In Progress": 2}, "assigneeWorkload": {}, "milestones": [], "lead": "Hana Sato", "linearUrl": "https://linear.example.com/demo/project/delivery-service", "hasCycle": true, "cycleName": "Cycle 11", "cycleStart": "28 Sep 2026", "cycleEnd": "10 Oct 2026", "velocity": [], "sprint": "Delivery Service", "start": "28 Sep 2026", "end": "10 Oct 2026", "issues": [], "priority": 1, "projStatus": "In Progress"}, "AIOP": {"name": "AI Ops", "fullName": "AI Ops", "total": 0, "done": 0, "inProgress": 0, "toDo": 0, "blocked": 0, "cancelled": 0, "pct": 0, "statusBreakdown": {}, "assigneeWorkload": {}, "milestones": [], "lead": "Daniel Okafor", "linearUrl": "https://linear.example.com/demo/project/ai-ops", "hasCycle": false, "cycleName": "Cycle 11", "cycleStart": "28 Sep 2026", "cycleEnd": "10 Oct 2026", "velocity": [], "sprint": "AI Ops", "start": "28 Sep 2026", "end": "10 Oct 2026", "issues": [], "priority": 2, "projStatus": "In Progress"}, "EVAL": {"name": "Evaluations", "fullName": "Evaluations", "total": 0, "done": 0, "inProgress": 0, "toDo": 0, "blocked": 0, "cancelled": 0, "pct": 0, "statusBreakdown": {}, "assigneeWorkload": {}, "milestones": [], "lead": "Freya Nilsen", "linearUrl": "https://linear.example.com/demo/project/evaluations", "hasCycle": false, "cycleName": "Cycle 11", "cycleStart": "28 Sep 2026", "cycleEnd": "10 Oct 2026", "velocity": [], "sprint": "Evaluations", "start": "28 Sep 2026", "end": "10 Oct 2026", "issues": [], "priority": 1, "projStatus": "In Progress"}, "CS": {"name": "Customer Sandbox", "fullName": "Customer Sandbox", "total": 17, "done": 0, "inProgress": 17, "toDo": 0, "blocked": 0, "cancelled": 0, "pct": 0, "statusBreakdown": {"In Progress": 17}, "assigneeWorkload": {}, "milestones": [], "lead": "Unassigned", "linearUrl": "https://linear.example.com/demo/project/customer-sandbox", "hasCycle": true, "cycleName": "Cycle 3", "cycleStart": "21 Sep 2026", "cycleEnd": "4 Oct 2026", "velocity": [], "sprint": "Customer Sandbox", "start": "21 Sep 2026", "end": "4 Oct 2026", "issues": [], "priority": 4, "projStatus": "Backlog"}, "FOLI": {"name": "Ledger", "fullName": "Ledger", "total": 7, "done": 0, "inProgress": 7, "toDo": 0, "blocked": 0, "cancelled": 0, "pct": 0, "statusBreakdown": {"In Progress": 7}, "assigneeWorkload": {}, "milestones": [], "lead": "Clara Bennett", "linearUrl": "https://linear.example.com/demo/project/ledger", "hasCycle": true, "cycleName": "Cycle 11", "cycleStart": "28 Sep 2026", "cycleEnd": "10 Oct 2026", "velocity": [], "sprint": "Ledger", "start": "28 Sep 2026", "end": "10 Oct 2026", "issues": [], "priority": 1, "projStatus": "Backlog"}, "BEACON": {"name": "Beacon", "fullName": "Beacon", "total": 5, "done": 0, "inProgress": 5, "toDo": 0, "blocked": 0, "cancelled": 0, "pct": 0, "statusBreakdown": {"In Progress": 5}, "assigneeWorkload": {}, "milestones": [], "lead": "Idris Khan", "linearUrl": "https://linear.example.com/demo/project/beacon", "hasCycle": true, "cycleName": "Cycle 11", "cycleStart": "28 Sep 2026", "cycleEnd": "10 Oct 2026", "velocity": [], "sprint": "Beacon", "start": "28 Sep 2026", "end": "10 Oct 2026", "issues": [], "priority": 2, "projStatus": "Completed"}, "GW": {"name": "Partner Workshop", "fullName": "Partner Workshop", "total": 4, "done": 0, "inProgress": 4, "toDo": 0, "blocked": 0, "cancelled": 0, "pct": 0, "statusBreakdown": {"In Progress": 4}, "assigneeWorkload": {}, "milestones": [], "lead": "Mei Chen", "linearUrl": "https://linear.example.com/demo/project/partner-workshop", "hasCycle": true, "cycleName": "Cycle 11", "cycleStart": "28 Sep 2026", "cycleEnd": "10 Oct 2026", "velocity": [], "sprint": "Partner Workshop", "start": "28 Sep 2026", "end": "10 Oct 2026", "issues": [], "priority": 1, "projStatus": "Backlog"}, "MH": {"name": "Drift Harness", "fullName": "Drift Harness", "total": 1, "done": 0, "inProgress": 1, "toDo": 0, "blocked": 0, "cancelled": 0, "pct": 0, "statusBreakdown": {"In Progress": 1}, "assigneeWorkload": {}, "milestones": [], "lead": "Oscar Duarte", "linearUrl": "https://linear.example.com/demo/project/drift-harness", "hasCycle": true, "cycleName": "Cycle 11", "cycleStart": "28 Sep 2026", "cycleEnd": "10 Oct 2026", "velocity": [], "sprint": "Drift Harness", "start": "28 Sep 2026", "end": "10 Oct 2026", "issues": [], "priority": 4, "projStatus": "Backlog"}, "ADTE": {"name": "Cobalt Support", "fullName": "Cobalt Support", "total": 0, "done": 0, "inProgress": 0, "toDo": 0, "blocked": 0, "cancelled": 0, "pct": 0, "statusBreakdown": {}, "assigneeWorkload": {}, "milestones": [], "lead": "Unassigned", "linearUrl": "https://linear.example.com/demo/project/cobalt-support", "hasCycle": false, "cycleName": "Cycle 11", "cycleStart": "28 Sep 2026", "cycleEnd": "10 Oct 2026", "velocity": [], "sprint": "Cobalt Support", "start": "28 Sep 2026", "end": "10 Oct 2026", "issues": [], "priority": 4, "projStatus": "Backlog"}, "AS": {"name": "Beacon Support", "fullName": "Beacon Support", "total": 0, "done": 0, "inProgress": 0, "toDo": 0, "blocked": 0, "cancelled": 0, "pct": 0, "statusBreakdown": {}, "assigneeWorkload": {}, "milestones": [], "lead": "Unassigned", "linearUrl": "https://linear.example.com/demo/project/beacon-support", "hasCycle": false, "cycleName": "Cycle 11", "cycleStart": "28 Sep 2026", "cycleEnd": "10 Oct 2026", "velocity": [], "sprint": "Beacon Support", "start": "28 Sep 2026", "end": "10 Oct 2026", "issues": [], "priority": 4, "projStatus": "Backlog"}, "AF": {"name": "Automation Factory", "fullName": "Automation Factory", "total": 0, "done": 0, "inProgress": 0, "toDo": 0, "blocked": 0, "cancelled": 0, "pct": 0, "statusBreakdown": {}, "assigneeWorkload": {}, "milestones": [], "lead": "Grace Mwangi", "linearUrl": "https://linear.example.com/demo/project/automation-factory", "hasCycle": false, "cycleName": "Cycle 11", "cycleStart": "28 Sep 2026", "cycleEnd": "10 Oct 2026", "velocity": [], "sprint": "Automation Factory", "start": "28 Sep 2026", "end": "10 Oct 2026", "issues": [], "priority": 2, "projStatus": "Blocked/Hold"}, "LS": {"name": "Forge Support", "fullName": "Forge Support", "total": 0, "done": 0, "inProgress": 0, "toDo": 0, "blocked": 0, "cancelled": 0, "pct": 0, "statusBreakdown": {}, "assigneeWorkload": {}, "milestones": [], "lead": "Unassigned", "linearUrl": "https://linear.example.com/demo/project/forge-support", "hasCycle": false, "cycleName": "Cycle 11", "cycleStart": "28 Sep 2026", "cycleEnd": "10 Oct 2026", "velocity": [], "sprint": "Forge Support", "start": "28 Sep 2026", "end": "10 Oct 2026", "issues": [], "priority": 4, "projStatus": "Backlog"}, "LABS2": {"name": "Forge Support 2", "fullName": "Forge Support 2", "total": 0, "done": 0, "inProgress": 0, "toDo": 0, "blocked": 0, "cancelled": 0, "pct": 0, "statusBreakdown": {}, "assigneeWorkload": {}, "milestones": [], "lead": "Unassigned", "linearUrl": "https://linear.example.com/demo/project/forge-support-2", "hasCycle": false, "cycleName": "Cycle 11", "cycleStart": "28 Sep 2026", "cycleEnd": "10 Oct 2026", "velocity": [], "sprint": "Forge Support 2", "start": "28 Sep 2026", "end": "10 Oct 2026", "issues": [], "priority": 4, "projStatus": "Backlog"}};
+
+// Snapshot tier -- every other Linear project. Lightweight only:
+// name / status / priority / lead / dates -- no issue-level fetch.
+var snapshotProjects = [{"name": "Beacon (non-tech)", "status": "In Progress", "statusType": "started", "priority": "No priority", "lead": "Alina Rowe", "start": "8 Jun 2026", "end": "", "updated": "25 Aug 2026", "url": "https://linear.example.com/demo/project/beacon-non-tech"}, {"name": "AI Ops", "status": "In Progress", "statusType": "started", "priority": "Medium", "lead": "Marcus Vidal", "start": "18 Sep 2026", "end": "", "updated": "18 Sep 2026", "url": "https://linear.example.com/demo/project/ai-ops"}, {"name": "Support Tool", "status": "In Progress", "statusType": "started", "priority": "High", "lead": "", "start": "23 Jun 2026", "end": "", "updated": "18 Aug 2026", "url": "https://linear.example.com/demo/project/support-tool"}, {"name": "Marketing Site Rebuild", "status": "In Progress", "statusType": "started", "priority": "High", "lead": "Tomas Berg", "start": "3 Sep 2026", "end": "", "updated": "15 Sep 2026", "url": "https://linear.example.com/demo/project/marketing-site-rebuild"}, {"name": "Summit Bench", "status": "In Progress", "statusType": "started", "priority": "High", "lead": "Priya Anand", "start": "28 Sep 2026", "end": "", "updated": "29 Sep 2026", "url": "https://linear.example.com/demo/project/summit-bench"}, {"name": "Connectors", "status": "In Progress", "statusType": "started", "priority": "High", "lead": "Rohan Desai", "start": "26 Aug 2026", "end": "", "updated": "2 Sep 2026", "url": "https://linear.example.com/demo/project/connectors"}, {"name": "Delivery Service", "status": "In Progress", "statusType": "started", "priority": "High", "lead": "Elena Marsh", "start": "12 Sep 2026", "end": "", "updated": "12 Sep 2026", "url": "https://linear.example.com/demo/project/delivery-service"}, {"name": "Evaluations", "status": "In Progress", "statusType": "started", "priority": "High", "lead": "Kwame Boateng", "start": "11 Sep 2026", "end": "", "updated": "11 Sep 2026", "url": "https://linear.example.com/demo/project/evaluations"}, {"name": "Test Harness", "status": "In Progress", "statusType": "started", "priority": "High", "lead": "Sofia Lindqvist", "start": "17 Aug 2026", "end": "", "updated": "27 Aug 2026", "url": "https://linear.example.com/demo/project/test-harness"}, {"name": "Forge Labs", "status": "In Progress", "statusType": "started", "priority": "Low", "lead": "Arjun Nair", "start": "1 Jun 2026", "end": "", "updated": "24 Aug 2026", "url": "https://linear.example.com/demo/project/forge-labs"}, {"name": "Atlas Marketplace", "status": "In Progress", "statusType": "started", "priority": "High", "lead": "Hana Sato", "start": "3 Aug 2026", "end": "", "updated": "15 Sep 2026", "url": "https://linear.example.com/demo/project/atlas-marketplace"}, {"name": "Adaptive Pricing Framework", "status": "In Progress", "statusType": "started", "priority": "High", "lead": "Daniel Okafor", "start": "7 May 2026", "end": "25 Jul 2026", "updated": "28 Sep 2026", "url": "https://linear.example.com/demo/project/adaptive-pricing-framework", "flag": "overdue"}, {"name": "smb", "status": "In Progress", "statusType": "started", "priority": "No priority", "lead": "Freya Nilsen", "start": "12 Sep 2026", "end": "", "updated": "12 Sep 2026", "url": "https://linear.example.com/demo/project/smb"}, {"name": "Beacon", "status": "Completed", "statusType": "completed", "priority": "Medium", "lead": "Ravi Menon", "start": "28 May 2026", "end": "14 Aug 2026", "updated": "18 Sep 2026", "url": "https://linear.example.com/demo/project/beacon"}, {"name": "Beacon Support", "status": "Backlog", "statusType": "backlog", "priority": "No priority", "lead": "", "start": "", "end": "", "updated": "17 Aug 2026", "url": "https://linear.example.com/demo/project/beacon-support"}, {"name": "Cobalt Support", "status": "Backlog", "statusType": "backlog", "priority": "No priority", "lead": "", "start": "", "end": "", "updated": "15 Jul 2026", "url": "https://linear.example.com/demo/project/cobalt-support"}, {"name": "Automation Factory", "status": "Blocked/Hold", "statusType": "canceled", "priority": "Medium", "lead": "Mei Chen", "start": "18 Jul 2026", "end": "", "updated": "28 Sep 2026", "url": "https://linear.example.com/demo/project/automation-factory"}, {"name": "Customer Sandbox", "status": "Backlog", "statusType": "backlog", "priority": "No priority", "lead": "", "start": "16 Sep 2026", "end": "12 Oct 2026", "updated": "22 Sep 2026", "url": "https://linear.example.com/demo/project/customer-sandbox"}, {"name": "Ledger", "status": "Backlog", "statusType": "backlog", "priority": "High", "lead": "Lena Petrova", "start": "", "end": "", "updated": "16 Jun 2026", "url": "https://linear.example.com/demo/project/ledger"}, {"name": "Partner Workshop", "status": "Backlog", "statusType": "backlog", "priority": "High", "lead": "Samir Haddad", "start": "", "end": "", "updated": "28 Sep 2026", "url": "https://linear.example.com/demo/project/partner-workshop"}, {"name": "Forge Support", "status": "Backlog", "statusType": "backlog", "priority": "No priority", "lead": "", "start": "", "end": "", "updated": "17 Aug 2026", "url": "https://linear.example.com/demo/project/forge-support"}, {"name": "Forge Support 2", "status": "Backlog", "statusType": "backlog", "priority": "No priority", "lead": "", "start": "", "end": "", "updated": "28 Jul 2026", "url": "https://linear.example.com/demo/project/forge-support-2"}, {"name": "Drift Harness", "status": "Backlog", "statusType": "backlog", "priority": "No priority", "lead": "Jonas Weber", "start": "", "end": "", "updated": "25 Aug 2026", "url": "https://linear.example.com/demo/project/drift-harness"}];
+
+// Tracking gaps -- surfaced explicitly so nothing looks silently dropped.
+var trackingGaps = {
+  "noLinearProject": [
+    "SOC"
+  ],
+  "notes": [
+    "SOC (renamed from 'Sock' at Sujit's request, 28 Aug 2026) — compliance squad; a Linear project is being created, none exists yet.",
+    "Evals — RESOLVED 30 Sep 2026: now has a matching Linear project under the AI-OPS team (lead: Marcus Vidal). It has no cycle configured yet, so its issue counts read 0.",
+    "Summit — RESOLVED 30 Sep 2026: a new 'Summit-Bench' project (lead: Elena Marsh) is now In Progress and carries the ongoing Buyer/Seller work. The old CFS-0/CFS-1 projects are Completed.",
+    "Gym squad is mapped to the 'APF Media Negotiation Framework' Linear project (per Sujit, 28 Aug 2026) — now in Active Monitoring above, despite the name not matching 'Gym'.",
+    "TrustNet — tracked here previously — no longer exists in Linear under that name or any close match; confirm status with the team.",
+    "The old 'DRIFT Harness' project remains in Backlog with a single open item; the live work is in the new 'Harness' project above.",
+    "AI-OPS and DevOps Engineering teams have no cycles configured in Linear, so their projects report zero in-cycle counts."
+  ]
+};
+// ════════ KPI CARD ════════
+function kpiCard(val,label,color){
+  return '<div style="background:var(--card);border:1px solid var(--border);border-radius:var(--radius);padding:16px;text-align:center">'+
+    '<div style="font-size:28px;font-weight:700;color:'+color+'">'+val+'</div>'+
+    '<div style="font-size:12px;color:var(--muted);margin-top:2px">'+label+'</div></div>';
+}
+// ════════ LINEAR KPIs ════════
+function renderLinearKpis(){
+  var keys=Object.keys(linearProjectData),total=0,done=0,inp=0,todo=0;
+  keys.forEach(function(k){var p=linearProjectData[k];total+=p.total;done+=p.done;inp+=p.inProgress;todo+=p.toDo;});
+  var pct=total?Math.round(done/total*100):0,col=pct>=60?'#10b981':pct>=30?'#f59e0b':'#ef4444';
+  var el=document.getElementById('linearKpis'); if(!el)return;
+  el.innerHTML=kpiCard(total,'Total Items','var(--text)')+kpiCard(done,'Completed','#10b981')+kpiCard(inp,'In Progress','#5e6ad2')+kpiCard(todo,'To Do','#9ca3af')+kpiCard(pct+'%','Progress',col);
+}
+// ════════ LINEAR CARDS ════════
+function renderLinearSection(){
+  renderLinearKpis();
+  var search=(document.getElementById('linearSearch')||{value:''}).value.toLowerCase();
+  var keys=Object.keys(linearProjectData).filter(function(k){var p=linearProjectData[k];return !search||p.fullName.toLowerCase().indexOf(search)>=0;});
+  var cnt=document.getElementById('linearCount'); if(cnt)cnt.textContent=keys.length+' project'+(keys.length!==1?'s':'');
+  var container=document.getElementById('linearCards'); if(!container)return;
+  var html='';
+  keys.forEach(function(k){
+    var p=linearProjectData[k],pct=p.pct||0;
+    var hLbl=pct>=60?'Strong':pct>=30?'On Track':'In Progress',hCls=pct>=60?'asp-strong':pct>=30?'asp-moderate':'asp-attention';
+    var dW=p.total?Math.round(p.done/p.total*100):0,iW=p.total?Math.round(p.inProgress/p.total*100):0,tW=Math.max(0,100-dW-iW);
+    var col=pct>=60?'#10b981':pct>=30?'#f59e0b':'#ef4444';
+    var cycleTag=p.hasCycle
+      ?'<span style="font-size:10px;background:#EEF2FF;color:#4F46E5;padding:2px 8px;border-radius:10px;font-weight:600">🟣 '+p.cycleName+'</span>'
+      :'<span style="font-size:10px;background:#f3f4f6;color:#6b7280;padding:2px 8px;border-radius:10px;font-weight:600">No Cycle</span>';
+    html+='<div class="asp-card">';
+    var priBadge=p.priority?'<span style="font-size:10px;background:#f3f4f6;color:#6b7280;padding:2px 7px;border-radius:10px;font-weight:700;margin-right:4px">P'+p.priority+'</span>':'';
+    html+='<div class="asp-card-header"><div><div class="asp-proj-name">'+priBadge+p.fullName+'</div>';
+    html+='<div style="font-size:11px;color:var(--muted);margin-top:3px">Linear &bull; '+p.start+' &rarr; '+p.end+'</div></div>';
+    html+='<div style="display:flex;flex-direction:column;align-items:flex-end;gap:5px">'+cycleTag;
+    html+='<span class="asp-health '+hCls+'">'+hLbl+'</span></div></div>';
+    html+='<div style="margin:4px 0 2px"><span style="font-size:32px;font-weight:700;color:'+col+'">'+pct+'%</span><span style="font-size:13px;color:var(--muted);margin-left:6px">complete</span></div>';
+    html+='<div class="asp-progress"><div style="height:100%;width:'+dW+'%;background:#10b981;border-radius:4px 0 0 4px"></div><div style="height:100%;width:'+iW+'%;background:#5e6ad2"></div><div style="height:100%;width:'+tW+'%;background:#e5e7eb;border-radius:0 4px 4px 0"></div></div>';
+    html+='<div style="display:grid;grid-template-columns:repeat(4,1fr);gap:6px;margin:10px 0 12px">';
+    html+='<div class="asp-stat-cell"><div class="asp-stat-num">'+p.total+'</div><div class="asp-stat-lbl">Total</div></div>';
+    html+='<div class="asp-stat-cell"><div class="asp-stat-num" style="color:#10b981">'+p.done+'</div><div class="asp-stat-lbl">Done</div></div>';
+    html+='<div class="asp-stat-cell"><div class="asp-stat-num" style="color:#5e6ad2">'+(p.inProgress||0)+'</div><div class="asp-stat-lbl">In Progress</div></div>';
+    html+='<div class="asp-stat-cell"><div class="asp-stat-num" style="color:#9ca3af">'+(p.toDo||0)+'</div><div class="asp-stat-lbl">To Do</div></div></div>';
+    // Milestone chips
+    var ms=p.milestones||[];
+    if(ms.length){
+      html+='<div style="display:flex;flex-wrap:wrap;gap:5px;margin-bottom:12px">';
+      ms.slice(0,6).forEach(function(m){
+        var mpct=Math.round(m.pct||0);
+        var mc=mpct>=80?'#d1fae5':mpct>=40?'#fef3c7':'#eff6ff';
+        var mtc=mpct>=80?'#065f46':mpct>=40?'#92400e':'#1d4ed8';
+        html+='<span style="font-size:10px;background:'+mc+';color:'+mtc+';padding:2px 8px;border-radius:20px;font-weight:500;white-space:nowrap">'+
+              '&#x1F3AF; '+m.name.substring(0,22)+(m.name.length>22?'…':'')+'&nbsp;'+mpct+'%</span>';
+      });
+      if(ms.length>6)html+='<span style="font-size:10px;color:var(--muted);padding:2px 6px">+'+(ms.length-6)+' more</span>';
+      html+='</div>';
+    }
+    html+='<div style="display:flex;align-items:center;justify-content:space-between;padding-top:10px;border-top:1px solid var(--border)">';
+    html+='<span style="font-size:11px;color:var(--muted)">Lead: <b style="color:var(--text)">'+p.lead+'</b></span>';
+    html+='<div style="display:flex;gap:6px">';
+    html+='<a href="'+p.linearUrl+'" target="_blank" style="padding:6px 12px;border-radius:6px;border:1px solid #5e6ad2;color:#5e6ad2;font-size:12px;font-weight:600;text-decoration:none">&#x2197; Linear</a>';
+    html+='<button onclick="openLinearDetail(\''+k+'\')" style="padding:6px 14px;border-radius:6px;background:#5e6ad2;color:#fff;border:none;cursor:pointer;font-size:12px;font-weight:600">Cycle Detail</button>';
+    html+='</div></div></div>';
+  });
+  container.innerHTML=html;
+  renderTrackingGaps();
+  renderSnapshotSection();
+}
+function renderTrackingGaps(){
+  var el=document.getElementById('trackingGapsBanner'); if(!el)return;
+  var g=trackingGaps.noLinearProject.join(', ');
+  var html='<div style="background:#FFFBEB;border:1px solid #FDE68A;border-radius:10px;padding:14px 18px">';
+  html+='<div style="font-size:13px;font-weight:700;color:#92400E;margin-bottom:6px">\u26A0\uFE0F Tracking gaps \u2014 not silently dropped</div>';
+  html+='<div style="font-size:12px;color:#92400E;margin-bottom:8px">No Linear project exists for: <b>'+g+'</b></div>';
+  html+='<ul style="margin:0 0 0 18px;padding:0;font-size:12px;color:#78350F;line-height:1.7">';
+  trackingGaps.notes.forEach(function(n){html+='<li>'+n+'</li>';});
+  html+='</ul></div>';
+  el.innerHTML=html;
+}
+function renderSnapshotSection(){
+  var el=document.getElementById('snapshotTable'); if(!el)return;
+  var rows=snapshotProjects.map(function(p){
+    var flagBadge='';
+    if(p.flag==='blocked') flagBadge='<span style="font-size:10px;background:#FEE2E2;color:#991B1B;padding:2px 8px;border-radius:10px;font-weight:600;margin-left:6px">BLOCKED</span>';
+    else if(p.flag==='overdue') flagBadge='<span style="font-size:10px;background:#FEF3C7;color:#92400E;padding:2px 8px;border-radius:10px;font-weight:600;margin-left:6px">PAST TARGET</span>';
+    else if(p.flag==='stale') flagBadge='<span style="font-size:10px;background:#F3F4F6;color:#6B7280;padding:2px 8px;border-radius:10px;font-weight:600;margin-left:6px">STALE</span>';
+    var statusColor=p.statusType==='completed'?'#059669':p.statusType==='canceled'?'#991B1B':p.statusType==='started'?'#1D4ED8':'#6B7280';
+    var dates=(p.start||p.end)?(p.start+(p.end?' \u2192 '+p.end:'')):'\u2014';
+    return '<tr>'+
+      '<td style="font-weight:600">'+p.name+flagBadge+'</td>'+
+      '<td><span style="font-size:11px;font-weight:600;color:'+statusColor+'">'+p.status+'</span></td>'+
+      '<td style="font-size:12px;color:var(--muted)">'+p.priority+'</td>'+
+      '<td style="font-size:12px;color:var(--muted)">'+p.lead+'</td>'+
+      '<td style="font-size:12px;color:var(--muted)">'+dates+'</td>'+
+      '<td style="font-size:11px;color:var(--muted)">'+p.updated+'</td>'+
+      '<td><a href="'+p.url+'" target="_blank" style="font-size:11px;color:#5e6ad2;font-weight:600;text-decoration:none">Open \u2197</a></td>'+
+    '</tr>';
+  }).join('');
+  el.innerHTML='<div class="sr-table-card"><table class="sr-full-table"><thead><tr><th>Project</th><th>Status</th><th>Priority</th><th>Lead</th><th>Dates</th><th>Updated</th><th></th></tr></thead><tbody>'+rows+'</tbody></table></div>';
+}
+// ════════ LINEAR DETAIL ════════
+function openLinearDetail(key){
+  var p=linearProjectData[key]; if(!p)return;
+  var wrap=document.getElementById('linearDetailWrap'); if(!wrap)return;
+  document.getElementById('linearOverview').style.display='none'; wrap.style.display='';
+  // ── Derive counts from statusBreakdown (issues[] is not pre-fetched) ──────
+  var sb=p.statusBreakdown||{};
+  var _sbIP=['In Progress','Dev Completed','System Testing','Ready to Release'];
+  var _sbRev=['In Review'];
+  var _sbDone=['Done','Released','Resolved'];
+  var _sbTodo=['Todo','Backlog','Triage','Submitted','Design Request'];
+  var _sbBlk=['Hold or Blocked','Blocked'];
+  var _sbCancel=['Canceled','Cancelled','Duplicate'];
+  function _sbc(keys){return keys.reduce(function(s,k){return s+(sb[k]||0);},0);}
+  var ipCount=_sbc(_sbIP),revCount=_sbc(_sbRev),doneCount=_sbc(_sbDone);
+  var todoCount=_sbc(_sbTodo),blockedCount=_sbc(_sbBlk);
+  var allCount=Math.max(0,(p.total||0)-_sbc(_sbCancel));
+  // Build per-tab status table from breakdown rows
+  var _sbColorMap={'Todo':'#e5e7eb','In Progress':'#5e6ad2','In Review':'#8b5cf6',
+    'System Testing':'#f59e0b','Dev Completed':'#10b981','Ready to Release':'#06b6d4',
+    'Done':'#059669','Released':'#059669','Hold or Blocked':'#ef4444',
+    'Backlog':'#d1d5db','Triage':'#fde68a','Submitted':'#bfdbfe','Canceled':'#fca5a5','Cancelled':'#fca5a5','Duplicate':'#e5e7eb','Resolved':'#059669','Blocked':'#ef4444','Design Request':'#e5e7eb','Submitted':'#bfdbfe'};
+  function _sbColor(name){for(var k in _sbColorMap){if(name.toLowerCase().indexOf(k.toLowerCase())>=0)return _sbColorMap[k];}return '#9ca3af';}
+  function sbTable(keys){
+    var rows=keys.filter(function(k){return sb[k]&&sb[k]>0;}).map(function(k){
+      var c=_sbColor(k),cnt=sb[k];
+      return '<tr><td><span style="display:inline-block;width:10px;height:10px;border-radius:50%;background:'+c+';margin-right:8px;vertical-align:middle"></span>'+k+'</td>'+
+             '<td style="text-align:right;font-weight:700;color:var(--text)">'+cnt+'</td></tr>';
+    }).join('');
+    if(!rows)return '<div style="padding:30px;color:var(--muted);text-align:center;font-size:13px">No issues in this category</div>';
+    return '<div class="sr-table-card"><table class="sr-full-table"><thead><tr><th>Status</th><th style="text-align:right">Count</th></tr></thead><tbody>'+rows+'</tbody></table>'+
+           '<div style="padding:10px 16px;font-size:12px;color:var(--muted);border-top:1px solid var(--border)">'+
+           '&#9432; Open the project in <a href="'+p.linearUrl+'" target="_blank" style="color:#5e6ad2">Linear</a> for individual issue details</div></div>';
+  }
+
+  function tBtn(id,icon,lbl,cnt,act){return '<button id="ldt-btn-'+key+'-'+id+'" class="sr-inner-btn'+(act?' active':'')+'" onclick="switchLinearTab(\''+key+'\',\''+id+'\')">'+icon+' '+lbl+(cnt!==undefined?' ('+cnt+')':'')+'</button>';}
+  function iTable(list){
+    if(!list.length)return '<div style="padding:20px;color:var(--muted);text-align:center">No issues in this category</div>';
+    var rows=list.map(function(i){
+      var sl=i.status.toLowerCase(),bc=i.cat==='done'?'sr-done':(sl.indexOf('review')>=0?'sr-testing':(sl.indexOf('progress')>=0?'sr-inprogress':(sl.indexOf('block')>=0||sl.indexOf('hold')>=0?'sr-blocked':'sr-todo')));
+      return '<tr><td><a class="sr-issue-link" href="'+i.url+'" target="_blank">'+i.key+'</a></td><td>'+i.summary+'</td>'+
+        '<td><span style="font-size:11px;padding:2px 7px;border-radius:10px;background:#f3f4f6;color:#374151">'+i.type+'</span></td>'+
+        '<td style="color:var(--muted);font-size:12px">'+i.assignee+'</td>'+
+        '<td style="font-size:11px;color:var(--muted)">'+i.milestone+'</td>'+
+        '<td><span class="sr-status-badge '+bc+'">'+i.status+'</span></td></tr>';
+    }).join('');
+    return '<div class="sr-table-card"><table class="sr-full-table"><thead><tr><th>Issue</th><th>Summary</th><th>Type</th><th>Assignee</th><th>Milestone</th><th>Status</th></tr></thead><tbody>'+rows+'</tbody></table></div>';
+  }
+
+  // ── Sprint Health Score ──────────────────────────────────────────────────
+  var pct=p.pct||0,blocked=p.blocked||0,vel=p.velocity||[];
+  var prevPct=(vel.length>=2)?vel[0].pct:0,curPct=(vel.length>=2)?vel[1].pct:pct;
+  var healthBase=Math.round(pct*0.6);
+  var blockerPts=(blocked===0?20:(blocked<=2?12:(blocked<=4?6:2)));
+  var velTrend=(vel.length>=2&&curPct>prevPct)?15:(vel.length>=2&&curPct===prevPct?10:7);
+  var healthScore=Math.min(100,Math.max(0,healthBase+blockerPts+velTrend));
+  var healthCol=healthScore>=60?'#10b981':healthScore>=35?'#f59e0b':'#ef4444';
+  var healthLbl=healthScore>=60?'Healthy':healthScore>=35?'Needs Attention':'At Risk';
+
+  // ── Status Breakdown bars ────────────────────────────────────────────────
+  var statusBreak=p.statusBreakdown||{};
+  var sbKeys=Object.keys(statusBreak);
+  var sbTotal=sbKeys.reduce(function(s,k){return s+statusBreak[k];},0)||1;
+  var sbColors={'Todo':'#e5e7eb','In Progress':'#5e6ad2','In Review':'#8b5cf6','System Testing':'#f59e0b',
+    'Dev Completed':'#10b981','Ready to Release':'#06b6d4','Done':'#059669','Hold or Blocked':'#ef4444'};
+  function sbColor(name){
+    for(var k in sbColors){if(name.toLowerCase().indexOf(k.toLowerCase())>=0)return sbColors[k];}
+    return '#9ca3af';
+  }
+  var sbHtml='<div style="display:flex;flex-direction:column;gap:7px">';
+  sbKeys.forEach(function(sn){
+    var cnt=statusBreak[sn];
+    var w=Math.round(cnt/sbTotal*100);
+    var c=sbColor(sn);
+    sbHtml+='<div style="display:flex;align-items:center;gap:10px">';
+    sbHtml+='<div style="width:160px;font-size:12px;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis">'+sn+'</div>';
+    sbHtml+='<div style="flex:1;height:14px;background:#f1f5f9;border-radius:7px;overflow:hidden">';
+    sbHtml+='<div style="width:'+w+'%;height:100%;background:'+c+';border-radius:7px;transition:width .4s ease"></div></div>';
+    sbHtml+='<div style="width:30px;font-size:12px;font-weight:600;text-align:right;color:var(--text)">'+cnt+'</div>';
+    sbHtml+='</div>';
+  });
+  sbHtml+='</div>';
+
+  // ── Workload bars ────────────────────────────────────────────────────────
+  var wl=p.assigneeWorkload||{};
+  var wlKeys=Object.keys(wl).slice(0,10);
+  var wlMax=wlKeys.reduce(function(m,k){return Math.max(m,wl[k]);},1);
+  var wlHtml='<div style="display:flex;flex-direction:column;gap:7px">';
+  wlKeys.forEach(function(an){
+    var cnt=wl[an];
+    var w=Math.round(cnt/wlMax*100);
+    wlHtml+='<div style="display:flex;align-items:center;gap:10px">';
+    wlHtml+='<div style="width:130px;font-size:12px;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis">'+an+'</div>';
+    wlHtml+='<div style="flex:1;height:14px;background:#f1f5f9;border-radius:7px;overflow:hidden">';
+    wlHtml+='<div style="width:'+w+'%;height:100%;background:#5e6ad2;border-radius:7px;transition:width .4s ease"></div></div>';
+    wlHtml+='<div style="width:24px;font-size:12px;font-weight:600;text-align:right;color:var(--text)">'+cnt+'</div>';
+    wlHtml+='</div>';
+  });
+  if(!wlKeys.length)wlHtml+='<div style="color:var(--muted);font-size:13px">No assignee data available</div>';
+  wlHtml+='</div>';
+
+  // ── Milestones ───────────────────────────────────────────────────────────
+  var ms=p.milestones||[];
+  var msHtml='';
+  if(ms.length){
+    msHtml='<div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:10px;margin-top:4px">';
+    ms.forEach(function(m){
+      var mp=m.pct||0;
+      var mc=mp>=80?'#10b981':mp>=40?'#f59e0b':'#6b7280';
+      msHtml+='<div style="background:#f8fafc;border:1px solid var(--border);border-radius:8px;padding:12px">';
+      msHtml+='<div style="font-size:12px;font-weight:600;color:var(--text);margin-bottom:5px">'+m.name+'</div>';
+      if(m.targetDate)msHtml+='<div style="font-size:10px;color:var(--muted);margin-bottom:5px">📅 '+m.targetDate+'</div>';
+      msHtml+='<div style="font-size:11px;color:var(--muted);margin-bottom:5px">'+mp+'% complete</div>';
+      msHtml+='<div style="height:5px;background:#e5e7eb;border-radius:3px"><div style="width:'+mp+'%;height:100%;background:'+mc+';border-radius:3px"></div></div>';
+      msHtml+='</div>';
+    });
+    msHtml+='</div>';
+  } else {
+    msHtml='<div style="color:var(--muted);font-size:13px;padding:8px 0">No milestones defined for this project.</div>';
+  }
+
+  // ── Cycle chart id ───────────────────────────────────────────────────────
+  var velChartId='velChart-'+key;
+  var donutChartId='donutChart-'+key;
+
+  // ── Build HTML ───────────────────────────────────────────────────────────
+  var h='<div class="asp-back-bar"><button class="asp-back-btn" onclick="closeLinearDetail()">&#x2190; All Projects</button>';
+  h+='<span class="asp-back-context">'+p.fullName+' &nbsp;/&nbsp; <strong>'+p.cycleName+'</strong>&nbsp;&nbsp;';
+  h+='<span style="font-size:12px;padding:3px 10px;border-radius:10px;font-weight:600;background:#EEF2FF;color:#4F46E5">&#x1F7E3; Linear</span></span></div>';
+  h+='<div class="sr-panel"><div class="sr-report-header" style="background:linear-gradient(135deg,#4338CA 0%,#5e6ad2 50%,#7C3AED 100%)">';
+  h+='<h2>&#x1F7E3; '+p.fullName+'</h2>';
+  h+='<div class="sr-report-meta">Linear &middot; '+p.cycleName+' &middot; '+p.start+' &rarr; '+p.end+' &middot; Lead: '+p.lead+'</div></div>';
+  h+='<div class="sr-inner-tabs" id="ldt-tabs-'+key+'">';
+  h+=tBtn('overview','📊','Sprint Summary',undefined,true)+tBtn('inprogress','🔄','In Progress',ipCount,false)+tBtn('review','👁','In Review',revCount,false)+tBtn('done','✅','Completed',doneCount,false)+tBtn('todo','📋','To Do',todoCount,false)+tBtn('blocked','🚧','Blocked',blockedCount,false)+tBtn('all','📁','All',allCount,false);
+  h+='</div>';
+
+  // ── Overview/Sprint Summary pane ─────────────────────────────────────────
+  var remaining=Math.max(0,(p.total||0)-(p.done||0));
+  h+='<div id="ldt-pane-'+key+'-overview" class="sr-tab-content">';
+
+  // KPI strip
+  h+='<div style="display:grid;grid-template-columns:repeat(6,1fr);gap:10px;margin-bottom:20px">';
+  h+=kpiCard(p.total,'Total','var(--text)')+kpiCard(p.done,'Done','#10b981')+kpiCard(pct+'%','Progress',pct>=60?'#10b981':pct>=30?'#f59e0b':'#ef4444');
+  h+=kpiCard(p.inProgress||0,'In Progress','#5e6ad2')+kpiCard(remaining,'Remaining','#9ca3af')+kpiCard(blocked,'Blocked',blocked>0?'#ef4444':'#10b981');
+  h+='</div>';
+
+  // Sprint Health Score
+  h+='<div style="display:flex;align-items:center;gap:16px;background:#f8fafc;border:1px solid var(--border);border-radius:10px;padding:16px 20px;margin-bottom:20px">';
+  h+='<div style="width:72px;height:72px;border-radius:50%;background:conic-gradient('+healthCol+' '+healthScore+'%, #e5e7eb 0%);display:flex;align-items:center;justify-content:center;font-size:17px;font-weight:800;color:'+healthCol+';flex-shrink:0">'+healthScore+'</div>';
+  h+='<div><div style="font-size:14px;font-weight:700;color:var(--text)">Sprint Health: <span style="color:'+healthCol+'">'+healthLbl+'</span></div>';
+  h+='<div style="font-size:12px;color:var(--muted);margin-top:3px">'+healthScore+'/100 &middot; '+pct+'% complete &middot; '+(blocked>0?blocked+' blocked':'No blockers')+(vel.length>=2?' &middot; Velocity: '+prevPct+'% → '+curPct+'%':'')+'</div></div>';
+  h+='</div>';
+
+  // Two-column: Status Breakdown | Velocity Trend
+  h+='<div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:20px">';
+
+  // Status Breakdown
+  h+='<div style="background:#fff;border:1px solid var(--border);border-radius:10px;padding:18px">';
+  h+='<div style="font-size:13px;font-weight:700;color:var(--text);margin-bottom:14px">📊 Status Breakdown</div>';
+  if(sbKeys.length){h+=sbHtml;}else{h+='<div style="color:var(--muted);font-size:13px">No status data available</div>';}
+  h+='</div>';
+
+  // Velocity Trend
+  h+='<div style="background:#fff;border:1px solid var(--border);border-radius:10px;padding:18px">';
+  h+='<div style="font-size:13px;font-weight:700;color:var(--text);margin-bottom:14px">📈 Velocity Trend</div>';
+  if(vel.length>=2){
+    h+='<canvas id="'+velChartId+'" height="120"></canvas>';
+  } else {
+    h+='<div style="color:var(--muted);font-size:13px;padding:20px 0">No velocity data available<br><span style="font-size:11px">(Project has no previous cycles)</span></div>';
+  }
+  h+='</div>';
+  h+='</div>';
+
+  // Workload by Assignee
+  h+='<div style="background:#fff;border:1px solid var(--border);border-radius:10px;padding:18px;margin-bottom:20px">';
+  h+='<div style="font-size:13px;font-weight:700;color:var(--text);margin-bottom:14px">👤 Workload by Assignee</div>';
+  h+=wlHtml;
+  h+='</div>';
+
+  // Milestones
+  h+='<div style="background:#fff;border:1px solid var(--border);border-radius:10px;padding:18px;margin-bottom:20px">';
+  h+='<div style="font-size:13px;font-weight:700;color:var(--text);margin-bottom:12px">🎯 Milestones</div>';
+  h+=msHtml;
+  h+='</div>';
+
+  h+='</div>';
+
+  // ── Issue panes ──────────────────────────────────────────────────────────
+  function sbPane(id,keys){return '<div id="ldt-pane-'+key+'-'+id+'" class="sr-tab-content" style="display:none">'+sbTable(keys)+'</div>';}
+  h+=sbPane('inprogress',_sbIP)+sbPane('review',_sbRev)+sbPane('done',_sbDone)+sbPane('todo',_sbTodo)+sbPane('blocked',_sbBlk)+sbPane('all',Object.keys(sb).filter(function(k){return _sbCancel.indexOf(k)<0;}));
+  h+='</div>';
+  wrap.innerHTML=h;
+
+  // ── Render velocity chart ────────────────────────────────────────────────
+  if(vel.length>=2){
+    setTimeout(function(){
+      var ctx=document.getElementById(velChartId);
+      if(!ctx)return;
+      if(ctx._chartInstance){ctx._chartInstance.destroy();}
+      var ch=new Chart(ctx,{
+        type:'bar',
+        data:{
+          labels:vel.map(function(v){return v.label;}),
+          datasets:[{
+            label:'Completion %',
+            data:vel.map(function(v){return v.pct;}),
+            backgroundColor:vel.map(function(v,i){return i===vel.length-1?'rgba(94,106,210,0.9)':'rgba(94,106,210,0.4)';}),
+            borderColor:vel.map(function(v,i){return i===vel.length-1?'#5e6ad2':'rgba(94,106,210,0.6)';}),
+            borderWidth:2,borderRadius:6
+          }]
+        },
+        options:{
+          responsive:true,maintainAspectRatio:true,
+          plugins:{legend:{display:false},tooltip:{callbacks:{label:function(c){return c.raw+'%';}}}},
+          scales:{y:{beginAtZero:true,max:100,ticks:{callback:function(v){return v+'%';},font:{size:11}},grid:{color:'#f1f5f9'}},x:{grid:{display:false},ticks:{font:{size:11}}}}
+        }
+      });
+      ctx._chartInstance=ch;
+    },50);
+  }
+}
+function closeLinearDetail(){var w=document.getElementById('linearDetailWrap');if(w)w.style.display='none';var o=document.getElementById('linearOverview');if(o)o.style.display='';}
+function switchLinearTab(key,tabId){
+  document.querySelectorAll('[id^="ldt-btn-'+key+'-"]').forEach(function(t){t.classList.remove('active');});
+  document.querySelectorAll('[id^="ldt-pane-'+key+'-"]').forEach(function(p){p.style.display='none';});
+  var b=document.getElementById('ldt-btn-'+key+'-'+tabId),p=document.getElementById('ldt-pane-'+key+'-'+tabId);
+  if(b)b.classList.add('active'); if(p)p.style.display='';
+}
+
+
+// ============================================================
+// LINEAR API KEY MANAGEMENT
+// ============================================================
+function getLinearKey(){ return localStorage.getItem('pjmdemo_linear_key')||null; }
+
+function openLinearTokenModal(){
+  var m=document.getElementById('linearTokenModal');
+  m.style.display='flex';
+  var k=getLinearKey();
+  if(k) document.getElementById('linearKeyInput').value=k;
+  document.getElementById('linearKeyStatus').textContent='';
+}
+function closeLinearTokenModal(){document.getElementById('linearTokenModal').style.display='none';}
+
+function saveLinearKey(){
+  var key=document.getElementById('linearKeyInput').value.trim();
+  if(!key){document.getElementById('linearKeyStatus').textContent='Please enter a key';return;}
+  document.getElementById('linearKeyStatus').textContent='Verifying...';
+  linearGQL('{ viewer { id name email } }', {}, key)
+    .then(function(d){
+      if(d.data&&d.data.viewer){
+        localStorage.setItem('pjmdemo_linear_key', key);
+        document.getElementById('linearKeyStatus').textContent='✅ Connected as '+d.data.viewer.name;
+        setTimeout(function(){ closeLinearTokenModal(); handleLinearRefresh(null); }, 1200);
+      } else {
+        document.getElementById('linearKeyStatus').textContent='❌ Invalid key';
+      }
+    })
+    .catch(function(){ document.getElementById('linearKeyStatus').textContent='❌ Connection failed'; });
+}
+
+// ============================================================
+// LINEAR GRAPHQL FETCH
+// ============================================================
+function linearGQL(query, variables, keyOverride){
+  var key = keyOverride || getLinearKey();
+  if(!key) return Promise.reject('No Linear API key');
+  return fetch('https://api.linear.app/graphql', {
+    method:'POST',
+    headers:{'Content-Type':'application/json','Authorization':key},
+    body:JSON.stringify({query:query, variables:variables||{}})
+  }).then(function(r){ return r.json(); });
+}
+
+// ============================================================
+// LIVE LINEAR SYNC
+// ============================================================
+function handleLinearRefresh(btn){
+  var key=getLinearKey();
+  if(!key){ openLinearTokenModal(); return; }
+  if(btn) setLinearRefreshState(btn,'spinning','Syncing...');
+
+  // Step 1: fetch ALL projects (no status filter -- Snapshot tier needs
+  // Blocked/Hold + Completed ones too) + all currently-active team cycles.
+  var projQ='query { projects(first:100) { nodes { id name url lead { name } status { name type } priority { value name } startDate targetDate updatedAt teams { nodes { id name } } projectMilestones { nodes { id name targetDate sortOrder } } } } }';
+  var cycleQ='query { cycles(filter:{isActive:{eq:true}}) { nodes { id name number startsAt endsAt team { id } } } }';
+
+  Promise.all([linearGQL(projQ), linearGQL(cycleQ)])
+    .then(function(responses){
+      if(!responses[0].data||!responses[1].data) throw new Error('Bad response');
+      var prjs=responses[0].data.projects.nodes;
+      var activeCycles=responses[1].data.cycles.nodes;
+      var teamCycleMap={};
+      activeCycles.forEach(function(c){ teamCycleMap[c.team.id]=c; });
+
+      // Projects Tab Sync Rule: only ACTIVE_TIER_NAMES (matched against the
+      // current Sprint Plan) get deep issue-level fetch. Everything else is
+      // a lightweight Snapshot -- no issue query, so we don't hammer Linear
+      // for projects other departments own.
+      var activePrjs=prjs.filter(function(p){return ACTIVE_TIER_NAMES.indexOf(p.name)>=0;});
+      var otherPrjs=prjs.filter(function(p){return ACTIVE_TIER_NAMES.indexOf(p.name)<0;});
+
+      var nowDate=new Date();
+      snapshotProjects=otherPrjs.map(function(p){
+        var flag=null;
+        if(p.status&&p.status.type==='canceled') flag='blocked';
+        else if(p.targetDate&&new Date(p.targetDate)<nowDate&&p.status&&p.status.type!=='completed') flag='overdue';
+        return {
+          name:p.name,status:p.status?p.status.name:'',statusType:p.status?p.status.type:'',
+          priority:p.priority?p.priority.name:'No priority',lead:(p.lead&&p.lead.name)?p.lead.name:'Unassigned',
+          start:fmtD(p.startDate),end:fmtD(p.targetDate),updated:fmtD(p.updatedAt),url:p.url||'https://linear.app',
+          flag:flag
+        };
+      });
+
+      var issueQ='query($filter:IssueFilter){issues(first:250,filter:$filter,includeArchived:true){nodes{identifier title statusType status{name type}assignee{name}completedAt}pageInfo{hasNextPage totalCount}}}';
+
+      return Promise.all(activePrjs.map(function(p){
+        var teamIds=p.teams.nodes.map(function(t){return t.id;});
+        var activeCycle=null;
+        for(var i=0;i<teamIds.length;i++){
+          if(teamCycleMap[teamIds[i]]){activeCycle=teamCycleMap[teamIds[i]];break;}
+        }
+        // Note: counts are whole-project totals, not cycle-scoped -- the
+        // cycle is used only for the displayed Cycle name/dates.
+        var filter={project:{id:{eq:p.id}}};
+        return linearGQL(issueQ,{filter:filter})
+          .then(function(ir){
+            var nodes=ir.data&&ir.data.issues?ir.data.issues.nodes:[];
+            var pg=ir.data&&ir.data.issues?ir.data.issues.pageInfo:{};
+            return {project:p,issues:nodes,cycle:activeCycle,totalCount:pg.totalCount||nodes.length};
+          });
+      }));
+    })
+    .then(function(results){
+      results.forEach(function(r){
+        var p=r.project, issues=r.issues, cycle=r.cycle;
+        var total=r.totalCount;
+        var done=issues.filter(function(i){return i.statusType==='completed';}).length;
+        var cancelled=issues.filter(function(i){return i.statusType==='cancelled'||i.statusType==='canceled';}).length;
+        var inProg=issues.filter(function(i){return i.statusType==='started';}).length;
+        var todo=issues.filter(function(i){return i.statusType==='unstarted'||i.statusType==='backlog'||i.statusType==='triage';}).length;
+        var sb={};issues.forEach(function(i){if(i.status){sb[i.status.name]=(sb[i.status.name]||0)+1;}});
+        var aw={};issues.forEach(function(i){if(i.assignee){aw[i.assignee.name]=(aw[i.assignee.name]||0)+1;}});
+        var blocked=sb['Hold or Blocked']||sb['Blocked']||0;
+        var pct=total?Math.round(done/total*100):0;
+
+        var dataKey=Object.keys(linearProjectData).find(function(k){
+          return linearProjectData[k].fullName===p.name;
+        })||p.name.toUpperCase().replace(/[^A-Z0-9]/g,'').substring(0,8);
+
+        var prev=linearProjectData[dataKey];
+        var ms=(p.projectMilestones&&p.projectMilestones.nodes||[]).map(function(m){return {name:m.name,date:m.targetDate,sort:m.sortOrder,pct:0};});
+        ms.sort(function(a,b){return a.sort-b.sort;});
+
+        var cycleName=cycle?'Cycle '+cycle.number:null;
+        var cycleStart=cycle?fmtD(cycle.startsAt):'';
+        var cycleEnd=cycle?fmtD(cycle.endsAt):'';
+
+        linearProjectData[dataKey]={
+          name:(prev&&prev.name)||p.name,fullName:p.name,
+          total:total,done:done,inProgress:inProg,toDo:todo,blocked:blocked,cancelled:cancelled,pct:pct,
+          issues:[],lead:p.lead?p.lead.name:'Unassigned',
+          linearUrl:p.url||'https://linear.app',
+          statusBreakdown:sb,assigneeWorkload:aw,
+          milestones:ms.length?ms:(prev?prev.milestones:[]),
+          hasCycle:!!cycle,
+          cycleName:cycleName||'No Active Cycle',
+          cycleStart:cycleStart,cycleEnd:cycleEnd,
+          velocity:[],
+          sprint:p.name,
+          start:cycleStart,end:cycleEnd,
+          priority:(prev&&prev.priority)||99
+        };
+      });
+
+      var now=new Date();
+      var ts=now.toLocaleDateString('en-GB',{day:'numeric',month:'short',year:'numeric'})+' '+now.toLocaleTimeString('en-GB',{hour:'2-digit',minute:'2-digit'});
+      var lr=document.getElementById('lastRefresh');
+      if(lr) lr.textContent='Linear synced '+ts+' · Active: '+Object.keys(linearProjectData).length+' · Snapshot: '+snapshotProjects.length;
+      if(btn) setLinearRefreshState(btn,'success','Synced!');
+      setTimeout(function(){if(btn) setLinearRefreshState(btn,'idle');},2000);
+      renderLinearSection();
+    })
+    .catch(function(e){
+      console.error('Linear sync error:',e);
+      if(btn) setLinearRefreshState(btn,'error','Error');
+      setTimeout(function(){if(btn) setLinearRefreshState(btn,'idle');},2000);
+    });
+}
+
+function setLinearRefreshState(btn,state,msg){
+  if(!btn) return;
+  btn.classList.remove('spinning','success','error');
+  if(state==='spinning'){btn.classList.add('spinning');btn.querySelector('span:last-child').textContent=msg||'Syncing...';}
+  else if(state==='success'){btn.classList.add('success');btn.querySelector('span:last-child').textContent=msg||'Synced!';}
+  else if(state==='error'){btn.classList.add('error');btn.querySelector('span:last-child').textContent=msg||'Error';}
+  else{btn.querySelector('span:last-child').textContent='Refresh';}
+}
+
+// ── Init: render Linear section on load ──
+      // Pre-configure Linear API key
+      /* credential removed for public demo */
+renderLinearSection();
+
+</script>
+
+</div><!-- /.pjm-main -->
+
+<script src="shared/pjm-sync.js"></script>
+<script src="shared/pjm-nav.js"></script>
+<script>
+const MODULE_ID='projects';
+document.addEventListener('DOMContentLoaded',function(){
+  try{if(typeof PJMNav!=='undefined')PJMNav.render(MODULE_ID);}catch(e){console.warn('PJMNav unavailable:',e);}
+  try{if(typeof PJMSync!=='undefined')PJMSync.initModule(MODULE_ID,function(){});}catch(e){console.warn('PJMSync unavailable:',e);}
+});
+</script>
+<!-- LINEAR API KEY MODAL -->
+<div id="linearTokenModal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:9999;align-items:center;justify-content:center">
+  <div style="background:#fff;border-radius:16px;padding:32px;max-width:480px;width:100%;box-shadow:0 8px 40px rgba(0,0,0,.2)">
+    <div style="font-size:18px;font-weight:700;margin-bottom:8px">&#x1F511; Linear API Key</div>
+    <div style="font-size:13px;color:#6b7280;margin-bottom:20px;line-height:1.6">Enter your Linear personal API key to enable live project sync. Stored only in your browser&#x27;s localStorage.</div>
+    <input type="password" id="linearKeyInput" placeholder="disabled in demo" style="

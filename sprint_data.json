@@ -1,0 +1,1100 @@
+{
+ "sprint": 16,
+ "startDate": "20 Jul 2026",
+ "endDate": "31 Jul 2026",
+ "workingDaysUK": 10,
+ "workingDaysIndia": 10,
+ "publicHolidays": "None",
+ "totalItems": 65,
+ "squads": 7,
+ "sections": [
+  {
+   "id": "drift",
+   "name": "Atlas Core",
+   "emoji": "\ud83e\udd16",
+   "priority": 1,
+   "priorityLabel": "P1 \u00b7 HIGHEST",
+   "subSprint": null,
+   "items": [
+    {
+     "name": "2.1 Auth & Login",
+     "status": "DEV COMPLETED",
+     "team": [
+      "Platform",
+      "Design",
+      "Design",
+      "Platform",
+      "Drift"
+     ],
+     "release": "Jul 2026",
+     "delta": "CARRY_OVER"
+    },
+    {
+     "name": "2.2.1 Onboarding \u2014 AI Configuration",
+     "status": "IN PROGRESS",
+     "team": [
+      "Cobalt",
+      "Platform"
+     ],
+     "release": "Jul 2026",
+     "delta": "CARRY_OVER"
+    },
+    {
+     "name": "2.2.2 Onboarding (Publisher & Buyer Onboarding)",
+     "status": "IN PROGRESS",
+     "team": [
+      "Design"
+     ],
+     "release": "Jul 2026",
+     "delta": "CARRY_OVER"
+    },
+    {
+     "name": "2.2.3 DRIFT RBAC (Onboarding)",
+     "status": "IN PROGRESS",
+     "team": [
+      "Cobalt"
+     ],
+     "release": "Jul 2026",
+     "delta": "CARRY_OVER"
+    },
+    {
+     "name": "2.3 Planning & Discovery (RFP Creation, Deal, Campaign Creation)",
+     "status": "IN PROGRESS",
+     "team": [
+      "Beacon",
+      "Design"
+     ],
+     "release": "Aug 2026",
+     "delta": "CARRY_OVER"
+    },
+    {
+     "name": "2.4 Negotiation & HITL",
+     "status": "IN PROGRESS",
+     "team": [
+      "Ember",
+      "Cobalt",
+      "Beacon"
+     ],
+     "release": "Aug 2026",
+     "delta": "CARRY_OVER"
+    },
+    {
+     "name": "2.5.1 Notarization, Folio, Walrus, Dealsheet",
+     "status": "DEV COMPLETED",
+     "team": [
+      "Platform",
+      "Atlas"
+     ],
+     "release": "Aug 2026",
+     "delta": "CARRY_OVER"
+    },
+    {
+     "name": "2.5.2 Seller Side Deal Approval Flow",
+     "status": "IN PROGRESS",
+     "team": [
+      "QA",
+      "Design"
+     ],
+     "release": "Aug 2026",
+     "delta": "CARRY_OVER"
+    },
+    {
+     "name": "2.6.1 Campaign Delivery (Buyer Side)",
+     "status": "IN PROGRESS",
+     "team": [
+      "Cobalt"
+     ],
+     "release": "Aug 2026",
+     "delta": "CARRY_OVER"
+    },
+    {
+     "name": "2.6.2 Campaign Delivery (Seller Side)",
+     "status": "TO DO",
+     "team": [
+      "Atlas"
+     ],
+     "release": "Aug 2026",
+     "delta": "NEW"
+    },
+    {
+     "name": "2.7 Campaign Tracking & Monitoring (Live Dashboard) \u2014 Health Tab",
+     "status": "IN PROGRESS",
+     "team": [
+      "Platform"
+     ],
+     "release": "Aug 2026",
+     "delta": "CARRY_OVER"
+    },
+    {
+     "name": "2.8 Reports (Inside the Docs Tab)",
+     "status": "IN PROGRESS",
+     "team": [
+      "Beacon",
+      "Atlas",
+      "Atlas"
+     ],
+     "release": "Aug 2026",
+     "delta": "CARRY_OVER"
+    },
+    {
+     "name": "2.9.1 Reconciliation (Discrepancy) \u2014 Buyer & Seller",
+     "status": "IN PROGRESS",
+     "team": [
+      "Drift",
+      "Drift"
+     ],
+     "release": "Aug 2026",
+     "delta": "CARRY_OVER"
+    },
+    {
+     "name": "2.9.2 A2A Reconciliation",
+     "status": "IN PROGRESS",
+     "team": [
+      "Atlas"
+     ],
+     "release": "Aug 2026",
+     "delta": "CARRY_OVER"
+    },
+    {
+     "name": "2.10.1 Campaign Reporting & PCA (Inside Docs Tab)",
+     "status": "IN PROGRESS",
+     "team": [
+      "Design",
+      "Forge"
+     ],
+     "release": "Aug 2026",
+     "delta": "CARRY_OVER"
+    },
+    {
+     "name": "2.10.2 PCA (Seller Side)",
+     "status": "TO DO",
+     "team": [
+      "Design"
+     ],
+     "release": "Aug 2026",
+     "delta": "NEW"
+    },
+    {
+     "name": "Health checks",
+     "status": "IN PROGRESS",
+     "team": [
+      "Drift"
+     ],
+     "release": "Aug 2026",
+     "delta": "CARRY_OVER"
+    },
+    {
+     "name": "Data retention job",
+     "status": "IN PROGRESS",
+     "team": [
+      "Drift"
+     ],
+     "release": "Aug 2026",
+     "delta": "CARRY_OVER"
+    },
+    {
+     "name": "Template library",
+     "status": "IN PROGRESS",
+     "team": [
+      "Ember",
+      "Design"
+     ],
+     "release": "Aug 2026",
+     "delta": "CARRY_OVER"
+    },
+    {
+     "name": "Onboarding flow",
+     "status": "TO DO",
+     "team": [
+      "Beacon"
+     ],
+     "release": "Aug 2026",
+     "delta": "CARRY_OVER"
+    },
+    {
+     "name": "Saved views",
+     "status": "TO DO",
+     "team": [
+      "Ember",
+      "QA"
+     ],
+     "release": "Aug 2026",
+     "delta": "NEW"
+    },
+    {
+     "name": "Partner API v2",
+     "status": "IN PROGRESS",
+     "team": [
+      "Beacon"
+     ],
+     "release": "Aug 2026",
+     "delta": "CARRY_OVER"
+    },
+    {
+     "name": "Attachment storage",
+     "status": "TO DO",
+     "team": [
+      "Ember"
+     ],
+     "release": "Aug 2026",
+     "delta": "NEW"
+    },
+    {
+     "name": "Session handling",
+     "status": "IN PROGRESS",
+     "team": [
+      "Drift",
+      "Platform",
+      "Ember",
+      "Atlas",
+      "Beacon",
+      "Beacon",
+      "QA"
+     ],
+     "release": "Aug 2026",
+     "delta": "CARRY_OVER"
+    },
+    {
+     "name": "Audit log",
+     "status": "IN PROGRESS",
+     "team": [
+      "Ember",
+      "QA",
+      "Beacon",
+      "Atlas",
+      "Atlas",
+      "Drift",
+      "Drift"
+     ],
+     "release": "Aug 2026",
+     "delta": "CARRY_OVER"
+    }
+   ],
+   "matrixStats": {
+    "inProgress": 18,
+    "todo": 5,
+    "testing": 0,
+    "done": 2,
+    "release": 0,
+    "review": 0,
+    "prd": 0
+   },
+   "releaseNote": "Carried from the previous cycle; scope confirmed at planning."
+  },
+  {
+   "id": "support-tool",
+   "name": "Support Tool",
+   "emoji": "\ud83d\udee0\ufe0f",
+   "priority": 2,
+   "priorityLabel": "P2 \u00b7 HIGH",
+   "subSprint": null,
+   "items": [
+    {
+     "name": "Report scheduler",
+     "status": "IN PROGRESS",
+     "team": [
+      "QA"
+     ],
+     "release": "Jul 2026",
+     "delta": "CARRY_OVER"
+    }
+   ],
+   "matrixStats": {
+    "inProgress": 1,
+    "todo": 0,
+    "testing": 0,
+    "done": 0,
+    "release": 0,
+    "review": 0,
+    "prd": 0
+   },
+   "releaseNote": "Needs design sign-off before build starts."
+  },
+  {
+   "id": "amp-flows",
+   "name": "Beacon",
+   "emoji": "\ud83d\udcf1",
+   "priority": 3,
+   "priorityLabel": "P3 \u00b7 MEDIUM",
+   "subSprint": null,
+   "items": [
+    {
+     "name": "Health checks",
+     "status": "SYSTEM TESTING",
+     "team": [],
+     "release": "Jul 2026",
+     "delta": "CARRY_OVER"
+    },
+    {
+     "name": "Template library",
+     "status": "SYSTEM TESTING",
+     "team": [
+      "Drift"
+     ],
+     "release": "Jul 2026",
+     "delta": "CARRY_OVER"
+    },
+    {
+     "name": "Diff viewer",
+     "status": "DEV COMPLETED",
+     "team": [
+      "Ember",
+      "Forge"
+     ],
+     "release": "Jul 2026",
+     "delta": "CARRY_OVER"
+    },
+    {
+     "name": "Search filters",
+     "status": "TO DO",
+     "team": [
+      "Ember",
+      "Forge"
+     ],
+     "release": "Jul 2026",
+     "delta": "CARRY_OVER"
+    }
+   ],
+   "matrixStats": {
+    "inProgress": 0,
+    "todo": 1,
+    "testing": 2,
+    "done": 1,
+    "release": 0,
+    "review": 0,
+    "prd": 0
+   },
+   "releaseNote": "Carried from the previous cycle; scope confirmed at planning."
+  },
+  {
+   "id": "meridian-exchange",
+   "name": "Meridian Exchange",
+   "emoji": "\ud83d\udcca",
+   "priority": 3,
+   "priorityLabel": "P3 \u00b7 MEDIUM",
+   "subSprint": null,
+   "items": [
+    {
+     "name": "Diff viewer",
+     "status": "RELEASED",
+     "team": [
+      "Beacon"
+     ],
+     "release": "Jul 2026",
+     "delta": "COMPLETED"
+    },
+    {
+     "name": "Bulk import",
+     "status": "HOLD",
+     "team": [
+      "Drift"
+     ],
+     "release": "Jul 2026",
+     "delta": "CARRY_OVER"
+    },
+    {
+     "name": "Attachment storage",
+     "status": "RELEASED",
+     "team": [
+      "Beacon"
+     ],
+     "release": "Jul 2026",
+     "delta": "COMPLETED"
+    },
+    {
+     "name": "Onboarding flow",
+     "status": "RELEASED",
+     "team": [
+      "Atlas"
+     ],
+     "release": "Jul 2026",
+     "delta": "COMPLETED"
+    },
+    {
+     "name": "Saved views",
+     "status": "RELEASED",
+     "team": [
+      "Design"
+     ],
+     "release": "Jul 2026",
+     "delta": "COMPLETED"
+    },
+    {
+     "name": "Notification centre",
+     "status": "RELEASED",
+     "team": [
+      "Platform"
+     ],
+     "release": "Jul 2026",
+     "delta": "COMPLETED"
+    },
+    {
+     "name": "Role permissions",
+     "status": "RELEASED",
+     "team": [
+      "Design",
+      "Platform"
+     ],
+     "release": "Jul 2026",
+     "delta": "COMPLETED"
+    },
+    {
+     "name": "Role permissions",
+     "status": "RELEASED",
+     "team": [
+      "Cobalt",
+      "QA"
+     ],
+     "release": "Jul 2026",
+     "delta": "COMPLETED"
+    },
+    {
+     "name": "Template library",
+     "status": "HOLD",
+     "team": [],
+     "release": "\u2014",
+     "delta": "CARRY_OVER"
+    },
+    {
+     "name": "Report scheduler",
+     "status": "HOLD",
+     "team": [],
+     "release": "\u2014",
+     "delta": "CARRY_OVER"
+    },
+    {
+     "name": "Audit log",
+     "status": "HOLD",
+     "team": [],
+     "release": "\u2014",
+     "delta": "CARRY_OVER"
+    },
+    {
+     "name": "Report scheduler",
+     "status": "HOLD",
+     "team": [],
+     "release": "\u2014",
+     "delta": "CARRY_OVER"
+    },
+    {
+     "name": "Inline editing",
+     "status": "HOLD",
+     "team": [],
+     "release": "\u2014",
+     "delta": "NEW"
+    },
+    {
+     "name": "Role permissions",
+     "status": "HOLD",
+     "team": [],
+     "release": "\u2014",
+     "delta": "NEW"
+    },
+    {
+     "name": "Onboarding flow",
+     "status": "HOLD",
+     "team": [],
+     "release": "\u2014",
+     "delta": "NEW"
+    }
+   ],
+   "matrixStats": {
+    "inProgress": 0,
+    "todo": 0,
+    "testing": 0,
+    "done": 7,
+    "release": 0,
+    "review": 0,
+    "prd": 0
+   },
+   "releaseNote": "Straightforward once the schema change is merged."
+  },
+  {
+   "id": "beacon-platform",
+   "name": "Cobalt",
+   "emoji": "\ud83c\udfaf",
+   "priority": 3,
+   "priorityLabel": "P3 \u00b7 MEDIUM",
+   "subSprint": null,
+   "items": [
+    {
+     "name": "Webhook delivery",
+     "status": "READY TO RELEASE",
+     "team": [
+      "Atlas"
+     ],
+     "release": "Jun 2026",
+     "delta": "CARRY_OVER"
+    },
+    {
+     "name": "Role permissions",
+     "status": "READY TO RELEASE",
+     "team": [
+      "Cobalt"
+     ],
+     "release": "Jul 2026",
+     "delta": "CARRY_OVER"
+    },
+    {
+     "name": "Report scheduler",
+     "status": "READY TO RELEASE",
+     "team": [
+      "Beacon"
+     ],
+     "release": "Jul 2026",
+     "delta": "CARRY_OVER"
+    },
+    {
+     "name": "Billing summary",
+     "status": "SYSTEM TESTING",
+     "team": [
+      "Cobalt"
+     ],
+     "release": "Jul 2026",
+     "delta": "CARRY_OVER"
+    },
+    {
+     "name": "Role permissions",
+     "status": "SYSTEM TESTING",
+     "team": [
+      "Design"
+     ],
+     "release": "Jul 2026",
+     "delta": "CARRY_OVER"
+    },
+    {
+     "name": "Export pipeline",
+     "status": "SYSTEM TESTING",
+     "team": [
+      "Atlas"
+     ],
+     "release": "Jul 2026",
+     "delta": "CARRY_OVER"
+    },
+    {
+     "name": "Diff viewer",
+     "status": "SYSTEM TESTING",
+     "team": [
+      "Forge"
+     ],
+     "release": "Jun 2026",
+     "delta": "NEW"
+    },
+    {
+     "name": "Webhook delivery",
+     "status": "SYSTEM TESTING",
+     "team": [
+      "QA"
+     ],
+     "release": "Jun 2026",
+     "delta": "NEW"
+    },
+    {
+     "name": "Search filters",
+     "status": "IN PROGRESS",
+     "team": [
+      "Beacon"
+     ],
+     "release": "Jul 2026",
+     "delta": "NEW"
+    },
+    {
+     "name": "Search filters",
+     "status": "IN PROGRESS",
+     "team": [
+      "Drift"
+     ],
+     "release": "Jul 2026",
+     "delta": "NEW"
+    }
+   ],
+   "matrixStats": {
+    "inProgress": 2,
+    "todo": 0,
+    "testing": 5,
+    "done": 0,
+    "release": 3,
+    "review": 0,
+    "prd": 0
+   },
+   "releaseNote": "Split out of a larger epic to keep the cycle realistic."
+  },
+  {
+   "id": "beacon-finops",
+   "name": "Drift",
+   "emoji": "\ud83d\udcbc",
+   "priority": 3,
+   "priorityLabel": "P3 \u00b7 MEDIUM",
+   "subSprint": null,
+   "items": [
+    {
+     "name": "Usage dashboard",
+     "status": "READY TO RELEASE",
+     "team": [
+      "Atlas"
+     ],
+     "release": "\u2014",
+     "delta": "CARRY_OVER"
+    },
+    {
+     "name": "Feature flags",
+     "status": "READY TO RELEASE",
+     "team": [
+      "Forge"
+     ],
+     "release": "\u2014",
+     "delta": "CARRY_OVER"
+    },
+    {
+     "name": "Rate limiter",
+     "status": "HOLD",
+     "team": [],
+     "release": "\u2014",
+     "delta": "CARRY_OVER"
+    },
+    {
+     "name": "Feature flags",
+     "status": "HOLD",
+     "team": [],
+     "release": "\u2014",
+     "delta": "CARRY_OVER"
+    },
+    {
+     "name": "Saved views",
+     "status": "HOLD",
+     "team": [],
+     "release": "\u2014",
+     "delta": "CARRY_OVER"
+    },
+    {
+     "name": "LP",
+     "status": "HOLD",
+     "team": [],
+     "release": "\u2014",
+     "delta": "CARRY_OVER"
+    }
+   ],
+   "matrixStats": {
+    "inProgress": 0,
+    "todo": 0,
+    "testing": 0,
+    "done": 0,
+    "release": 2,
+    "review": 0,
+    "prd": 0
+   },
+   "releaseNote": "Depends on the partner integration landing first."
+  },
+  {
+   "id": "meridian-labs",
+   "name": "Forge Labs",
+   "emoji": "\ud83e\uddea",
+   "priority": 4,
+   "priorityLabel": "P4 \u00b7 ON DEMAND",
+   "subSprint": null,
+   "items": [
+    {
+     "name": "Activity feed",
+     "status": "IN PROGRESS",
+     "team": [
+      "Cobalt",
+      "QA"
+     ],
+     "release": "Jul 2026",
+     "delta": "CARRY_OVER"
+    },
+    {
+     "name": "Notification centre",
+     "status": "SYSTEM TESTING",
+     "team": [
+      "Cobalt",
+      "Ember"
+     ],
+     "release": "Jul 2026",
+     "delta": "CARRY_OVER"
+    },
+    {
+     "name": "Usage dashboard",
+     "status": "IN PROGRESS",
+     "team": [
+      "Drift",
+      "Drift",
+      "Cobalt"
+     ],
+     "release": "Ongoing",
+     "delta": "CARRY_OVER"
+    },
+    {
+     "name": "Sandbox reset",
+     "status": "READY TO RELEASE",
+     "team": [
+      "Platform"
+     ],
+     "release": "Jul 2026",
+     "delta": "CARRY_OVER"
+    }
+   ],
+   "matrixStats": {
+    "inProgress": 2,
+    "todo": 0,
+    "testing": 1,
+    "done": 0,
+    "release": 1,
+    "review": 0,
+    "prd": 0
+   },
+   "releaseNote": "Depends on the partner integration landing first."
+  }
+ ],
+ "teamLoad": [
+  {
+   "team": "Atlas",
+   "emoji": "\ud83e\uddea",
+   "count": 24,
+   "loadLevel": "HIGH",
+   "loadClass": "load-high",
+   "barClass": "bar-high",
+   "barWidth": 100,
+   "workstreams": [
+    {
+     "name": "Activity feed",
+     "count": 10
+    },
+    {
+     "name": "Feature flags",
+     "count": 6
+    },
+    {
+     "name": "Search filters",
+     "count": 3
+    },
+    {
+     "name": "Inline editing",
+     "count": 2
+    },
+    {
+     "name": "Billing summary",
+     "count": 2
+    },
+    {
+     "name": "Audit log",
+     "count": 1
+    }
+   ]
+  },
+  {
+   "team": "Beacon",
+   "emoji": "\ud83e\udde0",
+   "count": 17,
+   "loadLevel": "HIGH",
+   "loadClass": "load-high",
+   "barClass": "bar-high",
+   "barWidth": 71,
+   "workstreams": [
+    {
+     "name": "Billing summary",
+     "count": 15
+    },
+    {
+     "name": "Data retention job",
+     "count": 2
+    }
+   ]
+  },
+  {
+   "team": "Cobalt",
+   "emoji": "\ud83d\udd17",
+   "count": 12,
+   "loadLevel": "HIGH",
+   "loadClass": "load-high",
+   "barClass": "bar-high",
+   "barWidth": 50,
+   "workstreams": [
+    {
+     "name": "Usage dashboard",
+     "count": 7
+    },
+    {
+     "name": "Sandbox reset",
+     "count": 4
+    },
+    {
+     "name": "Attachment storage",
+     "count": 1
+    }
+   ]
+  },
+  {
+   "team": "Drift",
+   "emoji": "\u2615",
+   "count": 11,
+   "loadLevel": "MEDIUM",
+   "loadClass": "load-medium",
+   "barClass": "bar-medium",
+   "barWidth": 46,
+   "workstreams": [
+    {
+     "name": "Export pipeline",
+     "count": 6
+    },
+    {
+     "name": "Inline editing",
+     "count": 2
+    },
+    {
+     "name": "Feature flags",
+     "count": 2
+    },
+    {
+     "name": "Activity feed",
+     "count": 1
+    }
+   ]
+  },
+  {
+   "team": "Ember",
+   "emoji": "\u2699\ufe0f",
+   "count": 8,
+   "loadLevel": "MEDIUM",
+   "loadClass": "load-medium",
+   "barClass": "bar-medium",
+   "barWidth": 33,
+   "workstreams": [
+    {
+     "name": "Data retention job",
+     "count": 8
+    }
+   ]
+  },
+  {
+   "team": "Forge",
+   "emoji": "\ud83d\udce1",
+   "count": 6,
+   "loadLevel": "MEDIUM",
+   "loadClass": "load-medium",
+   "barClass": "bar-medium",
+   "barWidth": 25,
+   "workstreams": [
+    {
+     "name": "Sandbox reset",
+     "count": 6
+    }
+   ]
+  },
+  {
+   "team": "QA",
+   "emoji": "\ud83d\udce6",
+   "count": 3,
+   "loadLevel": "NORMAL",
+   "loadClass": "load-normal",
+   "barClass": "bar-normal",
+   "barWidth": 12,
+   "workstreams": [
+    {
+     "name": "Bulk import",
+     "count": 3
+    }
+   ]
+  },
+  {
+   "team": "Design",
+   "emoji": "\ud83d\udcbc",
+   "count": 3,
+   "loadLevel": "NORMAL",
+   "loadClass": "load-normal",
+   "barClass": "bar-normal",
+   "barWidth": 12,
+   "workstreams": [
+    {
+     "name": "Activity feed",
+     "count": 3
+    }
+   ]
+  },
+  {
+   "team": "Platform",
+   "emoji": "\ud83c\udfa8",
+   "count": 3,
+   "loadLevel": "NORMAL",
+   "loadClass": "load-normal",
+   "barClass": "bar-normal",
+   "barWidth": 12,
+   "workstreams": [
+    {
+     "name": "Template library",
+     "count": 3
+    }
+   ]
+  }
+ ],
+ "focusAreas": [
+  {
+   "type": "purple",
+   "icon": "\ud83d\ude80",
+   "title": "Feature flags",
+   "desc": "Split out of a larger epic to keep the cycle realistic.",
+   "tag": "DRIFT FOCUS"
+  },
+  {
+   "type": "success",
+   "icon": "\u2705",
+   "title": "Search filters",
+   "desc": "Straightforward once the schema change is merged.",
+   "tag": "SHIPPED"
+  },
+  {
+   "type": "urgent",
+   "icon": "\ud83d\udd34",
+   "title": "Role permissions",
+   "desc": "Depends on the partner integration landing first.",
+   "tag": "QA BOTTLENECK RISK"
+  },
+  {
+   "type": "info",
+   "icon": "\u2699\ufe0f",
+   "title": "Sandbox reset",
+   "desc": "Carried from the previous cycle; scope confirmed at planning.",
+   "tag": "NEW BE TRACK"
+  },
+  {
+   "type": "warning",
+   "icon": "\ud83d\udcc9",
+   "title": "Search filters",
+   "desc": "Straightforward once the schema change is merged.",
+   "tag": "SCOPE NARROWED"
+  },
+  {
+   "type": "purple",
+   "icon": "\ud83c\udd95",
+   "title": "Inline editing",
+   "desc": "Needs design sign-off before build starts.",
+   "tag": "NEW WORK STARTED"
+  },
+  {
+   "type": "info",
+   "icon": "\ud83e\udde0",
+   "title": "Usage dashboard",
+   "desc": "Carried from the previous cycle; scope confirmed at planning.",
+   "tag": "AI DEPENDENCY"
+  },
+  {
+   "type": "warning",
+   "icon": "\u23f3",
+   "title": "Billing summary",
+   "desc": "Depends on the partner integration landing first.",
+   "tag": "AWAITING BUSINESS"
+  }
+ ],
+ "delta": {
+  "prevSprint": 15,
+  "completedFromPrevSprint": [
+   {
+    "section": "Atlas Pro (DRIFT)",
+    "name": "Webhook delivery",
+    "prevStatus": "COMPLETED",
+    "prevStatusClass": "badge-done"
+   },
+   {
+    "section": "Meridian Exchange",
+    "name": "Rate limiter",
+    "prevStatus": "RELEASED",
+    "prevStatusClass": "badge-release"
+   },
+   {
+    "section": "Meridian Exchange",
+    "name": "Data retention job",
+    "prevStatus": "RELEASED",
+    "prevStatusClass": "badge-release"
+   },
+   {
+    "section": "Meridian Exchange",
+    "name": "Health checks",
+    "prevStatus": "RELEASED",
+    "prevStatusClass": "badge-release"
+   },
+   {
+    "section": "Meridian Exchange",
+    "name": "Bulk import",
+    "prevStatus": "RELEASED",
+    "prevStatusClass": "badge-release"
+   },
+   {
+    "section": "Meridian Exchange",
+    "name": "Search filters",
+    "prevStatus": "RELEASED",
+    "prevStatusClass": "badge-release"
+   },
+   {
+    "section": "Meridian Exchange",
+    "name": "Rate limiter",
+    "prevStatus": "RELEASED",
+    "prevStatusClass": "badge-release"
+   },
+   {
+    "section": "Meridian Exchange",
+    "name": "Bulk import",
+    "prevStatus": "RELEASED",
+    "prevStatusClass": "badge-release"
+   }
+  ],
+  "carryOver": [],
+  "newThisSprint": [
+   {
+    "section": "Atlas Pro (DRIFT)",
+    "sectionId": "drift",
+    "name": "2.6.2 Campaign Delivery (Seller Side)"
+   },
+   {
+    "section": "Atlas Pro (DRIFT)",
+    "sectionId": "drift",
+    "name": "2.10.2 PCA (Seller Side)"
+   },
+   {
+    "section": "Atlas Pro (DRIFT)",
+    "sectionId": "drift",
+    "name": "Saved views"
+   },
+   {
+    "section": "Atlas Pro (DRIFT)",
+    "sectionId": "drift",
+    "name": "Session handling"
+   },
+   {
+    "section": "Meridian Exchange",
+    "sectionId": "meridian-exchange",
+    "name": "Approval workflow"
+   },
+   {
+    "section": "Meridian Exchange",
+    "sectionId": "meridian-exchange",
+    "name": "Sandbox reset"
+   },
+   {
+    "section": "Meridian Exchange",
+    "sectionId": "meridian-exchange",
+    "name": "Attachment storage"
+   },
+   {
+    "section": "BEACON",
+    "sectionId": "beacon-platform",
+    "name": "Data retention job"
+   },
+   {
+    "section": "BEACON",
+    "sectionId": "beacon-platform",
+    "name": "Health checks"
+   },
+   {
+    "section": "BEACON",
+    "sectionId": "beacon-platform",
+    "name": "Bulk import"
+   },
+   {
+    "section": "BEACON",
+    "sectionId": "beacon-platform",
+    "name": "Health checks"
+   }
+  ],
+  "uncertainItems": []
+ }
+}

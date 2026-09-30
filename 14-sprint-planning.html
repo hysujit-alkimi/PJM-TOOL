@@ -1,0 +1,676 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Sprint Planning — Meridian PJM</title>
+<script src="https://accounts.google.com/gsi/client" async defer></script>
+<link rel="stylesheet" href="shared/pjm.css">
+<style>
+/* ── Layout ── */
+.sp-container { max-width: 960px; }
+.sp-grid      { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-bottom: 16px; }
+.sp-grid-3    { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 16px; margin-bottom: 16px; }
+@media (max-width: 720px) { .sp-grid, .sp-grid-3 { grid-template-columns: 1fr; } }
+
+/* ── Cards ── */
+.sp-card {
+  background: #fff;
+  border: 1px solid var(--border, #e5e7eb);
+  border-radius: 12px;
+  padding: 20px 24px;
+  margin-bottom: 16px;
+}
+.sp-card-title {
+  font-size: 14px; font-weight: 800; color: #1f2937;
+  margin-bottom: 16px; display: flex; align-items: center; gap: 8px;
+}
+.sp-card-title .badge {
+  font-size: 10px; font-weight: 700; padding: 2px 9px;
+  border-radius: 99px; margin-left: auto;
+}
+.badge-live   { background: #d1fae5; color: #065f46; }
+.badge-next   { background: #dbeafe; color: #1e40af; }
+.badge-manual { background: #f3f4f6; color: #6b7280; }
+
+/* ── Sprint stat pills ── */
+.sprint-stat-row { display: flex; gap: 12px; flex-wrap: wrap; margin-bottom: 20px; }
+.sprint-stat {
+  background: #f9fafb; border: 1px solid #e5e7eb;
+  border-radius: 10px; padding: 10px 16px; min-width: 110px;
+}
+.sprint-stat .sl  { font-size: 10px; color: #6b7280; text-transform: uppercase; letter-spacing: .6px; }
+.sprint-stat .sv  { font-size: 18px; font-weight: 800; color: #111827; margin-top: 2px; }
+
+/* ── Generate button ── */
+.generate-btn {
+  display: flex; align-items: center; justify-content: center; gap: 10px;
+  width: 100%; padding: 14px 24px;
+  background: linear-gradient(135deg, #1e3a8a, #3730a3);
+  color: #fff; border: none; border-radius: 10px;
+  font-size: 15px; font-weight: 700; cursor: pointer;
+  transition: opacity .15s, transform .1s;
+  margin-bottom: 10px;
+}
+.generate-btn:hover { opacity: .92; transform: translateY(-1px); }
+.generate-btn:active { transform: translateY(0); }
+.generate-btn .btn-icon { font-size: 18px; }
+
+/* ── Prompt launcher modal ── */
+.prompt-modal-overlay {
+  display: none; position: fixed; inset: 0;
+  background: rgba(0,0,0,.45); z-index: 999;
+  align-items: center; justify-content: center;
+}
+.prompt-modal-overlay.open { display: flex; }
+.prompt-modal {
+  background: #fff; border-radius: 14px;
+  padding: 28px 30px; max-width: 580px; width: 90%;
+  box-shadow: 0 20px 60px rgba(0,0,0,.2);
+}
+.prompt-modal h3 { font-size: 16px; font-weight: 800; margin-bottom: 6px; }
+.prompt-modal p  { font-size: 13px; color: #6b7280; margin-bottom: 16px; }
+.prompt-box {
+  background: #f9fafb; border: 1px solid #e5e7eb; border-radius: 8px;
+  padding: 14px 16px; font-size: 13px; font-family: monospace;
+  color: #1f2937; line-height: 1.6; white-space: pre-wrap;
+  margin-bottom: 16px; max-height: 160px; overflow-y: auto;
+}
+.prompt-modal-actions { display: flex; gap: 10px; }
+.copy-btn {
+  flex: 1; padding: 10px; border-radius: 8px; border: none;
+  background: linear-gradient(135deg, #1e3a8a, #3730a3);
+  color: #fff; font-size: 13px; font-weight: 700; cursor: pointer;
+  transition: opacity .15s;
+}
+.copy-btn:hover { opacity: .88; }
+.close-btn {
+  padding: 10px 18px; border-radius: 8px;
+  border: 1px solid #e5e7eb; background: #fff;
+  font-size: 13px; font-weight: 600; cursor: pointer; color: #374151;
+}
+.copied-toast {
+  font-size: 12px; color: #059669; font-weight: 600;
+  margin-top: 8px; display: none; text-align: center;
+}
+
+/* ── Checklist ── */
+.checklist { list-style: none; padding: 0; margin: 0; }
+.checklist li {
+  display: flex; align-items: flex-start; gap: 10px;
+  padding: 9px 0; border-bottom: 1px solid #f3f4f6;
+  font-size: 13px; color: #1f2937;
+}
+.checklist li:last-child { border-bottom: none; }
+.checklist li input[type=checkbox] {
+  margin-top: 2px; width: 15px; height: 15px;
+  accent-color: #1e40af; cursor: pointer; flex-shrink: 0;
+}
+.checklist li.done label { text-decoration: line-through; color: #9ca3af; }
+.step-badge {
+  font-size: 10px; font-weight: 700; padding: 1px 7px;
+  border-radius: 99px; margin-left: auto; white-space: nowrap; flex-shrink: 0;
+}
+.step-auto   { background: #dbeafe; color: #1e40af; }
+.step-manual { background: #fef3c7; color: #92400e; }
+.step-review { background: #f3e8ff; color: #6d28d9; }
+
+/* ── Sprint history ── */
+.history-header {
+  display: flex; align-items: center; gap: 12px;
+  padding: 6px 0 8px; border-bottom: 2px solid #e5e7eb;
+  font-size: 10px; font-weight: 700; color: #9ca3af;
+  text-transform: uppercase; letter-spacing: .6px;
+}
+.history-row {
+  display: flex; align-items: center; gap: 12px;
+  padding: 10px 0; border-bottom: 1px solid #f3f4f6; font-size: 13px;
+}
+.history-row:last-child { border-bottom: none; }
+.history-num {
+  font-weight: 800; font-size: 14px; color: #1e40af;
+  width: 36px; flex-shrink: 0;
+}
+.history-num-hdr { width: 36px; flex-shrink: 0; }
+.history-dates { font-size: 11px; color: #6b7280; flex: 1; }
+.history-dates-hdr { flex: 1; }
+.history-status {
+  font-size: 11px; font-weight: 700; padding: 2px 8px;
+  border-radius: 99px; white-space: nowrap;
+}
+.history-status-hdr { width: 70px; text-align: center; }
+.history-link-hdr   { width: 90px; text-align: right; }
+.hs-live      { background: #d1fae5; color: #065f46; }
+.hs-active    { background: #d1fae5; color: #065f46; }
+.hs-planning  { background: #dbeafe; color: #1e40af; }
+.hs-closed    { background: #f3f4f6; color: #6b7280; }
+.hs-folio     { background: #ede9fe; color: #6d28d9; }
+.hs-prev      { background: #f3f4f6; color: #6b7280; }
+.history-link {
+  font-size: 12px; color: #1e40af; text-decoration: none;
+  font-weight: 600; white-space: nowrap;
+}
+.history-link:hover { text-decoration: underline; }
+.history-link-placeholder {
+  font-size: 12px; color: #d1d5db; font-style: italic; white-space: nowrap;
+}
+
+/* ── Quick links ── */
+.qlink-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+.qlink {
+  display: flex; align-items: center; gap: 10px;
+  background: #f9fafb; border: 1px solid #e5e7eb; border-radius: 10px;
+  padding: 12px 14px; text-decoration: none; color: #1f2937;
+  font-size: 13px; font-weight: 600; transition: background .12s, border-color .12s;
+}
+.qlink:hover { background: #eff6ff; border-color: #bfdbfe; }
+.qlink-icon { font-size: 18px; flex-shrink: 0; }
+.qlink-sub  { font-size: 11px; color: #6b7280; font-weight: 400; margin-top: 1px; }
+
+/* ── Skill pill ── */
+.skill-pill {
+  display: inline-flex; align-items: center; gap: 7px;
+  background: #f5f3ff; border: 1px solid #ddd6fe;
+  border-radius: 99px; padding: 4px 12px; font-size: 12px;
+  font-weight: 600; color: #6d28d9; margin-bottom: 14px;
+}
+
+/* ── Next sprint countdown ── */
+.countdown-row { display: flex; gap: 16px; align-items: center; margin-bottom: 16px; }
+.countdown-block {
+  background: linear-gradient(135deg, #1e3a8a, #3730a3);
+  color: #fff; border-radius: 10px; padding: 10px 16px; text-align: center; min-width: 70px;
+}
+.countdown-block .cnum { font-size: 24px; font-weight: 800; }
+.countdown-block .clbl { font-size: 10px; opacity: .75; text-transform: uppercase; letter-spacing: .5px; }
+.countdown-sep { font-size: 22px; font-weight: 800; color: #9ca3af; }
+</style>
+
+<style id="demoBannerCss">
+#pjmDemoBanner{position:fixed;top:0;left:0;right:0;z-index:99999;background:#8A5CFF;color:#fff;
+ font:600 12px/1.4 system-ui,-apple-system,Segoe UI,sans-serif;padding:7px 44px 7px 16px;text-align:center;
+ letter-spacing:.2px;box-shadow:0 1px 6px rgba(0,0,0,.18)}
+#pjmDemoBanner a{color:#fff;text-decoration:underline}
+#pjmDemoBanner button{position:absolute;right:10px;top:4px;background:none;border:none;color:#fff;
+ font-size:17px;line-height:1;cursor:pointer;padding:4px}
+body.has-demo-banner{padding-top:30px}
+</style>
+<script id="pjmDemoMode">
+/* ===== PUBLIC DEMO BUILD =====
+   All data in this build is fictional. No credentials ship with it and no
+   outbound calls to third-party APIs are permitted. */
+(function(){
+  window.PJM_DEMO = true;
+  var BLOCK = /(api\.linear\.app|api\.github\.com|graphql|googleapis\.com|slack\.com|atlassian\.net)/i;
+  var of = window.fetch;
+  window.fetch = function(input){
+    var u = (typeof input === 'string') ? input : (input && input.url) || '';
+    if (BLOCK.test(u)) {
+      console.info('[demo] blocked outbound call:', u);
+      return Promise.resolve(new Response(JSON.stringify({data:null,demo:true}),
+        {status:200, headers:{'Content-Type':'application/json'}}));
+    }
+    return of.apply(this, arguments);
+  };
+  var ox = window.XMLHttpRequest && window.XMLHttpRequest.prototype.open;
+  if (ox) window.XMLHttpRequest.prototype.open = function(m,u){
+    if (BLOCK.test(String(u))) { console.info('[demo] blocked XHR:', u); u = 'data:application/json,{}'; }
+    return ox.apply(this, [m,u].concat([].slice.call(arguments,2)));
+  };
+  document.addEventListener('DOMContentLoaded', function(){
+    if (sessionStorage.getItem('pjmDemoBannerHidden')) return;
+    var b = document.createElement('div');
+    b.id = 'pjmDemoBanner';
+    b.innerHTML = 'DEMO BUILD \u2014 every person, project, ticket and meeting below is fictional. ' +
+                  'Live integrations are disabled in this build.' +
+                  '<button title="Dismiss" onclick="this.parentNode.remove();' +
+                  'document.body.classList.remove(\'has-demo-banner\');' +
+                  'sessionStorage.setItem(\'pjmDemoBannerHidden\',\'1\')">&times;</button>';
+    document.body.appendChild(b);
+    document.body.classList.add('has-demo-banner');
+  });
+})();
+</script>
+</head>
+<body>
+
+<!-- Login overlay (required by PJM auth) -->
+<div id="loginOverlay" style="position:fixed;inset:0;background:#fff;z-index:9999;display:flex;align-items:center;justify-content:center;">
+  <div style="text-align:center;max-width:320px;">
+    <div style="font-size:32px;margin-bottom:8px;">⬡</div>
+    <div style="font-size:18px;font-weight:800;margin-bottom:4px;">Meridian PJM</div>
+    <div style="font-size:13px;color:#6b7280;margin-bottom:24px;">Sprint Planning</div>
+    <div id="googleSignInBtn"></div>
+    <div id="loginError" style="font-size:12px;color:#dc2626;margin-top:12px;"></div>
+  </div>
+</div>
+
+<div id="pjmSidebarContainer"></div>
+
+<div class="pjm-main">
+  <div class="sp-container">
+
+    <!-- PAGE HEADER -->
+    <div class="pjm-page-header" style="margin-bottom:24px;">
+      <div style="display:flex;align-items:center;gap:12px;">
+        <div style="font-size:28px;">🗓️</div>
+        <div>
+          <div class="pjm-page-title">Sprint Planning</div>
+          <div class="pjm-page-sub">Every Thursday · Generate, review &amp; present the sprint plan</div>
+        </div>
+        <div style="margin-left:auto;display:flex;gap:8px;align-items:center;">
+          <span class="skill-pill">🧠 Skill: sprint-plan-generator</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="sp-grid">
+
+      <!-- LEFT: Current sprint + Generate button -->
+      <div>
+        <div class="sp-card">
+          <div class="sp-card-title">
+            ▶ Current Sprint
+            <span class="badge badge-live">LIVE</span>
+          </div>
+          <div class="sprint-stat-row">
+            <div class="sprint-stat"><div class="sl">Sprint</div><div class="sv" id="curSprintNum">21</div></div>
+            <div class="sprint-stat"><div class="sl">Start</div><div class="sv" style="font-size:13px;margin-top:4px;" id="curStart">28 Sep</div></div>
+            <div class="sprint-stat"><div class="sl">End</div><div class="sv" style="font-size:13px;margin-top:4px;" id="curEnd">10 Oct</div></div>
+            <div class="sprint-stat"><div class="sl">Items</div><div class="sv" id="curItems">42</div></div>
+          </div>
+
+          <button class="generate-btn" onclick="openPrompt()">
+            <span class="btn-icon">🚀</span>
+            Generate Sprint 22 Plan
+          </button>
+          <div style="font-size:11px;color:#9ca3af;text-align:center;">
+            Opens a ready-to-paste prompt for Claude · Skill auto-generates all 3 files
+          </div>
+        </div>
+
+        <!-- Countdown to next planning Thursday -->
+        <div class="sp-card">
+          <div class="sp-card-title">⏱️ Next Planning Day</div>
+          <div class="countdown-row" id="countdownRow">
+            <div class="countdown-block"><div class="cnum" id="cdDays">–</div><div class="clbl">Days</div></div>
+            <div class="countdown-sep">:</div>
+            <div class="countdown-block"><div class="cnum" id="cdHours">–</div><div class="clbl">Hours</div></div>
+            <div class="countdown-sep">:</div>
+            <div class="countdown-block"><div class="cnum" id="cdMins">–</div><div class="clbl">Mins</div></div>
+          </div>
+          <div style="font-size:12px;color:#6b7280;" id="nextPlanDate">Next planning Thursday: calculating…</div>
+        </div>
+      </div>
+
+      <!-- RIGHT: Planning checklist -->
+      <div class="sp-card">
+        <div class="sp-card-title">✅ Planning Thursday Checklist</div>
+        <ul class="checklist" id="planChecklist">
+          <li>
+            <input type="checkbox" id="c1" onchange="saveChecklist()">
+            <label for="c1">Confirm sprint number with the team</label>
+            <span class="step-badge step-manual">Manual</span>
+          </li>
+          <li>
+            <input type="checkbox" id="c2" onchange="saveChecklist()">
+            <label for="c2">Sheet updated — all items &amp; statuses filled in</label>
+            <span class="step-badge step-manual">Manual</span>
+          </li>
+          <li>
+            <input type="checkbox" id="c3" onchange="saveChecklist()">
+            <label for="c3">Run "Generate Sprint N Plan" in Claude</label>
+            <span class="step-badge step-auto">Claude</span>
+          </li>
+          <li>
+            <input type="checkbox" id="c4" onchange="saveChecklist()">
+            <label for="c4">Review carry-over items &amp; resolve uncertain matches</label>
+            <span class="step-badge step-review">Review</span>
+          </li>
+          <li>
+            <input type="checkbox" id="c5" onchange="saveChecklist()">
+            <label for="c5">Open HTML in browser — verify Priority Matrix &amp; Focus Areas</label>
+            <span class="step-badge step-review">Review</span>
+          </li>
+          <li>
+            <input type="checkbox" id="c6" onchange="saveChecklist()">
+            <label for="c6">Review override panel — adjust any carry-over / new / completed tags</label>
+            <span class="step-badge step-review">Review</span>
+          </li>
+          <li>
+            <input type="checkbox" id="c7" onchange="saveChecklist()">
+            <label for="c7">Upload MDX to Folio — get the new sprint URL</label>
+            <span class="step-badge step-manual">Manual</span>
+          </li>
+          <li>
+            <input type="checkbox" id="c8" onchange="saveChecklist()">
+            <label for="c8">Update 04-sprint-plans.html with Folio URL for previous sprint</label>
+            <span class="step-badge step-auto">Claude</span>
+          </li>
+          <li>
+            <input type="checkbox" id="c9" onchange="saveChecklist()">
+            <label for="c9">Read presenter PDF before Friday standup</label>
+            <span class="step-badge step-manual">Private</span>
+          </li>
+        </ul>
+        <div style="margin-top:14px;display:flex;gap:8px;">
+          <button onclick="resetChecklist()" style="font-size:12px;padding:6px 14px;border-radius:7px;border:1px solid #e5e7eb;background:#fff;cursor:pointer;color:#6b7280;">Reset for new sprint</button>
+          <span id="checkProgress" style="font-size:12px;color:#6b7280;align-self:center;margin-left:auto;"></span>
+        </div>
+      </div>
+
+    </div>
+
+    <!-- Sprint history -->
+    <div class="sp-card">
+      <div class="sp-card-title">📚 Sprint Plan History</div>
+      <div id="historyList">
+        <!-- Column header row -->
+        <div class="history-header">
+          <div class="history-num-hdr">#</div>
+          <div class="history-dates-hdr">Sprint</div>
+          <div class="history-status-hdr">Status</div>
+          <div class="history-link-hdr">Plan</div>
+        </div>
+
+        <!-- Sprint 21 — active -->
+        <div class="history-row">
+          <div class="history-num">21</div>
+          <div>
+            <div style="font-weight:600;">Sprint 21</div>
+            <div class="history-dates">28 Sep – 10 Oct 2026 · 42 items · 10 squads</div>
+          </div>
+          <span class="history-status hs-active">▶ Active</span>
+          <a class="history-link" href="sprint-plans/sprint-21-plan.html" target="_blank">Open Plan →</a>
+        </div>
+        <!-- Sprint 20 — closed -->
+        <div class="history-row">
+          <div class="history-num">20</div>
+          <div>
+            <div style="font-weight:600;">Sprint 20</div>
+            <div class="history-dates">14 Sep – 26 Sep 2026 · 35 items · 9 squads</div>
+          </div>
+          <span class="history-status hs-closed">✓ Closed</span>
+          <a class="history-link" href="sprint-plans/sprint-20-plan.html" target="_blank">Open Plan →</a>
+        </div>
+        <!-- Sprint 19 — closed -->
+        <div class="history-row">
+          <div class="history-num">19</div>
+          <div>
+            <div style="font-weight:600;">Sprint 19</div>
+            <div class="history-dates">31 Aug – 11 Sep 2026 · 33 items · 9 squads</div>
+          </div>
+          <span class="history-status hs-closed">✓ Closed</span>
+          <a class="history-link" href="sprint-plans/sprint-19-plan.html" target="_blank">Open Plan →</a>
+        </div>
+
+        <!-- Sprint 18 — closed -->
+        <div class="history-row">
+          <div class="history-num">18</div>
+          <div>
+            <div style="font-weight:600;">Sprint 18</div>
+            <div class="history-dates">17 Aug – 29 Aug 2026 · 27 items · 6 squads</div>
+          </div>
+          <span class="history-status hs-closed">✓ Closed</span>
+          <a class="history-link" href="sprint-plans/sprint-18-plan.html" target="_blank">Open Plan →</a>
+        </div>
+
+        <!-- Sprint 17 — closed -->
+        <div class="history-row">
+          <div class="history-num">17</div>
+          <div>
+            <div style="font-weight:600;">Sprint 17</div>
+            <div class="history-dates">03 Aug – 14 Aug 2026 · 56 items · 9 squads</div>
+          </div>
+          <span class="history-status hs-closed">✓ Closed</span>
+          <a class="history-link" href="https://folio.meridian.dev/p/sOm7L9HfXJa7?key=2ZYEC3HZWrZ8GDaYoukceRGNn1FuyJY5" target="_blank">Open in Folio →</a>
+        </div>
+
+        <!-- Sprint 16 — closed -->
+        <div class="history-row">
+          <div class="history-num">16</div>
+          <div>
+            <div style="font-weight:600;">Sprint 16</div>
+            <div class="history-dates">20 Jul – 31 Jul 2026 · 65 items · 7 squads</div>
+          </div>
+          <span class="history-status hs-closed">✓ Closed</span>
+          <a class="history-link" href="https://folio.meridian.dev/p/SyLPrVgTzcRD?key=0xxe3PAP8ledjzggJek9HBynWTUqDdmw" target="_blank">Open in Folio →</a>
+        </div>
+
+        <!-- Sprint 15 — closed -->
+        <div class="history-row">
+          <div class="history-num">15</div>
+          <div>
+            <div style="font-weight:600;">Sprint 15</div>
+            <div class="history-dates">06 Jul – 18 Jul 2026 · 50 items · 6 squads</div>
+          </div>
+          <span class="history-status hs-closed">✓ Closed</span>
+          <a class="history-link" href="https://folio.meridian.dev/p/aqv5yiJJu8oS?key=J647TORwUwpcAsVk0JjfF67JLDW0taoS" target="_blank">Open in Folio →</a>
+        </div>
+
+        <!-- Sprint 14 — closed -->
+        <div class="history-row">
+          <div class="history-num">14</div>
+          <div>
+            <div style="font-weight:600;">Sprint 14</div>
+            <div class="history-dates">22 Jun – 03 Jul 2026 · 57 items · 9 squads</div>
+          </div>
+          <span class="history-status hs-closed">✓ Closed</span>
+          <a class="history-link" href="https://folio.meridian.dev/p/38i0tbDQQwKO?key=G3LaX17X5kK0t3vSlbl5GBTZftoVbfBG" target="_blank">Open in Folio →</a>
+        </div>
+
+        <!-- Sprint 13 — closed -->
+        <div class="history-row">
+          <div class="history-num">13</div>
+          <div>
+            <div style="font-weight:600;">Sprint 13</div>
+            <div class="history-dates">09 Jun – 20 Jun 2026 · 62 items · 9 squads</div>
+          </div>
+          <span class="history-status hs-closed">✓ Closed</span>
+          <a class="history-link" href="https://folio.meridian.dev/docs/high-level-sprint-backlog-sprint-13" target="_blank">Open in Folio →</a>
+        </div>
+
+        <!-- Sprint 12 — closed -->
+        <div class="history-row">
+          <div class="history-num">12</div>
+          <div>
+            <div style="font-weight:600;">Sprint 12</div>
+            <div class="history-dates">25 May – 06 Jun 2026 · 61 items · 9 squads</div>
+          </div>
+          <span class="history-status hs-closed">✓ Closed</span>
+          <span class="history-link-placeholder">Folio URL pending</span>
+        </div>
+
+        <!-- Sprint 11 — closed -->
+        <div class="history-row">
+          <div class="history-num">11</div>
+          <div>
+            <div style="font-weight:600;">Sprint 11</div>
+            <div class="history-dates">11 May – 22 May 2026 · 57 items · 8 squads</div>
+          </div>
+          <span class="history-status hs-closed">✓ Closed</span>
+          <a class="history-link" href="https://folio.meridian.dev/p/9DLA0KAk7jDF?key=I4pqPQYxEG5aI9uJy9emYRNlYVhZLIPR" target="_blank">Open in Folio →</a>
+        </div>
+
+        <!-- Sprint 10 — closed -->
+        <div class="history-row">
+          <div class="history-num">10</div>
+          <div>
+            <div style="font-weight:600;">Sprint 10</div>
+            <div class="history-dates">Apr 2026</div>
+          </div>
+          <span class="history-status hs-closed">✓ Closed</span>
+          <a class="history-link" href="#" target="_blank">Open →</a>
+        </div>
+      </div>
+    </div>
+
+    <!-- Quick links -->
+    <div class="sp-card">
+      <div class="sp-card-title">🔗 Quick Links</div>
+      <div class="qlink-grid">
+        <a class="qlink" href="https://docs.google.com/spreadsheets/d/1FyyUZJBmM4bkPsOBLEnHQqu5NXwek6VqO07uua8Glm4/edit" target="_blank">
+          <span class="qlink-icon">📊</span>
+          <div>
+            <div>Sprint Planning Sheet</div>
+            <div class="qlink-sub">Google Sheet · Source of truth</div>
+          </div>
+        </a>
+        <a class="qlink" href="https://folio.meridian.dev/folders?path=PJM%2F2026_SPRINT_PLAN" target="_blank">
+          <span class="qlink-icon">📋</span>
+          <div>
+            <div>Folio</div>
+            <div class="qlink-sub">Meridian docs · Sprint MDX uploads</div>
+          </div>
+        </a>
+        <a class="qlink" href="04-sprint-plans.html" target="_blank">
+          <span class="qlink-icon">🗂️</span>
+          <div>
+            <div>Sprint Plans Archive</div>
+            <div class="qlink-sub">All sprint plans in one place</div>
+          </div>
+        </a>
+        <a class="qlink" href="05-sprint-review.html" target="_blank">
+          <span class="qlink-icon">🔁</span>
+          <div>
+            <div>Sprint Review</div>
+            <div class="qlink-sub">Post-sprint retrospective reports</div>
+          </div>
+        </a>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<!-- ── PROMPT MODAL ── -->
+<div class="prompt-modal-overlay" id="promptOverlay" onclick="closePromptOutside(event)">
+  <div class="prompt-modal">
+    <h3>🚀 Generate Sprint 22 Plan</h3>
+    <p>Copy this prompt and paste it into Claude. The sprint-plan-generator skill will handle the rest automatically.</p>
+    <div class="prompt-box" id="promptBox">Generate sprint 22 plan. Previous sprint Folio URL: [paste Sprint 21 Folio URL here once available — or say "not yet" and I'll add a placeholder].</div>
+    <div class="prompt-modal-actions">
+      <button class="copy-btn" onclick="copyPrompt()">📋 Copy Prompt</button>
+      <button class="close-btn" onclick="closePrompt()">Close</button>
+    </div>
+    <div class="copied-toast" id="copiedToast">✅ Copied to clipboard!</div>
+  </div>
+</div>
+
+<script src="shared/pjm-sync.js"></script>
+<script src="shared/pjm-nav.js"></script>
+<script>
+// ── Init nav ──
+document.addEventListener('DOMContentLoaded', function() {
+  PJMNav.render('sprint-planning');
+  loadChecklist();
+  updateProgress();
+  startCountdown();
+});
+
+// ── Prompt modal ──
+function openPrompt() {
+  var num = parseInt(document.getElementById('curSprintNum').textContent || '12') + 1;
+  document.querySelector('.prompt-modal h3').textContent = '🚀 Generate Sprint ' + num + ' Plan';
+  document.getElementById('promptBox').textContent =
+    'Generate sprint ' + num + ' plan. Previous sprint (Sprint ' +
+    (num - 1) + ') Folio URL: [paste URL here, or say "not yet" for a placeholder].';
+  document.getElementById('promptOverlay').classList.add('open');
+}
+function closePrompt() {
+  document.getElementById('promptOverlay').classList.remove('open');
+  document.getElementById('copiedToast').style.display = 'none';
+}
+function closePromptOutside(e) {
+  if (e.target === document.getElementById('promptOverlay')) closePrompt();
+}
+function copyPrompt() {
+  var text = document.getElementById('promptBox').textContent;
+  navigator.clipboard.writeText(text).then(function() {
+    var t = document.getElementById('copiedToast');
+    t.style.display = 'block';
+    setTimeout(function() { t.style.display = 'none'; }, 2500);
+  });
+}
+
+// ── Checklist persistence ──
+var CHECKLIST_KEY = 'pjmdemo_sprint_checklist_v1';
+function saveChecklist() {
+  var state = {};
+  for (var i = 1; i <= 9; i++) {
+    var el = document.getElementById('c' + i);
+    if (el) state['c' + i] = el.checked;
+  }
+  try { localStorage.setItem(CHECKLIST_KEY, JSON.stringify(state)); } catch(e) {}
+  updateProgress();
+  updateChecklistStyles();
+}
+function loadChecklist() {
+  try {
+    var state = JSON.parse(localStorage.getItem(CHECKLIST_KEY) || '{}');
+    for (var i = 1; i <= 9; i++) {
+      var el = document.getElementById('c' + i);
+      if (el && state['c' + i]) el.checked = true;
+    }
+  } catch(e) {}
+  updateProgress();
+  updateChecklistStyles();
+}
+function resetChecklist() {
+  for (var i = 1; i <= 9; i++) {
+    var el = document.getElementById('c' + i);
+    if (el) el.checked = false;
+  }
+  try { localStorage.removeItem(CHECKLIST_KEY); } catch(e) {}
+  updateProgress();
+  updateChecklistStyles();
+}
+function updateProgress() {
+  var total = 9, done = 0;
+  for (var i = 1; i <= 9; i++) {
+    var el = document.getElementById('c' + i);
+    if (el && el.checked) done++;
+  }
+  var el = document.getElementById('checkProgress');
+  if (el) el.textContent = done + ' / ' + total + ' done';
+}
+function updateChecklistStyles() {
+  for (var i = 1; i <= 9; i++) {
+    var cb = document.getElementById('c' + i);
+    if (!cb) continue;
+    var li = cb.closest('li');
+    if (li) li.classList.toggle('done', cb.checked);
+  }
+}
+
+// ── Countdown to next planning Thursday ──
+function nextThursday() {
+  var now = new Date();
+  var day = now.getDay(); // 0=Sun … 4=Thu … 6=Sat
+  var daysUntil = (4 - day + 7) % 7 || 7; // if today is Thu, count to next Thu
+  var next = new Date(now);
+  next.setDate(now.getDate() + daysUntil);
+  next.setHours(9, 0, 0, 0); // 9 AM
+  return next;
+}
+function startCountdown() {
+  function tick() {
+    var now = new Date();
+    var target = nextThursday();
+    var diff = target - now;
+    if (diff < 0) diff = 0;
+    var days  = Math.floor(diff / 86400000);
+    var hours = Math.floor((diff % 86400000) / 3600000);
+    var mins  = Math.floor((diff % 3600000) / 60000);
+    document.getElementById('cdDays').textContent  = days;
+    document.getElementById('cdHours').textContent = String(hours).padStart(2,'0');
+    document.getElementById('cdMins').textContent  = String(mins).padStart(2,'0');
+    var opts = { weekday:'short', day:'numeric', month:'short' };
+    document.getElementById('nextPlanDate').textContent =
+      'Next planning Thursday: ' + target.toLocaleDateString('en-GB', opts);
+  }
+  tick();
+  setInterval(tick, 30000);
+}
+</script>
+</body>
+</html>

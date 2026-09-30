@@ -1,0 +1,836 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>PR Dashboard — Meridian PJM</title>
+<link rel="stylesheet" href="shared/pjm.css">
+<style>
+/* ── PR Dashboard specific styles ── */
+#pr-setup-screen { display:flex }
+
+.pr-kpi-card {
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 16px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+.pr-kpi-card.highlight { background:#f59e0b; border-color:#d97706; }
+.pr-kpi-card.highlight .pr-kv { color:#fff; }
+.pr-kpi-card.highlight .pr-kl { color:rgba(255,255,255,.8); }
+.pr-kv { font-size:26px; font-weight:800; color:var(--text); }
+.pr-kl { font-size:12px; color:var(--muted); margin-top:2px; }
+.pr-kicon { width:44px; height:44px; border-radius:10px; display:flex; align-items:center; justify-content:center; font-size:20px; }
+
+.pr-proj-btn {
+  display:flex; align-items:center; gap:8px;
+  padding:8px 14px; border-radius:8px; border:none;
+  font-size:13px; font-weight:600; cursor:pointer;
+  transition:all .15s; background:#f3f4f6; color:#374151;
+}
+.pr-proj-btn.active { background:#3b82f6; color:#fff; box-shadow:0 4px 12px rgba(59,130,246,.3); }
+.pr-proj-cnt { padding:2px 8px; border-radius:10px; font-size:11px; font-weight:700; background:rgba(0,0,0,.1); }
+.pr-proj-btn.active .pr-proj-cnt { background:rgba(255,255,255,.25); color:#fff; }
+
+.pr-card {
+  background:var(--card); border:1px solid var(--border);
+  border-radius:var(--radius); padding:20px; margin-bottom:12px;
+  cursor:pointer; transition:box-shadow .15s, transform .15s;
+}
+.pr-card:hover { box-shadow:0 4px 20px rgba(0,0,0,.08); transform:translateY(-1px); }
+.pr-card-hdr { display:flex; align-items:flex-start; justify-content:space-between; margin-bottom:14px; gap:12px; }
+.pr-avatar { width:40px; height:40px; border-radius:50%; background:linear-gradient(135deg,#6C63FF,#3B82F6); color:#fff; display:flex; align-items:center; justify-content:center; font-weight:700; font-size:14px; flex-shrink:0; }
+
+.pr-badge { display:inline-flex; align-items:center; gap:4px; padding:3px 10px; border-radius:20px; font-size:11px; font-weight:600; }
+.pr-badge.review  { background:#fef3c7; color:#92400e; }
+.pr-badge.approved { background:#d1fae5; color:#065f46; }
+.pr-badge.changes  { background:#fee2e2; color:#991b1b; }
+.pr-badge.env-prod  { background:#ede9fe; color:#5b21b6; }
+.pr-badge.env-qa    { background:#fef3c7; color:#92400e; }
+.pr-badge.env-stage { background:#dbeafe; color:#1e40af; }
+.pr-badge.env-dev   { background:#f3f4f6; color:#374151; }
+
+.pr-pipeline { display:flex; align-items:center; background:#f9fafb; border-radius:10px; padding:12px 16px; margin-bottom:14px; }
+.pr-step { display:flex; flex-direction:column; align-items:center; gap:4px; }
+.pr-step-circle { width:28px; height:28px; border-radius:50%; display:flex; align-items:center; justify-content:center; font-size:12px; font-weight:700; }
+.pr-step-circle.done    { background:#10b981; color:#fff; }
+.pr-step-circle.pending { background:#e5e7eb; color:#6b7280; }
+.pr-step-lbl { font-size:10px; color:var(--muted); white-space:nowrap; }
+.pr-connector { flex:1; height:2px; background:#e5e7eb; margin:0 4px; margin-bottom:14px; }
+.pr-connector.done { background:#10b981; }
+
+.pr-meta-grid { display:grid; grid-template-columns:1fr 1fr; gap:12px; margin-bottom:14px; }
+.pr-meta-lbl { font-size:11px; color:var(--muted); margin-bottom:2px; }
+.pr-meta-val { font-size:13px; font-weight:600; color:var(--text); }
+
+.pr-reviewers { margin-bottom:12px; }
+.pr-reviewer-chip { display:inline-flex; align-items:center; gap:5px; font-size:11px; padding:3px 8px; border-radius:6px; margin:2px; background:#f3f4f6; color:#374151; }
+.pr-reviewer-chip.approved { background:#d1fae5; color:#065f46; }
+
+.pr-card-footer { display:flex; align-items:center; justify-content:space-between; padding-top:12px; border-top:1px solid var(--border); font-size:12px; color:var(--muted); }
+.pr-branch-badge { padding:2px 8px; border-radius:4px; font-size:11px; font-weight:600; font-family:monospace; }
+.pr-empty   { text-align:center; padding:60px 20px; color:var(--muted); }
+.pr-loading { text-align:center; padding:60px 20px; color:var(--muted); font-size:14px; }
+
+/* Modal */
+.pr-modal-overlay {
+  display:none; position:fixed; inset:0;
+  background:rgba(0,0,0,.5); z-index:500;
+  align-items:center; justify-content:center; padding:24px;
+}
+.pr-modal-overlay.open { display:flex; }
+.pr-modal-inner {
+  background:#fff; border-radius:16px;
+  max-width:680px; width:100%; max-height:90vh; overflow-y:auto;
+  box-shadow:0 20px 60px rgba(0,0,0,.2);
+}
+</style>
+
+<style id="demoBannerCss">
+#pjmDemoBanner{position:fixed;top:0;left:0;right:0;z-index:99999;background:#8A5CFF;color:#fff;
+ font:600 12px/1.4 system-ui,-apple-system,Segoe UI,sans-serif;padding:7px 44px 7px 16px;text-align:center;
+ letter-spacing:.2px;box-shadow:0 1px 6px rgba(0,0,0,.18)}
+#pjmDemoBanner a{color:#fff;text-decoration:underline}
+#pjmDemoBanner button{position:absolute;right:10px;top:4px;background:none;border:none;color:#fff;
+ font-size:17px;line-height:1;cursor:pointer;padding:4px}
+body.has-demo-banner{padding-top:30px}
+</style>
+<script id="pjmDemoMode">
+/* ===== PUBLIC DEMO BUILD =====
+   All data in this build is fictional. No credentials ship with it and no
+   outbound calls to third-party APIs are permitted. */
+(function(){
+  window.PJM_DEMO = true;
+  var BLOCK = /(api\.linear\.app|api\.github\.com|graphql|googleapis\.com|slack\.com|atlassian\.net)/i;
+  var of = window.fetch;
+  window.fetch = function(input){
+    var u = (typeof input === 'string') ? input : (input && input.url) || '';
+    if (BLOCK.test(u)) {
+      console.info('[demo] blocked outbound call:', u);
+      return Promise.resolve(new Response(JSON.stringify({data:null,demo:true}),
+        {status:200, headers:{'Content-Type':'application/json'}}));
+    }
+    return of.apply(this, arguments);
+  };
+  var ox = window.XMLHttpRequest && window.XMLHttpRequest.prototype.open;
+  if (ox) window.XMLHttpRequest.prototype.open = function(m,u){
+    if (BLOCK.test(String(u))) { console.info('[demo] blocked XHR:', u); u = 'data:application/json,{}'; }
+    return ox.apply(this, [m,u].concat([].slice.call(arguments,2)));
+  };
+  document.addEventListener('DOMContentLoaded', function(){
+    if (sessionStorage.getItem('pjmDemoBannerHidden')) return;
+    var b = document.createElement('div');
+    b.id = 'pjmDemoBanner';
+    b.innerHTML = 'DEMO BUILD \u2014 every person, project, ticket and meeting below is fictional. ' +
+                  'Live integrations are disabled in this build.' +
+                  '<button title="Dismiss" onclick="this.parentNode.remove();' +
+                  'document.body.classList.remove(\'has-demo-banner\');' +
+                  'sessionStorage.setItem(\'pjmDemoBannerHidden\',\'1\')">&times;</button>';
+    document.body.appendChild(b);
+    document.body.classList.add('has-demo-banner');
+  });
+})();
+</script>
+</head>
+<body>
+
+<div id="pjmSidebarContainer"></div>
+
+<div class="pjm-main">
+  <div class="module-header">
+    <div>
+      <div class="module-title">📥 PR Dashboard</div>
+      <div class="section-sub">Pull requests raised in the <strong>last 72 hours</strong> · all accessible repos in Meridian-Exchange</div>
+    </div>
+    <div class="module-header-right">
+      <span id="pr-last-synced" class="last-synced-label">Never synced</span>
+      <div class="date-badge" id="todayDate"></div>
+      <button class="sync-btn" id="syncBtn" onclick="prDash.loadPRs()"><span class="sync-icon">🔄</span> Refresh</button>
+    </div>
+  </div>
+
+  <!-- PAT Setup Screen -->
+  <div id="pr-setup-screen" style="display:none;flex-direction:column;align-items:center;justify-content:center;min-height:60vh">
+    <div style="background:#fff;border:1px solid var(--border);border-radius:16px;padding:40px;max-width:480px;width:100%;text-align:center;box-shadow:0 4px 24px rgba(0,0,0,.08)">
+      <div style="width:64px;height:64px;background:linear-gradient(135deg,#6C63FF,#3B82F6);border-radius:16px;display:flex;align-items:center;justify-content:center;font-size:28px;margin:0 auto 20px">📥</div>
+      <h2 style="font-size:20px;font-weight:700;margin-bottom:8px">Connect GitHub</h2>
+      <p style="font-size:13px;color:var(--muted);margin-bottom:24px;line-height:1.6">Enter your GitHub Personal Access Token to load live PR data from the Meridian-Exchange org. The token is stored only in your browser and never sent anywhere except GitHub's API.</p>
+      <div style="text-align:left;margin-bottom:16px">
+        <label style="font-size:12px;font-weight:600;color:var(--muted);display:block;margin-bottom:6px">GITHUB PERSONAL ACCESS TOKEN</label>
+        <input id="pr-pat-input" type="password" placeholder="disabled in demo"
+          style="width:100%;padding:10px 14px;border:1px solid var(--border);border-radius:8px;font-size:13px;font-family:monospace;outline:none;box-sizing:border-box"
+          onkeydown="if(event.key==='Enter')prDash.saveToken()">
+      </div>
+      <div style="font-size:11px;color:var(--muted);text-align:left;margin-bottom:20px;background:#f9fafb;padding:10px 12px;border-radius:8px;line-height:1.7">
+        Token needs: <strong>repo</strong> (read) scope. Generate at <a href="https://github.com/settings/tokens" target="_blank" style="color:var(--primary)">github.com/settings/tokens</a>
+      </div>
+      <button onclick="prDash.saveToken()" style="width:100%;padding:12px;background:linear-gradient(135deg,#6C63FF,#3B82F6);color:#fff;border:none;border-radius:10px;font-size:14px;font-weight:600;cursor:pointer">Connect &amp; Load PRs</button>
+      <div id="pr-setup-error" style="margin-top:12px;font-size:12px;color:#ef4444;"></div>
+    </div>
+  </div>
+
+  <!-- Main Dashboard -->
+  <div id="pr-main-dash" style="display:none">
+
+    <!-- Header row with reset -->
+    <div style="display:flex;align-items:center;justify-content:flex-end;margin-bottom:16px">
+      <button onclick="prDash.resetToken()" style="padding:8px 12px;background:var(--bg);border:1px solid var(--border);border-radius:8px;font-size:12px;color:var(--muted);cursor:pointer">⚙ Reset Token</button>
+    </div>
+
+    <!-- KPI Row -->
+    <div id="pr-kpi-row" style="display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin-bottom:18px"></div>
+
+    <!-- Project Tabs -->
+    <div style="background:var(--card);border:1px solid var(--border);border-radius:var(--radius);padding:16px;margin-bottom:14px">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px">
+        <span style="font-size:13px;font-weight:600">Repos</span>
+        <span style="font-size:11px;color:var(--muted)">Click to filter by repository</span>
+      </div>
+      <div id="pr-proj-tabs" style="display:flex;gap:10px;flex-wrap:wrap"></div>
+    </div>
+
+    <!-- Filters + Search -->
+    <div style="background:var(--card);border:1px solid var(--border);border-radius:var(--radius);padding:14px;margin-bottom:12px;display:flex;gap:12px;align-items:center;flex-wrap:wrap">
+      <div style="flex:1;min-width:200px;position:relative">
+        <span style="position:absolute;left:10px;top:50%;transform:translateY(-50%);color:var(--muted);font-size:14px">🔍</span>
+        <input id="pr-search" type="text" placeholder="Search by PR number, title, or author…"
+          oninput="prDash.onSearch(this.value)"
+          style="width:100%;padding:8px 12px 8px 32px;border:1px solid var(--border);border-radius:8px;font-size:13px;outline:none;font-family:inherit;box-sizing:border-box">
+      </div>
+      <select id="pr-env-filter" onchange="prDash.onFilter()" style="padding:8px 12px;border:1px solid var(--border);border-radius:8px;font-size:13px;font-family:inherit;outline:none">
+        <option value="All">All Envs</option>
+        <option value="Dev">Dev</option>
+        <option value="QA">QA</option>
+        <option value="Stage">Stage</option>
+        <option value="Prod">Prod</option>
+      </select>
+      <select id="pr-team-filter" onchange="prDash.onFilter()" style="padding:8px 12px;border:1px solid var(--border);border-radius:8px;font-size:13px;font-family:inherit;outline:none">
+        <option value="All">All Teams</option>
+        <option value="Blockchain Team">Blockchain Team</option>
+        <option value="Backend Team">Backend Team</option>
+        <option value="Frontend Team">Frontend Team</option>
+        <option value="Security Team">Security Team</option>
+      </select>
+    </div>
+
+    <!-- Time window bar -->
+    <div id="pr-time-bar" style="background:#eff6ff;border:1px solid #bfdbfe;border-radius:8px;padding:8px 14px;font-size:12px;color:#1d4ed8;margin-bottom:14px;display:none"></div>
+
+    <!-- PR List -->
+    <div id="pr-list"></div>
+  </div>
+</div>
+
+<!-- PR Detail Modal -->
+<div class="pr-modal-overlay" id="pr-detail-modal" onclick="prDash.closeModal(event)">
+  <div class="pr-modal-inner" id="pr-detail-inner" onclick="event.stopPropagation()"></div>
+</div>
+
+<script src="shared/pjm-sync.js"></script>
+<script src="shared/pjm-nav.js"></script>
+<script>
+// ── Date badge ──
+(function(){
+  var d=new Date();
+  var days=['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
+  var months=['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+  var el=document.getElementById('todayDate');
+  if(el) el.textContent='📅 '+days[d.getDay()]+' '+months[d.getMonth()]+' '+d.getDate();
+})();
+
+// ============================
+// PR DASHBOARD — prDash object
+// Uses GitHub GraphQL search: org:Meridian-Exchange is:pr created:>72h-ago
+// Covers ALL repos the token has access to — no hardcoded list needed
+// ============================
+var prDash = {
+  allPRs:        [],
+  filteredPRs:   [],
+  loading:       false,
+  lastSynced:    null,
+  selectedRepo:  'All',
+  selectedEnv:   'All',
+  selectedTeam:  'All',
+  searchQuery:   '',
+
+  // Map GitHub repo topics → Meridian project names
+  topicMap: {
+    exchange:   'Exchange',
+    beacon:        'BEACON',
+    forgelab:  'FORGELAB',
+    dsa:        'DSA',
+    amp:        'ATLAS',
+    beacon:       'Beacon',
+    ember:        'EMBER',
+    agmp:       'Agentic',
+    trustnet:   'Trustnet',
+    aid:        'Infra/DevOps'
+  },
+
+  // ── Token helpers ──
+  getToken: function(){ return localStorage.getItem('pjmdemo_pr_pat') || ''; },
+  setToken: function(t){ localStorage.setItem('pjmdemo_pr_pat', t); },
+
+  // ── Lifecycle ──
+  init: function(){
+    if(!this.getToken()){ this.showSetup(); }
+    else { this.showDash(); if(!this.allPRs.length) this.loadPRs(); }
+  },
+
+  showSetup: function(){
+    document.getElementById('pr-setup-screen').style.display='flex';
+    document.getElementById('pr-main-dash').style.display='none';
+    document.getElementById('syncBtn').style.display='none';
+  },
+  showDash: function(){
+    document.getElementById('pr-setup-screen').style.display='none';
+    document.getElementById('pr-main-dash').style.display='block';
+    document.getElementById('syncBtn').style.display='flex';
+  },
+
+  saveToken: function(){
+    var t=(document.getElementById('pr-pat-input').value||'').trim();
+    if(!t){ document.getElementById('pr-setup-error').textContent='Please enter a token.'; return; }
+    this.setToken(t);
+    this.showDash();
+    this.loadPRs();
+  },
+  resetToken: function(){
+    localStorage.removeItem('pjmdemo_pr_pat');
+    this.allPRs=[];
+    this.filteredPRs=[];
+    this.showSetup();
+  },
+
+  // ── GitHub GraphQL fetch — two-step approach ──
+  // Step 1: Discover repos pushed in last 72h (org.repositories ordered by PUSHED_AT).
+  //         Stop paginating once we hit a repo older than the cutoff → typically
+  //         only 5-30 repos to check, not all 221.
+  // Step 2: Fetch PRs per active repo (parallel batches of 5), filter createdAt > cutoff.
+  // Uses the proven organization→repository→pullRequests query (same as original code).
+  loadPRs: async function(){
+    var token=this.getToken();
+    if(!token){ this.showSetup(); return; }
+    this.loading=true;
+    var listEl=document.getElementById('pr-list');
+    if(listEl) listEl.innerHTML='<div class="loading-state"><div class="spinner"></div>Discovering active repos…</div>';
+
+    var btn=document.getElementById('syncBtn');
+    if(btn){ btn.disabled=true; btn.classList.add('syncing'); btn.querySelector('.sync-icon').textContent='⏳'; }
+
+    var cutoff=new Date(Date.now()-72*60*60*1000);
+    var self=this;
+
+    // Helper: one GraphQL call
+    var gqlCall=async function(query, variables){
+      var resp=await window.fetch('https://api.github.com/graphql',{
+        method:'POST',
+        headers:{'Authorization':'bearer '+token,'Content-Type':'application/json'},
+        body:JSON.stringify({query:query, variables:variables||{}})
+      });
+      if(!resp.ok) throw new Error('HTTP '+resp.status+' from GitHub API');
+      var data=await resp.json();
+      if(data.errors&&data.errors.length){
+        throw new Error(data.errors[0].message||'GitHub API error');
+      }
+      return data;
+    };
+
+    try{
+      // ── STEP 1: Repo discovery ──
+      var repoQuery=
+        'query($after:String){'
+        +'  organization(login:"Meridian-Exchange"){'
+        +'    repositories(first:25,orderBy:{field:PUSHED_AT,direction:DESC},after:$after){'
+        +'      pageInfo{hasNextPage endCursor}'
+        +'      nodes{'
+        +'        name pushedAt'
+        +'        owner{login}'
+        +'        repositoryTopics(first:10){nodes{topic{name}}}'
+        +'      }'
+        +'    }'
+        +'  }'
+        +'}';
+
+      var activeRepos=[];
+      var repoAfter=null;
+      var done=false;
+
+      for(var rp=0;rp<9&&!done;rp++){
+        var rd=await gqlCall(repoQuery,{after:repoAfter});
+        var reposData=rd.data&&rd.data.organization&&rd.data.organization.repositories;
+        if(!reposData) break;
+
+        var nodes=reposData.nodes||[];
+        for(var i=0;i<nodes.length;i++){
+          var repo=nodes[i];
+          if(new Date(repo.pushedAt)<cutoff){
+            done=true; // sorted desc — everything from here is older
+            break;
+          }
+          activeRepos.push(repo);
+        }
+
+        if(!reposData.pageInfo||!reposData.pageInfo.hasNextPage) break;
+        repoAfter=reposData.pageInfo.endCursor;
+      }
+
+      if(listEl) listEl.innerHTML='<div class="loading-state"><div class="spinner"></div>Fetching PRs from '
+        +activeRepos.length+' active repo'+(activeRepos.length!==1?'s':'')+'…</div>';
+
+      // ── STEP 2: Fetch PRs per repo (batches of 5 in parallel) ──
+      var prQuery=
+        'query($owner:String!,$name:String!){'
+        +'  repository(owner:$owner,name:$name){'
+        +'    pullRequests(first:50,orderBy:{field:CREATED_AT,direction:DESC}){'
+        +'      nodes{'
+        +'        number title state merged reviewDecision'
+        +'        createdAt updatedAt url'
+        +'        changedFiles additions deletions'
+        +'        baseRefName headRefName'
+        +'        author{login avatarUrl}'
+        +'        labels(first:20){nodes{name}}'
+        +'        reviewRequests(first:20){nodes{requestedReviewer{'
+        +'          ...on User{login}'
+        +'          ...on Team{name}'
+        +'        }}}'
+        +'        reviews(last:50){nodes{author{login}state submittedAt}}'
+        +'      }'
+        +'    }'
+        +'  }'
+        +'}';
+
+      var allPRs=[];
+
+      for(var b=0;b<activeRepos.length;b+=5){
+        var batch=activeRepos.slice(b,b+5);
+        var promises=batch.map(function(repo){
+          return gqlCall(prQuery,{owner:repo.owner.login,name:repo.name})
+            .then(function(d){
+              var prNodes=(d.data&&d.data.repository&&d.data.repository.pullRequests&&d.data.repository.pullRequests.nodes)||[];
+              var topics=(repo.repositoryTopics&&repo.repositoryTopics.nodes||[])
+                .map(function(n){return n.topic.name.toLowerCase();});
+              return prNodes
+                .filter(function(pr){ return new Date(pr.createdAt)>=cutoff; })
+                .map(function(pr){ return self.transform(pr,repo.name,repo.owner.login,topics); });
+            })
+            .catch(function(e){ console.warn('[PR Dashboard] repo '+repo.name+':',e.message); return []; });
+        });
+        var results=await Promise.all(promises);
+        results.forEach(function(prs){ allPRs.push.apply(allPRs,prs); });
+      }
+
+      allPRs.sort(function(a,b){return new Date(b.createdAt)-new Date(a.createdAt);});
+      this.allPRs=allPRs;
+      this.loading=false;
+      this.lastSynced=new Date();
+
+      var synced=document.getElementById('pr-last-synced');
+      if(synced){
+        synced.innerHTML='<span style="color:#10b981">●</span> Synced '+this.lastSynced.toLocaleTimeString();
+        synced.classList.remove('stale','error');
+      }
+      if(btn){ btn.disabled=false; btn.classList.remove('syncing'); btn.querySelector('.sync-icon').textContent='🔄'; }
+      this.applyFilters();
+      this.render();
+
+    }catch(e){
+      console.error('[PR Dashboard]',e);
+      this.loading=false;
+      if(btn){ btn.disabled=false; btn.classList.remove('syncing'); btn.querySelector('.sync-icon').textContent='🔄'; }
+      var hint=e.message==='Failed to fetch'||e.name==='TypeError'
+        ?'Network error — please check your internet connection and try again.'
+        :e.message&&e.message.toLowerCase().indexOf('could not resolve')>-1
+          ?'Your token may not have access to the Meridian-Exchange org. Ensure it has <strong>repo</strong> and <strong>read:org</strong> scopes.'
+          :this.esc(e.message);
+      if(listEl) listEl.innerHTML=
+        '<div class="pr-empty">'
+        +'<div style="font-size:48px;margin-bottom:12px">⚠️</div>'
+        +'<div style="font-size:16px;font-weight:600;margin-bottom:6px">Could not load PRs</div>'
+        +'<div style="font-size:13px;color:var(--muted);max-width:440px;margin:0 auto 16px;line-height:1.6">'+hint+'</div>'
+        +'<div style="display:flex;gap:10px;justify-content:center">'
+        +'<button onclick="prDash.loadPRs()" style="padding:10px 20px;background:var(--primary);color:#fff;border:none;border-radius:8px;cursor:pointer;font-size:13px;font-weight:600;">Try Again</button>'
+        +'<button onclick="prDash.resetToken()" style="padding:10px 20px;border:1px solid var(--border);border-radius:8px;background:#fff;cursor:pointer;font-size:13px;">Reset Token</button>'
+        +'</div></div>';
+    }
+  },
+
+  // ── Transform raw PR node → normalised object ──
+  // repo/owner/topics are passed separately (from the repo discovery step)
+  transform: function(pr,repo,owner,topics){
+
+    var labels=(pr.labels&&pr.labels.nodes||[]).map(function(l){ return l.name; });
+    var teamLabel=labels.find(function(l){ return l.startsWith('team:'); });
+    var team=teamLabel
+      ? (teamLabel.replace('team:','').charAt(0).toUpperCase()+teamLabel.replace('team:','').slice(1)+' Team')
+      : 'Unassigned';
+
+    // ── Environment detection (priority order) ──
+    // 1. Explicit env: label → highest confidence
+    var envLabel=labels.find(function(l){ return ['env:dev','env:qa','env:stage','env:prod'].indexOf(l)>-1; });
+    var env='Dev'; // default
+    if(envLabel){
+      env=envLabel.replace('env:','').charAt(0).toUpperCase()+envLabel.replace('env:','').slice(1);
+    } else {
+      // 2. Target branch (baseRefName) → strong signal
+      // 3. Source branch (headRefName) → moderate signal
+      // 4. PR title → weak fallback
+      var branchTarget=(pr.baseRefName||'').toLowerCase();
+      var branchSource=(pr.headRefName||'').toLowerCase();
+      var title=(pr.title||'').toLowerCase();
+
+      // Helper: score a string for each env (returns highest match)
+      function detectEnvFromString(s){
+        if(/\bprod(uction)?\b/.test(s)||/\/prod\b/.test(s)) return 'Prod';
+        if(/\bstag(ing|e)?\b/.test(s)||/\/stag/.test(s))   return 'Stage';
+        if(/\bqa\b/.test(s)||/\/qa\b/.test(s)||/[-_]qa[-_]/.test(s)||/qa[-_]release/.test(s)||/release[-_\/]?qa/.test(s)) return 'QA';
+        if(/\bdev(elop)?\b/.test(s)||/\/dev\b/.test(s))    return 'Dev';
+        return null;
+      }
+
+      var fromTarget=detectEnvFromString(branchTarget);
+      var fromSource=detectEnvFromString(branchSource);
+      var fromTitle =detectEnvFromString(title);
+
+      env = fromTarget || fromSource || fromTitle || 'Dev';
+    }
+
+    var project='Unassigned';
+    var topicMap=this.topicMap;
+    for(var i=0;i<topics.length;i++){
+      if(topicMap[topics[i]]){ project=topicMap[topics[i]]; break; }
+    }
+    // Fallback: try to infer project from repo name
+    if(project==='Unassigned'){
+      var rn=repo.toLowerCase();
+      if(rn.indexOf('beacon')>-1)            project='BEACON';
+      else if(rn.indexOf('exchange')>-1||rn.indexOf('meridian-backend')>-1||rn.indexOf('meridian-common')>-1) project='Exchange';
+      else if(rn.indexOf('amp')>-1||rn.indexOf('agentic')>-1) project='Agentic';
+      else if(rn.indexOf('ember')>-1)       project='EMBER';
+      else if(rn.indexOf('labs')>-1||rn.indexOf('frontend')>-1) project='Meridian Labs';
+      else if(rn.indexOf('infra')>-1||rn.indexOf('k8s')>-1||rn.indexOf('ansible')>-1) project='Infra/DevOps';
+      else if(rn.indexOf('pooling')>-1||rn.indexOf('sui')>-1||rn.indexOf('token')>-1||rn.indexOf('nodes')>-1) project='Beacon';
+    }
+
+    // Deduplicate reviews — keep most recent state per reviewer
+    var reviewsByUser={};
+    (pr.reviews&&pr.reviews.nodes||[]).forEach(function(r){
+      if(r.author&&(!reviewsByUser[r.author.login]||
+         new Date(r.submittedAt)>new Date(reviewsByUser[r.author.login].submittedAt))){
+        reviewsByUser[r.author.login]=r;
+      }
+    });
+    var approvers=Object.values(reviewsByUser)
+      .filter(function(r){ return r.state==='APPROVED'; })
+      .map(function(r){ return r.author.login; });
+    var pending=(pr.reviewRequests&&pr.reviewRequests.nodes||[])
+      .map(function(n){ return n.requestedReviewer?(n.requestedReviewer.login||n.requestedReviewer.name||''):''; })
+      .filter(Boolean);
+
+    // Determine how env was inferred (for tooltip)
+    var envSource='default';
+    if(envLabel)                                          envSource='label';
+    else if(fromTarget)                                   envSource='target branch: '+pr.baseRefName;
+    else if(fromSource)                                   envSource='source branch: '+pr.headRefName;
+    else if(fromTitle)                                    envSource='PR title';
+
+    return {
+      id:             pr.number+'-'+repo,
+      number:         pr.number,
+      title:          pr.title,
+      author:         pr.author?pr.author.login:'ghost',
+      authorAvatar:   pr.author?pr.author.avatarUrl:'',
+      repo:           repo,
+      owner:          owner,
+      environment:    env,
+      envSource:      envSource,
+      team:           team,
+      project:        project,
+      state:          pr.state.toLowerCase(),
+      reviewDecision: pr.reviewDecision||'REVIEW_REQUIRED',
+      merged:         pr.merged,
+      createdAt:      pr.createdAt,
+      updatedAt:      pr.updatedAt,
+      approvers:      approvers,
+      pendingReviewers: pending,
+      changedFiles:   pr.changedFiles||0,
+      additions:      pr.additions||0,
+      deletions:      pr.deletions||0,
+      url:            pr.url,
+      baseRefName:    pr.baseRefName||'',
+      headRefName:    pr.headRefName||''
+    };
+  },
+
+  // ── Filtering ──
+  applyFilters: function(){
+    var self=this;
+    this.filteredPRs=this.allPRs.filter(function(pr){
+      var mr=self.selectedRepo==='All'||pr.repo===self.selectedRepo;
+      var me=self.selectedEnv==='All'||pr.environment===self.selectedEnv;
+      var mt=self.selectedTeam==='All'||pr.team===self.selectedTeam;
+      var ms=!self.searchQuery||
+             pr.title.toLowerCase().indexOf(self.searchQuery.toLowerCase())>-1||
+             pr.author.toLowerCase().indexOf(self.searchQuery.toLowerCase())>-1||
+             pr.repo.toLowerCase().indexOf(self.searchQuery.toLowerCase())>-1||
+             pr.number.toString().indexOf(self.searchQuery)>-1;
+      return mr&&me&&mt&&ms;
+    });
+  },
+
+  onSearch: function(v){ this.searchQuery=v; this.applyFilters(); this.render(); },
+  onFilter: function(){
+    this.selectedEnv=document.getElementById('pr-env-filter').value;
+    this.selectedTeam=document.getElementById('pr-team-filter').value;
+    this.applyFilters(); this.render();
+  },
+  setRepo: function(r){ this.selectedRepo=r; this.applyFilters(); this.render(); },
+
+  // ── Render ──
+  render: function(){
+    this.renderKPIs();
+    this.renderRepoTabs();
+    this.renderTimeBar();
+    this.renderList();
+  },
+
+  renderKPIs: function(){
+    var prs=this.allPRs;
+    var repos=new Set(prs.map(function(p){ return p.repo; }));
+    var stats=[
+      {label:'Total PRs',   val:prs.length,                                                  icon:'📊', bg:'#eff6ff',  iconBg:'#dbeafe'},
+      {label:'Open',        val:prs.filter(function(p){ return p.state==='open'; }).length,   icon:'⏳', highlight:true},
+      {label:'Merged',      val:prs.filter(function(p){ return p.merged; }).length,           icon:'✅', bg:'#f0fdf4',  iconBg:'#dcfce7'},
+      {label:'Active Repos',val:repos.size,                                                   icon:'📁', bg:'#faf5ff',  iconBg:'#ede9fe'}
+    ];
+    document.getElementById('pr-kpi-row').innerHTML=stats.map(function(s){
+      return '<div class="pr-kpi-card'+(s.highlight?' highlight':'')+'" style="'+(s.bg?'background:'+s.bg+';border-color:'+s.iconBg+';':'')+'">'
+        +'<div><div class="pr-kl">'+s.label+'</div><div class="pr-kv">'+s.val+'</div></div>'
+        +'<div class="pr-kicon" style="background:'+(s.highlight?'rgba(255,255,255,.25)':(s.iconBg||'#f3f4f6'))+'">'+s.icon+'</div>'
+        +'</div>';
+    }).join('');
+  },
+
+  // Repo tabs replace project tabs — since repos are dynamic
+  renderRepoTabs: function(){
+    var repoStats={};
+    this.allPRs.forEach(function(pr){
+      if(!repoStats[pr.repo]) repoStats[pr.repo]={total:0,open:0};
+      repoStats[pr.repo].total++;
+      if(pr.state==='open') repoStats[pr.repo].open++;
+    });
+    var self=this;
+    var html='<button class="pr-proj-btn'+(this.selectedRepo==='All'?' active':'')+'" onclick="prDash.setRepo(\'All\')">'
+      +'All Repos <span class="pr-proj-cnt">'+this.allPRs.length+'</span></button>';
+    Object.entries(repoStats).sort(function(a,b){ return b[1].total-a[1].total; }).forEach(function(entry){
+      var name=entry[0], s=entry[1];
+      var active=self.selectedRepo===name;
+      // escape single quotes in repo name for onclick
+      var safeName=name.replace(/'/g,"\\'");
+      html+='<button class="pr-proj-btn'+(active?' active':'')+'" onclick="prDash.setRepo(\''+safeName+'\')">'
+        +name+' <span class="pr-proj-cnt">'+s.total+'</span>'
+        +(s.open>0&&!active?'<span style="background:#fef3c7;color:#92400e;padding:2px 6px;border-radius:8px;font-size:10px;font-weight:700">'+s.open+'</span>':'')
+        +'</button>';
+    });
+    document.getElementById('pr-proj-tabs').innerHTML=html;
+  },
+
+  renderTimeBar: function(){
+    var el=document.getElementById('pr-time-bar'); if(!el) return;
+    var now=new Date();
+    var cutoff=new Date(now-72*60*60*1000);
+    el.style.display='block';
+    el.innerHTML='🕐 Showing PRs <strong>raised between '
+      +cutoff.toLocaleString('en-GB',{day:'2-digit',month:'short',hour:'2-digit',minute:'2-digit'})
+      +' → '+now.toLocaleString('en-GB',{day:'2-digit',month:'short',hour:'2-digit',minute:'2-digit'})
+      +'</strong> &nbsp;·&nbsp; '+this.allPRs.length+' total across '
+      +new Set(this.allPRs.map(function(p){return p.repo;})).size+' repos';
+  },
+
+  renderList: function(){
+    var el=document.getElementById('pr-list'); if(!el) return;
+    if(!this.filteredPRs.length){
+      var msg=this.allPRs.length
+        ?'No PRs match the current filters.'
+        :'No PRs raised in the last 72 hours across accessible repos.';
+      el.innerHTML='<div class="pr-empty">'
+        +'<div style="font-size:48px;margin-bottom:12px">📭</div>'
+        +'<div style="font-size:16px;font-weight:600;margin-bottom:6px">No PRs found</div>'
+        +'<div style="font-size:13px">'+msg+'</div>'
+        +'</div>';
+      return;
+    }
+    var self=this;
+    el.innerHTML=this.filteredPRs.map(function(pr){ return self.cardHTML(pr); }).join('');
+  },
+
+  // ── Badges & helpers ──
+  reviewBadge: function(dec){
+    if(dec==='APPROVED')           return '<span class="pr-badge approved">✓ Approved</span>';
+    if(dec==='CHANGES_REQUESTED')  return '<span class="pr-badge changes">✗ Changes Requested</span>';
+    return '<span class="pr-badge review">⚠ Review Required</span>';
+  },
+  envBadge: function(env, envSource){
+    var cls=env==='Prod'?'env-prod':env==='QA'?'env-qa':env==='Stage'?'env-stage':'env-dev';
+    var icon=envSource==='label'?'🏷 ':envSource==='default'?'':'🔍 ';
+    var tip=envSource==='label'?'Detected from GitHub label'
+           :envSource==='default'?'No env signals found — defaulted to Dev'
+           :'Inferred from '+envSource;
+    return '<span class="pr-badge '+cls+'" title="'+tip+'" style="cursor:help">'+icon+env+'</span>';
+  },
+  pipeline: function(pr){
+    var steps=[
+      {label:'Opened',  done:true},
+      {label:'Approved',done:pr.reviewDecision==='APPROVED'},
+      {label:'Merged',  done:pr.merged},
+      {label:'Deployed',done:false},
+      {label:'Closed',  done:pr.state==='closed'}
+    ];
+    return '<div class="pr-pipeline">'+steps.map(function(s,i){
+      return '<div class="pr-step">'
+        +'<div class="pr-step-circle '+(s.done?'done':'pending')+'">'+(s.done?'✓':(i+1))+'</div>'
+        +'<span class="pr-step-lbl">'+s.label+'</span>'
+        +'</div>'
+        +(i<steps.length-1?'<div class="pr-connector'+(s.done?' done':'')+'"></div>':'');
+    }).join('')+'</div>';
+  },
+  timeAgo: function(iso){
+    var diff=Date.now()-new Date(iso).getTime();
+    var h=Math.floor(diff/3600000);
+    if(h<1) return Math.floor(diff/60000)+'m ago';
+    if(h<24) return h+'h ago';
+    return Math.floor(h/24)+'d ago';
+  },
+  esc: function(s){ return (s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); },
+
+  // ── PR Card HTML ──
+  cardHTML: function(pr){
+    var initials=(pr.author||'?').substring(0,2).toUpperCase();
+    var reviewers='';
+    if(pr.approvers.length)      reviewers+=pr.approvers.map(function(a){ return '<span class="pr-reviewer-chip approved">✓ '+a+'</span>'; }).join('');
+    if(pr.pendingReviewers.length) reviewers+=pr.pendingReviewers.map(function(r){ return '<span class="pr-reviewer-chip">⏳ '+r+'</span>'; }).join('');
+    var envColor=pr.environment==='Prod'?'background:#ede9fe;color:#5b21b6'
+                :pr.environment==='QA'?'background:#fef3c7;color:#92400e'
+                :pr.environment==='Stage'?'background:#dbeafe;color:#1e40af'
+                :'background:#f3f4f6;color:#374151';
+    return '<div class="pr-card" onclick="prDash.openModal(\''+this.esc(pr.id)+'\')">'
+      +'<div class="pr-card-hdr">'
+        +'<div style="display:flex;gap:12px;align-items:flex-start">'
+          +'<div class="pr-avatar">'+initials+'</div>'
+          +'<div style="min-width:0">'
+            +'<div style="font-size:12px;color:var(--muted);margin-bottom:2px">'
+              +'#'+pr.number+' &nbsp;·&nbsp; <strong>'+this.esc(pr.repo)+'</strong>'
+              +' &nbsp;·&nbsp; '+this.timeAgo(pr.createdAt)
+            +'</div>'
+            +'<div style="font-size:14px;font-weight:600;color:var(--text);line-height:1.4;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;max-width:500px" title="'+this.esc(pr.title)+'">'+this.esc(pr.title)+'</div>'
+          +'</div>'
+        +'</div>'
+        +'<div style="display:flex;gap:6px;flex-shrink:0;flex-wrap:wrap;justify-content:flex-end">'
+          +this.reviewBadge(pr.reviewDecision)
+          +this.envBadge(pr.environment, pr.envSource)
+          +(pr.merged?'<span class="pr-badge approved">⬡ Merged</span>':pr.state==='closed'?'<span class="pr-badge changes">✕ Closed</span>':'')
+        +'</div>'
+      +'</div>'
+      +this.pipeline(pr)
+      +'<div class="pr-meta-grid">'
+        +'<div><div class="pr-meta-lbl">Project</div><div class="pr-meta-val">'+this.esc(pr.project)+'</div></div>'
+        +'<div><div class="pr-meta-lbl">Author</div><div class="pr-meta-val">'+this.esc(pr.author)+'</div></div>'
+      +'</div>'
+      +(reviewers?'<div class="pr-reviewers"><div class="pr-meta-lbl" style="margin-bottom:6px">Reviewers</div>'+reviewers+'</div>':'')
+      +'<div class="pr-card-footer">'
+        +'<div style="display:flex;align-items:center;gap:6px">'
+          +'<span class="pr-branch-badge" style="background:#f3f4f6;color:#374151">'+this.esc(pr.repo)+'</span>'
+          +'<span style="color:var(--muted);font-size:11px">·</span>'
+          +'<span class="pr-branch-badge" style="'+envColor+'" title="'+this.esc(pr.envSource==='label'?'From GitHub label':pr.envSource==='default'?'Default — no env signals found':'Inferred from '+pr.envSource)+'" >'+this.esc(pr.environment)+'</span>'
+        +'</div>'
+        +'<div style="display:flex;align-items:center;gap:10px;font-size:12px">'
+          +'<span style="color:#10b981">+'+pr.additions+'</span>'
+          +'<span style="color:#ef4444">-'+pr.deletions+'</span>'
+          +'<span style="color:var(--muted)">'+pr.changedFiles+' file'+(pr.changedFiles!==1?'s':'')+'</span>'
+        +'</div>'
+      +'</div>'
+      +'</div>';
+  },
+
+  // ── Modal ──
+  openModal: function(id){
+    var pr=this.allPRs.find(function(p){ return p.id===id; }); if(!pr) return;
+    var inner=document.getElementById('pr-detail-inner');
+    var initials=(pr.author||'?').substring(0,2).toUpperCase();
+    var self=this;
+    inner.innerHTML=
+      '<div style="position:sticky;top:0;background:#fff;border-bottom:1px solid var(--border);padding:18px 22px;display:flex;align-items:center;justify-content:space-between;border-radius:16px 16px 0 0;z-index:1">'
+        +'<div style="display:flex;align-items:center;gap:12px;min-width:0">'
+          +'<div class="pr-avatar">'+initials+'</div>'
+          +'<div style="min-width:0">'
+            +'<div style="font-size:15px;font-weight:700;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">#'+pr.number+' — '+this.esc(pr.title)+'</div>'
+            +'<div style="font-size:12px;color:var(--muted);margin-top:2px">'
+              +'<strong>'+this.esc(pr.repo)+'</strong> · by '+this.esc(pr.author)+' · '+this.timeAgo(pr.createdAt)
+            +'</div>'
+          +'</div>'
+        +'</div>'
+        +'<button onclick="prDash.closeModal()" style="background:none;border:none;font-size:22px;cursor:pointer;color:var(--muted);line-height:1;flex-shrink:0">✕</button>'
+      +'</div>'
+      +'<div style="padding:22px">'
+        +'<h4 style="font-size:13px;font-weight:600;margin-bottom:10px;color:var(--muted);text-transform:uppercase;letter-spacing:.05em">Progress</h4>'
+        +this.pipeline(pr)
+        +'<div style="display:grid;grid-template-columns:1fr 1fr;gap:20px;margin-bottom:20px">'
+          +'<div>'
+            +'<h4 style="font-size:13px;font-weight:600;margin-bottom:10px">Details</h4>'
+            +[
+               ['Repository',pr.repo],
+               ['Project',pr.project],
+               ['Environment', pr.environment + (pr.envSource&&pr.envSource!=='label'&&pr.envSource!=='default'?' <span style="font-size:10px;color:var(--muted);font-weight:400">(inferred)</span>':'')],
+               ['Target Branch','<code style="font-size:11px;background:#f3f4f6;padding:2px 5px;border-radius:4px">'+self.esc(pr.baseRefName||'—')+'</code>'],
+               ['Source Branch','<code style="font-size:11px;background:#f3f4f6;padding:2px 5px;border-radius:4px">'+self.esc(pr.headRefName||'—')+'</code>'],
+               ['Review Status',pr.reviewDecision.replace(/_/g,' ')]
+             ].map(function(row){
+              return '<div style="display:flex;justify-content:space-between;padding:8px 0;border-bottom:1px solid var(--border)">'
+                +'<span style="font-size:12px;color:var(--muted)">'+row[0]+'</span>'
+                +'<span style="font-size:12px;font-weight:600">'+self.esc(String(row[1]))+'</span></div>';
+            }).join('')
+          +'</div>'
+          +'<div>'
+            +'<h4 style="font-size:13px;font-weight:600;margin-bottom:10px">Changes</h4>'
+            +[['Files Changed',pr.changedFiles],['Additions','<span style="color:#10b981;font-weight:700">+'+pr.additions+'</span>'],['Deletions','<span style="color:#ef4444;font-weight:700">-'+pr.deletions+'</span>'],['Author',pr.author]].map(function(row){
+              return '<div style="display:flex;justify-content:space-between;padding:8px 0;border-bottom:1px solid var(--border)">'
+                +'<span style="font-size:12px;color:var(--muted)">'+row[0]+'</span>'
+                +'<span style="font-size:12px;font-weight:600">'+row[1]+'</span></div>';
+            }).join('')
+          +'</div>'
+        +'</div>'
+        +(pr.approvers.length||pr.pendingReviewers.length?
+          '<h4 style="font-size:13px;font-weight:600;margin-bottom:10px">Reviewers</h4>'
+          +pr.approvers.map(function(a){
+            return '<div style="display:flex;align-items:center;justify-content:space-between;padding:10px 14px;background:#f0fdf4;border-radius:8px;margin-bottom:6px">'
+              +'<div style="display:flex;align-items:center;gap:8px;font-size:13px;font-weight:600"><span style="color:#10b981">✓</span>'+self.esc(a)+'</div>'
+              +'<span style="font-size:11px;font-weight:700;color:#10b981;background:#dcfce7;padding:2px 8px;border-radius:6px">Approved</span></div>';
+          }).join('')
+          +pr.pendingReviewers.map(function(r){
+            return '<div style="display:flex;align-items:center;justify-content:space-between;padding:10px 14px;background:#f9fafb;border-radius:8px;margin-bottom:6px">'
+              +'<div style="display:flex;align-items:center;gap:8px;font-size:13px;font-weight:600"><span style="color:var(--muted)">⏳</span>'+self.esc(r)+'</div>'
+              +'<span style="font-size:11px;font-weight:600;color:var(--muted)">Pending</span></div>';
+          }).join('')
+        :'<p style="font-size:13px;color:var(--muted);margin-bottom:16px">No reviewers assigned yet.</p>')
+        +'<a href="'+pr.url+'" target="_blank" style="display:flex;align-items:center;justify-content:center;gap:8px;width:100%;padding:12px;background:#111827;color:#fff;border-radius:10px;text-decoration:none;font-size:14px;font-weight:600;margin-top:4px">🔗 Open on GitHub</a>'
+      +'</div>';
+    document.getElementById('pr-detail-modal').classList.add('open');
+  },
+
+  closeModal: function(e){
+    if(!e||e.target===document.getElementById('pr-detail-modal')){
+      document.getElementById('pr-detail-modal').classList.remove('open');
+    }
+  }
+};
+
+// ── Boot ──
+document.addEventListener('DOMContentLoaded', function(){
+  PJMNav.render('pr-dashboard');
+  prDash.init();
+});
+</script>
+</body>
+</html>

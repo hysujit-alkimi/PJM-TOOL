@@ -1,0 +1,342 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Releases — Meridian PJM</title>
+<script src="https://accounts.google.com/gsi/client" async defer></script>
+<link rel="stylesheet" href="shared/pjm.css">
+<style>
+.sub-tabs{display:flex;gap:0;margin-bottom:24px;border-bottom:2px solid var(--border);overflow-x:auto}
+.sub-tab{padding:10px 18px;font-size:13px;font-weight:600;cursor:pointer;color:var(--muted);border-bottom:2px solid transparent;margin-bottom:-2px;transition:all .15s;white-space:nowrap}
+.sub-tab.active{color:var(--primary);border-color:var(--primary)}
+.sub-tab:hover{color:var(--text)}
+.releases-hdr{display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;flex-wrap:wrap;gap:8px}
+.releases-hdr-title{font-size:16px;font-weight:700}
+.release-stats{display:flex;gap:8px;flex-wrap:wrap}
+.rel-stat{background:var(--bg);border:1px solid var(--border);border-radius:8px;padding:5px 12px;font-size:12px;font-weight:600;display:flex;align-items:center;gap:5px}
+.rel-stat .dot{width:8px;height:8px;border-radius:50%}
+.sample-note{background:#fef3c7;border:1px solid #fde68a;border-radius:8px;padding:10px 16px;font-size:12px;color:#92400e;margin-bottom:16px;display:flex;align-items:center;gap:8px}
+.releases-table{width:100%;border-collapse:collapse;background:var(--card);border:1px solid var(--border);border-radius:var(--radius);overflow:hidden}
+.releases-table th{padding:11px 16px;font-size:11px;color:var(--muted);font-weight:600;text-transform:uppercase;border-bottom:1px solid var(--border);text-align:left;background:var(--bg)}
+.releases-table td{padding:12px 16px;font-size:13px;border-bottom:1px solid var(--border);vertical-align:middle}
+.releases-table tr:last-child td{border-bottom:none}
+.releases-table tr:hover td{background:var(--hover)}
+.rel-badge{font-size:11px;font-weight:700;padding:4px 10px;border-radius:10px;white-space:nowrap}
+.rel-badge.released{background:#d1fae5;color:#065f46}
+.rel-badge.unreleased{background:#dbeafe;color:#1d4ed8}
+.rel-badge.overdue{background:#fee2e2;color:#b91c1c}
+.version-name{font-weight:700;font-family:monospace;font-size:13px}
+.issues-count{font-weight:700;color:var(--text)}
+.jira-link{font-size:11px;color:var(--primary);text-decoration:none;font-weight:600;padding:4px 10px;border:1px solid var(--primary);border-radius:6px;transition:all .15s;white-space:nowrap}
+.jira-link:hover{background:var(--primary);color:#fff}
+.desc-cell{color:var(--muted);max-width:320px}
+.no-tab-content{padding:60px;text-align:center;color:var(--muted)}
+.upcoming-badge{background:#ede9fe;border:1px solid #c4b5fd;border-radius:8px;padding:6px 12px;font-size:12px;font-weight:600;color:#5b21b6;display:inline-flex;align-items:center;gap:6px}
+</style>
+
+<style id="demoBannerCss">
+#pjmDemoBanner{position:fixed;top:0;left:0;right:0;z-index:99999;background:#8A5CFF;color:#fff;
+ font:600 12px/1.4 system-ui,-apple-system,Segoe UI,sans-serif;padding:7px 44px 7px 16px;text-align:center;
+ letter-spacing:.2px;box-shadow:0 1px 6px rgba(0,0,0,.18)}
+#pjmDemoBanner a{color:#fff;text-decoration:underline}
+#pjmDemoBanner button{position:absolute;right:10px;top:4px;background:none;border:none;color:#fff;
+ font-size:17px;line-height:1;cursor:pointer;padding:4px}
+body.has-demo-banner{padding-top:30px}
+</style>
+<script id="pjmDemoMode">
+/* ===== PUBLIC DEMO BUILD =====
+   All data in this build is fictional. No credentials ship with it and no
+   outbound calls to third-party APIs are permitted. */
+(function(){
+  window.PJM_DEMO = true;
+  var BLOCK = /(api\.linear\.app|api\.github\.com|graphql|googleapis\.com|slack\.com|atlassian\.net)/i;
+  var of = window.fetch;
+  window.fetch = function(input){
+    var u = (typeof input === 'string') ? input : (input && input.url) || '';
+    if (BLOCK.test(u)) {
+      console.info('[demo] blocked outbound call:', u);
+      return Promise.resolve(new Response(JSON.stringify({data:null,demo:true}),
+        {status:200, headers:{'Content-Type':'application/json'}}));
+    }
+    return of.apply(this, arguments);
+  };
+  var ox = window.XMLHttpRequest && window.XMLHttpRequest.prototype.open;
+  if (ox) window.XMLHttpRequest.prototype.open = function(m,u){
+    if (BLOCK.test(String(u))) { console.info('[demo] blocked XHR:', u); u = 'data:application/json,{}'; }
+    return ox.apply(this, [m,u].concat([].slice.call(arguments,2)));
+  };
+  document.addEventListener('DOMContentLoaded', function(){
+    if (sessionStorage.getItem('pjmDemoBannerHidden')) return;
+    var b = document.createElement('div');
+    b.id = 'pjmDemoBanner';
+    b.innerHTML = 'DEMO BUILD \u2014 every person, project, ticket and meeting below is fictional. ' +
+                  'Live integrations are disabled in this build.' +
+                  '<button title="Dismiss" onclick="this.parentNode.remove();' +
+                  'document.body.classList.remove(\'has-demo-banner\');' +
+                  'sessionStorage.setItem(\'pjmDemoBannerHidden\',\'1\')">&times;</button>';
+    document.body.appendChild(b);
+    document.body.classList.add('has-demo-banner');
+  });
+})();
+</script>
+</head>
+<body>
+<div id="loginOverlay"><div class="login-box"><div class="login-logo">⬡</div><h2>Meridian PJM</h2><p>Sign in with your Meridian account to continue.</p><div id="googleSignInBtn"></div><div id="loginError"></div></div></div>
+<div id="pjmSidebarContainer"></div>
+<div class="pjm-main">
+  <div class="module-header">
+    <div>
+      <div class="module-title">🚀 Releases</div>
+      <div class="section-sub">Planned &amp; shipped releases per JIRA project board — from fixVersion</div>
+    </div>
+    <div class="module-header-right">
+      <span id="lastSyncedLabel" class="last-synced-label">Never synced</span>
+      <div class="date-badge" id="todayDate"></div>
+      <button class="sync-btn" id="syncBtn" onclick="doSync()"><span class="sync-icon">🔄</span> Sync</button>
+    </div>
+  </div>
+  <div id="moduleContent"><div class="loading-state"><div class="spinner"></div>Loading…</div></div>
+</div>
+<script src="shared/pjm-sync.js"></script>
+<script src="shared/pjm-nav.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+<script>
+(function(){var d=new Date();var days=['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];var months=['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];var el=document.getElementById('todayDate');if(el)el.textContent='📅 '+days[d.getDay()]+' '+months[d.getMonth()]+' '+d.getDate();})();
+
+const MODULE_ID='releases';
+
+// Last refreshed from JIRA: 28 May 2026 (full browser scan — all projects)
+const sampleReleases={
+  BEACON:[
+    {version:'BEACON JUN 2026',           status:'Unreleased',date:'Jun 25, 2026', issues:0,  versionId:'11230', description:'June 2026 planned release'},
+    {version:'APR 2026',               status:'Released',  date:'Apr 21, 2026', issues:13, versionId:'10896', description:'BEACON April 2026 release pipeline'},
+    {version:'JAN 2026',               status:'Released',  date:'Feb 9, 2026',  issues:65, versionId:'10663', description:'BEACON January 2026 release pipeline'},
+    {version:'December 2025',          status:'Released',  date:'Jan 8, 2026',  issues:23, versionId:'10629', description:'December 2025 release'},
+    {version:'NOV 2025',               status:'Released',  date:'Dec 11, 2025', issues:54, versionId:'10462', description:'BEACON November release'},
+    {version:'PMP ADHOC Release',      status:'Released',  date:'Nov 24, 2025', issues:8,  versionId:'10529', description:'PMP ad-hoc release'},
+    {version:'October 2025',           status:'Released',  date:'Oct 31, 2025', issues:77, versionId:'10264', description:'BEACON October release'},
+    {version:'September 2025 Release', status:'Released',  date:'Sep 22, 2025', issues:65, versionId:'10198', description:'Sprint 37 release'},
+    {version:'BEACON 22082025',           status:'Released',  date:'Aug 22, 2025', issues:14, versionId:'10132', description:'BEACON July/Aug 2025 release'},
+    {version:'BEACON 15072025',           status:'Released',  date:'Jul 15, 2025', issues:4,  versionId:'10165', description:'Daily budget & notification processor'},
+    {version:'BEACON 11062025',           status:'Released',  date:'Jun 11, 2025', issues:21, versionId:'10100', description:'BEACON 11 Jun 2025 release'}
+  ],
+  Exchange:[
+    {version:'MAY ADHOC PRIORITY REL',           status:'Unreleased',date:'May 28, 2026', issues:0,  versionId:'11129', description:'ADPOD release'},
+    {version:'EXCHANGE HOTFIX - 12 MAY 2026',    status:'Released',  date:'May 13, 2026', issues:6,  versionId:'11162', description:'PMP hot fixes — viewability & additional features'},
+    {version:'APRIL PLANNED RELEASE 2026',       status:'Released',  date:'May 6, 2026',  issues:46, versionId:'10964', description:'April planned release'},
+    {version:'MARCH PRIORITY 2026',              status:'Released',  date:'Mar 17, 2026', issues:25, versionId:'10895', description:'March priority release'},
+    {version:'Priority Belt Feb',                status:'Released',  date:'Feb 26, 2026', issues:56, versionId:'10763', description:'Bidding NET vs GROSS, publisher domain classification, BEACON domains & geo filtering'},
+    {version:'JAN 2026',                         status:'Released',  date:'Feb 9, 2026',  issues:49, versionId:'10664', description:'Exchange January 2026 pipeline'},
+    {version:'December 2025',                    status:'Released',  date:'Jan 7, 2026',  issues:17, versionId:'10630', description:'December 2025 release'},
+    {version:'NOV Exchange Release',             status:'Released',  date:'Dec 11, 2025', issues:57, versionId:'10562', description:'November 2025 Exchange release'},
+    {version:'PMP ADHOC Release',                status:'Released',  date:'Nov 24, 2025', issues:43, versionId:'10528', description:'PMP-only ad-hoc release'},
+    {version:'Exchange AdHoc Release',           status:'Released',  date:'Nov 4, 2025',  issues:27, versionId:'10429', description:'Exchange ad-hoc release'},
+    {version:'October 2025',                     status:'Released',  date:'Oct 31, 2025', issues:12, versionId:'10297', description:'October 2025 planned items'},
+    {version:'EX-September 2025 Release',        status:'Released',  date:'Sep 22, 2025', issues:13, versionId:'10199', description:'Exchange release items for Sep 2025'}
+  ],
+  ATLAS:[
+    {version:'ATLAS ADOPS - IMPROVED PHASE 2',status:'Unreleased',date:'Jun 25, 2026',issues:0,versionId:'10697',description:'ATLAS AdOps feedback changes — Phase 2'}
+  ],
+  BEACON:[
+    {version:'PUBLISHER DASHBOARD',   status:'Unreleased',date:'May 28, 2026',issues:0,versionId:'10862',description:'BEACON Tech Delivery'},
+    {version:'FINOPS ADMIN DASHBOARD',status:'Unreleased',date:'TBC',         issues:0,versionId:'11195',description:'FinOps Admin Dashboard release'},
+    {version:'LP',                    status:'Unreleased',date:'TBC',         issues:0,versionId:'11196',description:'LP release'},
+    {version:'FINOPS V2',             status:'Unreleased',date:'TBC',         issues:0,versionId:'11197',description:'FinOps V2 release'}
+  ],
+  EMBER:[
+    {version:'MVP RELEASE',         status:'Unreleased',date:'Mar 31, 2026',issues:0,versionId:'10997',description:'EMBER MVP release'},
+    {version:'Phase 1: Foundation', status:'Unreleased',date:'TBC',         issues:0,versionId:'10595',description:'EMBER Phase 1 — foundation'},
+    {version:'Phase 2: Enhancement',status:'Unreleased',date:'TBC',         issues:0,versionId:'10596',description:'EMBER Phase 2 — enhancement'}
+  ],
+  Labs:[
+    {version:'JUN 2026',              status:'Unreleased',date:'Jun 25, 2026', issues:2,  versionId:'11263', description:'Production bug fixes'},
+    {version:'NOV 2025 Release',      status:'Unreleased',date:'Nov 26, 2025', issues:0,  versionId:'10396', description:'November 2025 release'},
+    {version:'SUI Version 2',         status:'Unreleased',date:'May 21, 2025', issues:0,  versionId:'10001', description:'SUI Release Version 2'},
+    {version:'May Release',           status:'Released',  date:'May 14, 2026', issues:5,  versionId:'11030', description:'XP Portal, post-deployment CRs & production fixes'},
+    {version:'LABS V4.0.2',           status:'Released',  date:'Apr 15, 2026', issues:0,  versionId:'11063', description:'Production bug fixes raised by community'},
+    {version:'LABS V4.0 - APR 2026',  status:'Released',  date:'Apr 2, 2026',  issues:192,versionId:'10796', description:'LABS V4.0 production release'},
+    {version:'LABS 15 OCT Release',   status:'Released',  date:'Oct 15, 2025', issues:7,  versionId:'10363', description:'SUI reward calculation'},
+    {version:'Labs 8th Oct Release',  status:'Released',  date:'Oct 10, 2025', issues:8,  versionId:'10330', description:'October 8th release'},
+    {version:'Labs 24th Sept Release',status:'Released',  date:'Sep 24, 2025', issues:9,  versionId:'10231', description:'September 24th release'},
+    {version:'SUI Version - 3',       status:'Released',  date:'Aug 19, 2025', issues:3,  versionId:'10034', description:'SUI Release Version 3'},
+    {version:'SUI Version - 2',       status:'Released',  date:'Aug 15, 2025', issues:2,  versionId:'10033', description:'SUI Release Version 2'},
+    {version:'SUI Version - 1',       status:'Released',  date:'Aug 6, 2025',  issues:5,  versionId:'10000', description:'SUI Release Version 1'}
+  ]
+};
+
+const tabConfig=[
+  {id:'BEACON',   label:'📊 BEACON',      jiraKey:'BEACON'},
+  {id:'Exchange',label:'🔄 Exchange',jiraKey:'E2'},
+  {id:'ATLAS',   label:'🤖 ATLAS',      jiraKey:'ATLAS'},
+  {id:'BEACON',  label:'💰 BEACON',     jiraKey:'ADF'},
+  {id:'EMBER',   label:'📈 EMBER',      jiraKey:'EMBER'},
+  {id:'Labs',  label:'🧪 Labs',     jiraKey:'FORGELABS'}
+];
+
+let activeTab='BEACON';
+let liveData={};
+
+function getReleasesForTab(){
+  return liveData[activeTab]||sampleReleases[activeTab]||[];
+}
+
+function isLive(){
+  return !!liveData[activeTab];
+}
+
+function renderTabBar(){
+  return `<div class="sub-tabs">
+    ${tabConfig.map(t=>`<div class="sub-tab${activeTab===t.id?' active':''}" onclick="switchTab('${t.id}')">${t.label}</div>`).join('')}
+  </div>`;
+}
+
+function renderReleasesPane(){
+  const releases=getReleasesForTab();
+  const config=tabConfig.find(t=>t.id===activeTab);
+  const total=releases.length;
+  const released=releases.filter(r=>r.status==='Released').length;
+  const unreleased=releases.filter(r=>r.status==='Unreleased').length;
+  const overdue=releases.filter(r=>r.status==='Overdue').length;
+  const creds=PJMSync.Jira.getCredentials();
+  const showSampleNote=!creds;
+  // Releases tab URL — works for all classic Jira projects
+  const jiraVersionsUrl=`https://meridian.atlassian.net/projects/${config.jiraKey}?selectedItem=com.atlassian.jira.jira-projects-plugin%3Arelease-page`;
+
+  // Per-version link — deep-links to the specific version on the releases tab
+  function versionLink(r){
+    if(r.versionId){
+      return `https://meridian.atlassian.net/projects/${config.jiraKey}/versions/${r.versionId}`;
+    }
+    return jiraVersionsUrl;
+  }
+
+  let html=`
+  <div class="releases-hdr">
+    <div>
+      <div class="releases-hdr-title">${config.label} — Version History</div>
+    </div>
+    <div class="release-stats">
+      <div class="rel-stat"><div class="dot" style="background:#94a3b8"></div>${total} versions</div>
+      <div class="rel-stat"><div class="dot" style="background:#10b981"></div>${released} released</div>
+      <div class="rel-stat"><div class="dot" style="background:#3b82f6"></div>${unreleased} unreleased</div>
+      ${overdue>0?`<div class="rel-stat"><div class="dot" style="background:#ef4444"></div>${overdue} overdue</div>`:''}
+      <a href="${jiraVersionsUrl}" target="_blank" style="text-decoration:none"><div class="rel-stat" style="color:var(--primary);cursor:pointer">🔗 JIRA Releases</div></a>
+    </div>
+  </div>`;
+
+  // Projects with no fixVersions in JIRA yet
+  if(showSampleNote){
+    html+=`<div class="sample-note">⚠️ Showing JIRA-synced data (last refreshed 27 May 2026). Sync to pull latest versions from /rest/api/3/project/${config.jiraKey}/versions</div>`;
+  }
+
+  // Upcoming / overdue release callout
+  const nextRelease=releases.find(r=>r.status==='Unreleased'||r.status==='Overdue');
+  if(nextRelease){
+    const isOverdue=nextRelease.status==='Overdue';
+    html+=`<div style="margin-bottom:16px">
+      <span class="upcoming-badge" style="${isOverdue?'background:#fee2e2;border-color:#fca5a5;color:#b91c1c':''}">
+        ${isOverdue?'⚠️ Overdue':'🚀 Next release'}: <strong>${nextRelease.version}</strong> — ${nextRelease.date}
+      </span>
+    </div>`;
+  }
+
+  html+=`<table class="releases-table">
+    <thead>
+      <tr>
+        <th>Version</th>
+        <th>Status</th>
+        <th>Release Date</th>
+        <th>Issues</th>
+        <th>Description</th>
+        <th>Link</th>
+      </tr>
+    </thead>
+    <tbody>`;
+
+  releases.forEach(r=>{
+    const badgeClass=r.status==='Released'?'released':r.status==='Overdue'?'overdue':'unreleased';
+    const link=versionLink(r);
+    html+=`<tr>
+      <td class="version-name">${r.version}</td>
+      <td><span class="rel-badge ${badgeClass}">${r.status==='Released'?'✓ Released':r.status==='Overdue'?'⚠️ Overdue':'● Unreleased'}</span></td>
+      <td>${r.date}</td>
+      <td class="issues-count">${r.issues}</td>
+      <td class="desc-cell">${r.description}</td>
+      <td>${link?`<a href="${link}" target="_blank" class="jira-link">View →</a>`:'<span style="color:var(--muted);font-size:11px">—</span>'}</td>
+    </tr>`;
+  });
+
+  html+=`</tbody></table>`;
+  return html;
+}
+
+function switchTab(tab){
+  activeTab=tab;
+  renderAll();
+}
+
+function renderAll(){
+  const html=`
+  ${renderTabBar()}
+  ${renderReleasesPane()}`;
+  document.getElementById('moduleContent').innerHTML=html;
+}
+
+function formatJiraDate(d){
+  if(!d)return'—';
+  const [y,m,day]=d.split('-');
+  const months=['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+  return `${months[parseInt(m)-1]} ${parseInt(day)}, ${y}`;
+}
+
+function doSync(){
+  PJMSync.setSyncBtnState(true);
+  PJMSync.markLoading(MODULE_ID);
+
+  const creds=PJMSync.Jira.getCredentials();
+  const syncableTabs=tabConfig;
+
+  if(creds){
+    const fetches=syncableTabs.map(config=>
+      PJMSync.Jira.fetch(`/rest/api/3/project/${config.jiraKey}/versions`)
+        .then(r=>r.json())
+        .then(data=>{
+          if(Array.isArray(data)&&data.length>0){
+            liveData[config.id]=data
+              .filter(v=>!v.archived)
+              .sort((a,b)=>(b.releaseDate||'').localeCompare(a.releaseDate||''))
+              .map(v=>({
+                version:v.name,
+                status:v.released?'Released':v.overdue?'Overdue':'Unreleased',
+                date:formatJiraDate(v.releaseDate),
+                issues:0,
+                versionId:v.id||null,
+                description:v.description||'—'
+              }));
+          }
+        })
+        .catch(()=>{})
+    );
+    Promise.all(fetches).then(()=>{
+      PJMSync.markSynced(MODULE_ID,{source:'jira'});
+      PJMSync.setSyncBtnState(false);
+      renderAll();
+    });
+  } else {
+    setTimeout(()=>{
+      PJMSync.markSynced(MODULE_ID,{source:'sample'});
+      PJMSync.setSyncBtnState(false);
+      renderAll();
+    },500);
+  }
+}
+
+document.addEventListener('DOMContentLoaded',function(){
+  PJMNav.render(MODULE_ID);
+  PJMSync.initModule(MODULE_ID,doSync);
+  renderAll();
+});
+</script>
+</body>
+</html>

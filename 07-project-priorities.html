@@ -1,0 +1,350 @@
+<!DOCTYPE html>
+<html lang="en-GB">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Project Priorities — Meridian PJM</title>
+<script src="https://accounts.google.com/gsi/client" async defer></script>
+<link rel="stylesheet" href="shared/pjm.css">
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Unbounded:wght@300;400;500;600;700;800&family=Poppins:ital,wght@0,300;0,400;0,500;0,600;0,700;1,400&display=swap');
+
+/* ── Meridian priorities scope (matched to Marketplace app palette) ── */
+.ap {
+  --ap-black:#131313; --ap-white:#fff;
+  --ap-grey-light:#4A4A46; --ap-grey-mid:#8C8C87; --ap-grey-dark:#E5E5E1;
+  --ap-lime:#DFF54A; --ap-lime-dark:#A9CC2E;
+  --ap-bg:#F5F5F2;
+  --ap-font-title:'Unbounded',system-ui,sans-serif;
+  --ap-font:'Poppins',system-ui,sans-serif;
+  --s1:4px; --s2:8px; --s3:12px; --s4:16px; --s6:24px; --s8:32px; --s10:40px;
+  --r-md:8px; --r-lg:16px; --r-full:9999px;
+  font-family:var(--ap-font); color:var(--ap-black);
+}
+
+/* Meta row */
+.ap-meta { display:flex; gap:var(--s6); flex-wrap:wrap; margin:0 0 var(--s6); }
+.ap-meta .item { font-size:.8rem; color:var(--ap-grey-mid); }
+.ap-meta .item strong { color:var(--ap-grey-light); font-weight:600; }
+
+/* Legend */
+.ap-legend {
+  display:flex; gap:var(--s4); flex-wrap:wrap;
+  margin:0 0 var(--s8); padding:var(--s4) var(--s6);
+  background:var(--ap-white); border:1px solid var(--ap-grey-dark); border-radius:var(--r-lg);
+}
+.ap-legend .li { display:flex; align-items:center; gap:var(--s2); font-size:.78rem; color:var(--ap-grey-light); }
+.ap-legend .dot { width:9px; height:9px; border-radius:50%; flex-shrink:0; }
+
+/* Governance notes */
+.ap-notes { margin:0 0 var(--s8); padding:var(--s6); background:var(--ap-white); border:1px solid var(--ap-black); border-radius:var(--r-lg); }
+.ap-notes h4 { font-family:var(--ap-font); font-size:.78rem; font-weight:700; letter-spacing:.08em; text-transform:uppercase; color:var(--ap-black); margin:0 0 var(--s3); }
+.ap-notes ul { margin:0; padding-left:var(--s6); color:var(--ap-grey-light); font-size:.85rem; display:flex; flex-direction:column; gap:var(--s2); }
+
+/* Tiers */
+.ap-tier { margin-bottom:var(--s10); }
+.ap-tier-head { display:flex; align-items:baseline; gap:var(--s3); margin-bottom:var(--s4); padding-bottom:var(--s3); border-bottom:1px solid var(--ap-grey-dark); }
+.ap-tier-num { font-family:var(--ap-font-title); font-size:1.6rem; font-weight:700; line-height:1; }
+.ap-tier-title { font-size:1rem; font-weight:600; }
+.ap-tier-desc { color:var(--ap-grey-mid); font-size:.8rem; margin-left:auto; }
+
+.ap-grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(230px,1fr)); gap:var(--s4); }
+.ap-card { background:var(--ap-white); border:1px solid var(--ap-grey-dark); border-radius:var(--r-lg); padding:var(--s6); box-shadow:0 1px 2px rgba(19,19,19,.03); transition:all .2s ease; }
+.ap-card:hover { border-color:var(--ap-lime-dark); box-shadow:0 8px 24px rgba(18,18,18,.06); }
+.ap-card .name { font-size:.95rem; font-weight:600; margin-bottom:var(--s2); color:var(--ap-black); }
+.ap-card .note { font-size:.78rem; color:var(--ap-grey-mid); margin-top:var(--s2); }
+
+.ap-tag { font-family:var(--ap-font); font-size:.6875rem; font-weight:600; letter-spacing:.04em; padding:3px 10px; border-radius:var(--r-full); display:inline-flex; align-items:center; gap:4px; }
+.ap-tag--purple { background:var(--ap-lime); color:var(--ap-black); }
+.ap-tag--green  { background:var(--ap-black); color:var(--ap-white); }
+.ap-tag--grey   { background:var(--ap-grey-dark); color:var(--ap-black); }
+.ap-tag--dim    { background:transparent; border:1px solid var(--ap-grey-mid); color:var(--ap-grey-mid); }
+
+.ap-footer { margin-top:var(--s10); padding-top:var(--s6); border-top:1px solid var(--ap-grey-dark); font-size:.78rem; color:var(--ap-grey-mid); }
+
+#saveIndicator { font-size:11px; color:#999; transition:color .3s; }
+#saveIndicator.saving { color:#667eea; } #saveIndicator.saved { color:#43a047; } #saveIndicator.error { color:#e53935; }
+</style>
+
+<style id="demoBannerCss">
+#pjmDemoBanner{position:fixed;top:0;left:0;right:0;z-index:99999;background:#8A5CFF;color:#fff;
+ font:600 12px/1.4 system-ui,-apple-system,Segoe UI,sans-serif;padding:7px 44px 7px 16px;text-align:center;
+ letter-spacing:.2px;box-shadow:0 1px 6px rgba(0,0,0,.18)}
+#pjmDemoBanner a{color:#fff;text-decoration:underline}
+#pjmDemoBanner button{position:absolute;right:10px;top:4px;background:none;border:none;color:#fff;
+ font-size:17px;line-height:1;cursor:pointer;padding:4px}
+body.has-demo-banner{padding-top:30px}
+</style>
+<script id="pjmDemoMode">
+/* ===== PUBLIC DEMO BUILD =====
+   All data in this build is fictional. No credentials ship with it and no
+   outbound calls to third-party APIs are permitted. */
+(function(){
+  window.PJM_DEMO = true;
+  var BLOCK = /(api\.linear\.app|api\.github\.com|graphql|googleapis\.com|slack\.com|atlassian\.net)/i;
+  var of = window.fetch;
+  window.fetch = function(input){
+    var u = (typeof input === 'string') ? input : (input && input.url) || '';
+    if (BLOCK.test(u)) {
+      console.info('[demo] blocked outbound call:', u);
+      return Promise.resolve(new Response(JSON.stringify({data:null,demo:true}),
+        {status:200, headers:{'Content-Type':'application/json'}}));
+    }
+    return of.apply(this, arguments);
+  };
+  var ox = window.XMLHttpRequest && window.XMLHttpRequest.prototype.open;
+  if (ox) window.XMLHttpRequest.prototype.open = function(m,u){
+    if (BLOCK.test(String(u))) { console.info('[demo] blocked XHR:', u); u = 'data:application/json,{}'; }
+    return ox.apply(this, [m,u].concat([].slice.call(arguments,2)));
+  };
+  document.addEventListener('DOMContentLoaded', function(){
+    if (sessionStorage.getItem('pjmDemoBannerHidden')) return;
+    var b = document.createElement('div');
+    b.id = 'pjmDemoBanner';
+    b.innerHTML = 'DEMO BUILD \u2014 every person, project, ticket and meeting below is fictional. ' +
+                  'Live integrations are disabled in this build.' +
+                  '<button title="Dismiss" onclick="this.parentNode.remove();' +
+                  'document.body.classList.remove(\'has-demo-banner\');' +
+                  'sessionStorage.setItem(\'pjmDemoBannerHidden\',\'1\')">&times;</button>';
+    document.body.appendChild(b);
+    document.body.classList.add('has-demo-banner');
+  });
+})();
+</script>
+</head>
+<body>
+
+<div id="loginOverlay"><div class="login-box"><div class="login-logo">⬡</div><h2>Meridian PJM</h2><p>Sign in with your Meridian account to continue.</p><div id="googleSignInBtn"></div><div id="loginError"></div></div></div>
+<div id="pjmSidebarContainer"></div>
+
+<div class="pjm-main">
+  <!-- Module Header -->
+  <div class="module-header">
+    <div>
+      <div class="module-title">🎯 Project Priorities</div>
+      <div class="section-sub">FE-owned &amp; FE-touching projects · weighted against business priorities</div>
+    </div>
+    <div class="module-header-right">
+      <span id="saveIndicator">—</span>
+      <span id="lastSyncedLabel" class="last-synced-label">Never synced</span>
+      <div class="date-badge" id="todayDate"></div>
+      <button class="sync-btn" id="syncBtn" onclick="doSync()"><span class="sync-icon">🔄</span> Refresh</button>
+    </div>
+  </div>
+
+  <div id="moduleContent" class="ap">
+
+    <!-- Meta -->
+    <div class="ap-meta" id="apMeta"></div>
+
+    <!-- Legend -->
+    <div class="ap-legend" id="apLegend"></div>
+
+    <!-- Governance notes -->
+    <div class="ap-notes" id="apNotes" style="display:none;">
+      <h4>Governance Notes</h4>
+      <ul id="apNotesList"></ul>
+    </div>
+
+    <!-- Tiers render here -->
+    <div id="apTiers"></div>
+
+    <!-- Footer -->
+    <div class="ap-footer" id="apFooter"></div>
+
+  </div><!-- /moduleContent -->
+</div><!-- /pjm-main -->
+
+<script src="shared/pjm-sync.js"></script>
+<script src="shared/pjm-nav.js"></script>
+<script>
+/* ════════════════════════════════════════
+   STATE + BUNDLED DEFAULT DATA
+   (fetch data/priorities-data.json overrides when served)
+════════════════════════════════════════ */
+var MODULE_ID = 'project-priorities';
+var DATA = {
+  meta: { source: 'FE Team Projects Tracker (Google Doc)', asOf: '2026-07-14', cto: 'Rohan', pm: 'Ines', pjm: 'Sujit' },
+  scale: [
+    { p:1, label:'High priority', desc:'Top of the queue, resourcing priority' },
+    { p:2, label:'Active feature development', desc:'Live roadmap work' },
+    { p:3, label:'Non-active feature development', desc:'Maintained, not a current build focus' },
+    { p:4, label:'Bug support only', desc:'Reactive maintenance only' },
+    { p:5, label:'Sunset', desc:'Being wound down' }
+  ],
+  governanceNotes: [
+    'All AdTech deliveries in the pipeline are to be shared with John to check the ROI. The release proceeds based on that review; otherwise, releases are to be held.',
+    'Linear boards are to be organised.',
+    'Slack needs to be cleaned up.'
+  ],
+  special: [
+    { name:'ATLAS', label:'Split priority — FE and BE tracked separately',
+      tags:[ {text:'FE — P5 (Sunset scale)', style:'purple'}, {text:'BE — P4', style:'grey'} ],
+      note:"Noted separately from the standard 1–5 scale. On the corrected scale this maps to FE:P5, BE:P4. Worth confirming with Daniel whether this reflects urgency or a different numbering intent given ATLAS's current Pilot Client demo priority." }
+  ],
+  projects: [
+    { name:'Marketplace', priority:1 },
+    { name:'Meridian Harness', priority:1 },
+    { name:'Trust Net', priority:2 },
+    { name:'Beacon', priority:2, note:'Need confirmation' },
+    { name:'LP Dashboard', priority:2, note:'Same as Beacon' },
+    { name:'Support Tool', priority:2, note:'Priority to integrate with Marketplace' },
+    { name:'Marketplace (SME)', priority:2 },
+    { name:'Folio', priority:3, note:'If anything to support Marketplace is needed' },
+    { name:'BEACON', priority:3 },
+    { name:'Exchange', priority:3 },
+    { name:'meridian.dev', priority:3 },
+    { name:'Meridian Docs', priority:3 },
+    { name:'BEACON Dashboard', priority:3, note:'Related to Beacon (not released)' },
+    { name:'Labs', priority:4 },
+    { name:'Publisher Dashboard', priority:4 },
+    { name:'Microsites', priority:4 },
+    { name:'SUI Landing', priority:5 },
+    { name:'Northgate', priority:5 },
+    { name:'demo-designer', priority:5 },
+    { name:'runleopard', priority:5 },
+    { name:'EMBER', priority:5, note:'Sunset with Docs' },
+    { name:'Affiniti', priority:0, note:'No priority set in tracker' }
+  ]
+};
+
+/* Tier colour + tag mapping (P1 High → P5 Sunset) */
+var TIER_NUM_COLOR = { 1:'var(--ap-lime-dark)', 2:'var(--ap-black)', 3:'var(--ap-grey-light)', 4:'var(--ap-grey-mid)', 5:'var(--ap-grey-mid)' };
+var TIER_DOT_COLOR = { 1:'var(--ap-lime-dark)', 2:'var(--ap-black)', 3:'var(--ap-grey-light)', 4:'var(--ap-grey-mid)', 5:'var(--ap-grey-dark)' };
+var TAG_STYLE      = { 1:'purple', 2:'green', 3:'grey', 4:'dim', 5:'dim' };
+
+function esc(str){ return String(str==null?'':str).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
+
+/* ════════════════════════════════════════ RENDER ════════════════════════════════════════ */
+function render() {
+  var d = DATA;
+
+  // Meta
+  var count = d.projects.length + (d.special ? d.special.length : 0);
+  var meta = '<div class="item"><strong>' + count + '</strong> projects tracked</div>' +
+             (d.meta.asOf ? '<div class="item">As of: <strong>' + esc(d.meta.asOf) + '</strong></div>' : '') +
+             (d.meta.cto ? '<div class="item">CTO: <strong>' + esc(d.meta.cto) + '</strong></div>' : '') +
+             (d.meta.pm  ? '<div class="item">PM: <strong>' + esc(d.meta.pm) + '</strong></div>' : '') +
+             (d.meta.pjm ? '<div class="item">PJM: <strong>' + esc(d.meta.pjm) + '</strong></div>' : '');
+  document.getElementById('apMeta').innerHTML = meta;
+
+  // Legend
+  document.getElementById('apLegend').innerHTML = d.scale.map(function(s){
+    return '<div class="li"><span class="dot" style="background:' + (TIER_DOT_COLOR[s.p]||'var(--ap-grey-mid)') +
+      (s.p===5?';border:1px solid var(--ap-grey-mid)':'') + '"></span>P' + s.p + ' &mdash; ' + esc(s.label) + '</div>';
+  }).join('');
+
+  // Governance notes
+  if (d.governanceNotes && d.governanceNotes.length) {
+    document.getElementById('apNotes').style.display = '';
+    document.getElementById('apNotesList').innerHTML = d.governanceNotes.map(function(n){ return '<li>' + esc(n) + '</li>'; }).join('');
+  }
+
+  // Tiers
+  var html = '';
+  d.scale.forEach(function(s){
+    var items = d.projects.filter(function(p){ return p.priority === s.p; });
+    html += tierBlock('P' + s.p, s.label, s.desc, TIER_NUM_COLOR[s.p], cardsHTML(items, s.p));
+
+    // Insert ATLAS / special items right after P1 (High priority)
+    if (s.p === 1 && d.special && d.special.length) {
+      d.special.forEach(function(sp){
+        html += tierBlock('&#9670;', sp.name, sp.label, 'var(--ap-lime-dark)', specialCard(sp));
+      });
+    }
+  });
+
+  // Unassigned (priority 0)
+  var unassigned = d.projects.filter(function(p){ return !p.priority || p.priority === 0; });
+  if (unassigned.length) {
+    html += tierBlock('&mdash;', 'Unassigned', 'No priority set in tracker', 'var(--ap-grey-mid)',
+      unassigned.map(function(p){
+        return '<div class="ap-card"><div class="name">' + esc(p.name) + '</div>' +
+          '<span class="ap-tag ap-tag--dim">Not set</span>' +
+          (p.note ? '<div class="note">' + esc(p.note) + '</div>' : '') + '</div>';
+      }).join(''));
+  }
+
+  document.getElementById('apTiers').innerHTML = html;
+
+  // Footer
+  document.getElementById('apFooter').innerHTML =
+    'Source: ' + esc(d.meta.source || 'FE Team Projects Tracker') +
+    (d.meta.asOf ? ', last modified ' + esc(d.meta.asOf) : '') +
+    '. Priority scale: P1 = high, P2 = active features, P3 = non-active feature development, P4 = bug support, P5 = sunset.';
+}
+
+function tierBlock(num, title, desc, numColor, inner) {
+  return '<div class="ap-tier">' +
+    '<div class="ap-tier-head">' +
+      '<span class="ap-tier-num" style="color:' + numColor + '">' + num + '</span>' +
+      '<span class="ap-tier-title">' + esc(title) + '</span>' +
+      '<span class="ap-tier-desc">' + esc(desc) + '</span>' +
+    '</div>' +
+    '<div class="ap-grid">' + (inner || '') + '</div>' +
+  '</div>';
+}
+
+function cardsHTML(items, p) {
+  if (!items.length) return '<div class="ap-card" style="opacity:.55"><div class="name" style="color:var(--ap-grey-mid);font-weight:500">No projects</div></div>';
+  var tag = TAG_STYLE[p] || 'dim';
+  return items.map(function(it){
+    return '<div class="ap-card">' +
+      '<div class="name">' + esc(it.name) + '</div>' +
+      '<span class="ap-tag ap-tag--' + tag + '">P' + p + '</span>' +
+      (it.note ? '<div class="note">' + esc(it.note) + '</div>' : '') +
+    '</div>';
+  }).join('');
+}
+
+function specialCard(sp) {
+  var tags = (sp.tags || []).map(function(t){
+    return '<span class="ap-tag ap-tag--' + (t.style || 'grey') + '">' + esc(t.text) + '</span>';
+  }).join('&nbsp;');
+  return '<div class="ap-card">' +
+    '<div class="name">' + esc(sp.name) + '</div>' + tags +
+    (sp.note ? '<div class="note">' + esc(sp.note) + '</div>' : '') +
+  '</div>';
+}
+
+function setSaveIndicator(state, msg) {
+  var el = document.getElementById('saveIndicator');
+  el.className = state; el.textContent = msg;
+  if (state === 'saved') setTimeout(function(){ el.textContent=''; el.className=''; }, 3000);
+}
+
+/* ════════════════════════════════════════ DATA LOAD ════════════════════════════════════════ */
+function loadData() {
+  // Try the JSON file (works when served over http). Falls back to bundled DATA on file://.
+  return fetch('data/priorities-data.json', { cache: 'no-store' })
+    .then(function(r){ if (!r.ok) throw new Error('no file'); return r.json(); })
+    .then(function(json){ DATA = json; })
+    .catch(function(){ /* keep bundled DATA */ });
+}
+
+/* ════════════════════════════════════════ SYNC ════════════════════════════════════════ */
+function doSync() {
+  PJMSync.setSyncBtnState(true);
+  loadData().then(function(){
+    render();
+    PJMSync.markSynced(MODULE_ID, {});
+    PJMSync.setSyncBtnState(false);
+    setSaveIndicator('saved', '✓ Refreshed');
+  });
+}
+
+/* ════════════════════════════════════════ INIT ════════════════════════════════════════ */
+document.addEventListener('DOMContentLoaded', function() {
+  PJMNav.render(MODULE_ID);
+  PJMSync.initModule(MODULE_ID, doSync);
+
+  var d = new Date();
+  var days = ['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
+  var months = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+  var el = document.getElementById('todayDate');
+  if (el) el.textContent = '📅 ' + days[d.getDay()] + ' ' + months[d.getMonth()] + ' ' + d.getDate();
+
+  loadData().then(render);
+});
+</script>
+</body>
+</html>

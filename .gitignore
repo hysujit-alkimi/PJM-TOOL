@@ -1,0 +1,13 @@
+# generator scratch — never publish
+_synth/
+
+# superseded local data files — kept on disk, excluded from the repo
+data/*-action-items.json
+!data/action-items.json
+
+# local noise
+.DS_Store
+Thumbs.db
+*.bak
+*.tmp.*
+_backups/

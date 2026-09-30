@@ -1,0 +1,1339 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>My Action Items — Meridian PJM</title>
+<script src="https://accounts.google.com/gsi/client" async defer></script>
+<link rel="stylesheet" href="shared/pjm.css">
+<style>
+/* ── File persistence banner ── */
+.file-banner{display:flex;align-items:center;gap:10px;padding:9px 14px;border-radius:9px;margin-bottom:14px;font-size:12px;font-weight:600;flex-wrap:wrap;}
+.file-banner.fb-linked{background:#f0fdf4;border:1px solid #bbf7d0;color:#065f46;}
+.file-banner.fb-unlinked{background:#fefce8;border:1px solid #fde68a;color:#92400e;}
+.file-banner.fb-warn-bar{background:#fef2f2;border:1px solid #fecaca;color:#991b1b;}
+.fb-icon{font-size:14px;flex-shrink:0;}
+.fb-text{flex:1;min-width:160px;}
+.fb-btn{padding:4px 12px;border-radius:7px;border:1px solid currentColor;background:transparent;font-size:11px;font-weight:700;cursor:pointer;white-space:nowrap;opacity:.85;transition:opacity .15s;}
+.fb-btn:hover{opacity:1;}
+.fb-unlink{border-color:#ef4444;color:#ef4444;}
+
+/* ── Filters panel ── */
+.filters-panel{background:#f9fafb;border:1px solid var(--border,#e5e7eb);border-radius:10px;padding:10px 14px;margin-bottom:14px;}
+.filter-row{display:flex;align-items:center;gap:6px;flex-wrap:wrap;}
+.filter-label{font-size:10px;font-weight:800;color:#9ca3af;letter-spacing:.04em;white-space:nowrap;padding:2px 4px;}
+.filter-divider{width:1px;height:20px;background:var(--border,#e5e7eb);margin:0 4px;flex-shrink:0;}
+.filter-chip{padding:4px 11px;border-radius:14px;border:1px solid var(--border,#e5e7eb);background:#fff;font-size:11px;font-weight:600;cursor:pointer;color:#6b7280;transition:all .15s;white-space:nowrap;}
+.filter-chip.active{background:var(--primary,#3B82F6);color:#fff;border-color:var(--primary,#3B82F6);}
+.filter-chip:hover:not(.active){background:#f3f4f6;}
+
+/* ── Section headers ── */
+.section-header{font-size:13px;font-weight:700;color:#1f2937;margin:18px 0 9px;display:flex;align-items:center;gap:8px;cursor:pointer;user-select:none;}
+.section-header .count-badge{background:#f3f4f6;color:#6b7280;border-radius:10px;padding:1px 8px;font-size:11px;font-weight:600;}
+.section-header .toggle-arrow{font-size:11px;color:#9ca3af;transition:transform .2s;margin-left:auto;}
+.section-header.collapsed .toggle-arrow{transform:rotate(-90deg);}
+.section-content.collapsed{display:none;}
+
+/* ── Task cards ── */
+.task-card{background:#fff;border:1px solid var(--border,#e5e7eb);border-left:3px solid #e5e7eb;border-radius:10px;padding:12px 14px;margin-bottom:8px;display:flex;align-items:flex-start;gap:11px;transition:box-shadow .15s;}
+.task-card:hover{box-shadow:0 2px 12px rgba(0,0,0,.07);}
+.task-card.pri-high{border-left-color:#ef4444;}
+.task-card.pri-medium{border-left-color:#f59e0b;}
+.task-card.pri-low{border-left-color:#10b981;}
+.task-card.done-card{opacity:.55;}
+.task-card.done-card .task-title{text-decoration:line-through;color:#9ca3af;}
+
+/* ── Check circle ── */
+.task-check{width:22px;height:22px;border-radius:50%;border:2px solid var(--border,#e5e7eb);display:flex;align-items:center;justify-content:center;cursor:pointer;flex-shrink:0;margin-top:1px;font-size:12px;transition:all .15s;}
+.task-check:hover{border-color:var(--primary,#3B82F6);}
+.task-check.checked{background:var(--primary,#3B82F6);border-color:var(--primary,#3B82F6);color:#fff;}
+
+/* ── Title & meta ── */
+.task-title{font-size:13.5px;font-weight:600;color:#1f2937;line-height:1.4;}
+.task-meta{display:flex;gap:5px;flex-wrap:wrap;margin-top:6px;align-items:center;}
+
+/* ── Badges — all same height, clearly readable ── */
+.pri-badge{display:inline-flex;align-items:center;padding:3px 9px;border-radius:10px;font-size:11px;font-weight:700;line-height:1;}
+.pri-badge.high{background:#fee2e2;color:#991b1b;}
+.pri-badge.medium{background:#fef3c7;color:#92400e;}
+.pri-badge.low{background:#dcfce7;color:#166534;}
+
+.type-badge{display:inline-flex;align-items:center;padding:3px 9px;border-radius:10px;font-size:11px;font-weight:700;line-height:1;}
+.type-badge.action{background:#dbeafe;color:#1d4ed8;}
+.type-badge.blocker{background:#fee2e2;color:#991b1b;}
+.type-badge.delegate{background:#fef3c7;color:#92400e;}
+.type-badge.request{background:#ede9fe;color:#6d28d9;}
+
+.source-badge{display:inline-flex;align-items:center;padding:3px 9px;border-radius:10px;font-size:11px;font-weight:700;line-height:1;}
+.source-badge.slack{background:#ede9fe;color:#6d28d9;}
+.source-badge.meeting{background:#d1fae5;color:#065f46;}
+.source-badge.gemini{background:#d1fae5;color:#065f46;}
+.source-badge.manual{background:#f3f4f6;color:#6b7280;}
+
+.ref-chip{font-size:10px;color:#6b7280;background:#f3f4f6;padding:2px 7px;border-radius:6px;font-weight:600;}
+.date-chip{font-size:10px;color:#9ca3af;font-weight:500;}
+.delegate-to{font-size:11px;color:#6b7280;font-style:italic;}
+
+/* ── Card actions ── */
+.task-actions{display:flex;align-items:center;gap:5px;flex-shrink:0;margin-top:1px;}
+.pri-select{border:1px solid #e5e7eb;background:#fff;font-size:11px;cursor:pointer;color:#6b7280;padding:3px 6px;border-radius:6px;font-weight:600;outline:none;}
+.pri-select:hover{border-color:#9ca3af;}
+.task-action-btn{background:none;border:none;cursor:pointer;font-size:14px;padding:4px 5px;border-radius:6px;color:#9ca3af;transition:background .15s;}
+.task-action-btn:hover{background:#f3f4f6;color:#6b7280;}
+
+/* ── Add bar ── */
+.add-bar{position:sticky;bottom:0;background:#fff;border-top:1px solid var(--border,#e5e7eb);padding:13px 0 4px;display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin-top:20px;}
+.add-bar input{flex:1;min-width:180px;padding:9px 13px;border:1px solid var(--border,#e5e7eb);border-radius:8px;font-size:13px;outline:none;}
+.add-bar input:focus{border-color:var(--primary,#3B82F6);}
+.add-bar select{padding:9px 10px;border:1px solid var(--border,#e5e7eb);border-radius:8px;font-size:12px;background:#fff;outline:none;cursor:pointer;}
+.add-bar button{padding:9px 18px;background:var(--primary,#3B82F6);color:#fff;border:none;border-radius:8px;font-size:13px;font-weight:700;cursor:pointer;}
+.add-bar button:hover{opacity:.9;}
+
+/* ── Import buttons ── */
+.import-btns{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:14px;}
+.import-btn{padding:6px 13px;border:1px solid var(--border,#e5e7eb);border-radius:8px;background:#fff;font-size:11px;font-weight:600;cursor:pointer;color:#374151;display:flex;align-items:center;gap:5px;transition:background .15s;}
+.import-btn:hover{background:#f3f4f6;}
+
+/* ── Live data bar ── */
+.live-data-bar{display:flex;gap:8px;align-items:center;flex-wrap:wrap;padding:8px 13px;background:#f0fdf4;border:1px solid #bbf7d0;border-radius:8px;margin-bottom:12px;font-size:12px;color:#065f46;font-weight:600;}
+.live-data-bar .ldb-dot{width:8px;height:8px;border-radius:50%;background:#10b981;flex-shrink:0;}
+
+/* ── Empty / toast ── */
+.empty-section{font-size:13px;color:#9ca3af;padding:12px 4px;font-style:italic;}
+.toast{position:fixed;bottom:28px;left:50%;transform:translateX(-50%);background:#1f2937;color:#fff;padding:11px 22px;border-radius:10px;font-size:13px;font-weight:600;z-index:9999;opacity:0;transition:opacity .25s;pointer-events:none;text-align:center;max-width:400px;}
+.toast.show{opacity:1;}
+
+/* ── View toggle ── */
+.view-toggle{display:flex;gap:3px;background:#f3f4f6;border:1px solid var(--border,#e5e7eb);border-radius:8px;padding:3px;}
+.view-btn{padding:5px 11px;border-radius:5px;border:none;background:transparent;font-size:11px;font-weight:600;cursor:pointer;color:#6b7280;transition:all .15s;white-space:nowrap;}
+.view-btn.active{background:#fff;color:#1f2937;box-shadow:0 1px 3px rgba(0,0,0,.1);}
+.view-btn:hover:not(.active){color:#374151;}
+
+/* ── Board / Kanban view ── */
+.board-view{display:flex;gap:10px;align-items:flex-start;overflow-x:auto;padding-bottom:16px;margin-top:2px;}
+.board-col{flex:0 0 220px;background:#f9fafb;border:1px solid var(--border,#e5e7eb);border-radius:10px;display:flex;flex-direction:column;max-height:calc(100vh - 280px);}
+.board-col-header{padding:9px 12px;font-size:11px;font-weight:800;letter-spacing:.03em;border-bottom:1px solid var(--border,#e5e7eb);display:flex;align-items:center;gap:6px;border-radius:10px 10px 0 0;}
+.board-col-header .col-count{margin-left:auto;background:#fff;border:1px solid var(--border,#e5e7eb);color:#6b7280;border-radius:8px;padding:1px 7px;font-size:10px;font-weight:700;}
+.board-col.col-todo .board-col-header{color:#374151;}
+.board-col.col-inprogress .board-col-header{color:#1d4ed8;background:#eff6ff;}
+.board-col.col-delegated .board-col-header{color:#92400e;background:#fffbeb;}
+.board-col.col-blocked .board-col-header{color:#991b1b;background:#fef2f2;}
+.board-col.col-done .board-col-header{color:#065f46;background:#f0fdf4;}
+.board-col-body{padding:8px;display:flex;flex-direction:column;gap:7px;overflow-y:auto;flex:1;}
+.board-card{background:#fff;border:1px solid var(--border,#e5e7eb);border-left:3px solid #e5e7eb;border-radius:8px;padding:9px 11px;transition:box-shadow .15s;}
+.board-card:hover{box-shadow:0 2px 8px rgba(0,0,0,.07);}
+.board-card.pri-high{border-left-color:#ef4444;}
+.board-card.pri-medium{border-left-color:#f59e0b;}
+.board-card.pri-low{border-left-color:#10b981;}
+.board-card.done-card{opacity:.5;}
+.board-card-title{font-size:12px;font-weight:600;color:#1f2937;line-height:1.4;margin-bottom:6px;}
+.board-card-title.done-title{text-decoration:line-through;color:#9ca3af;}
+.board-card-meta{display:flex;gap:4px;flex-wrap:wrap;margin-bottom:6px;}
+.board-card-actions{display:flex;gap:4px;flex-wrap:wrap;padding-top:6px;border-top:1px solid #f3f4f6;margin-top:2px;}
+.status-btn{padding:3px 8px;border-radius:6px;border:1px solid var(--border,#e5e7eb);background:#fff;font-size:10px;font-weight:600;cursor:pointer;color:#6b7280;transition:all .15s;white-space:nowrap;}
+.status-btn:hover{background:#f3f4f6;border-color:#9ca3af;color:#374151;}
+.del-btn-sm{background:none;border:none;cursor:pointer;font-size:12px;padding:2px 4px;border-radius:5px;color:#d1d5db;transition:color .15s;margin-left:auto;}
+.del-btn-sm:hover{color:#ef4444;}
+
+/* ── Timeline view ── */
+.timeline-group{margin-bottom:20px;}
+.timeline-group-header{font-size:11px;font-weight:800;color:#6b7280;letter-spacing:.05em;text-transform:uppercase;padding:4px 0 7px;border-bottom:2px solid var(--border,#e5e7eb);margin-bottom:10px;display:flex;align-items:center;gap:8px;}
+.timeline-group-header .tg-count{background:#f3f4f6;color:#6b7280;border-radius:8px;padding:1px 8px;font-size:10px;font-weight:700;text-transform:none;letter-spacing:0;}
+
+/* ── Status chips on list cards ── */
+.status-chip{display:inline-flex;align-items:center;padding:3px 9px;border-radius:10px;font-size:11px;font-weight:700;line-height:1;}
+.status-chip.in_progress{background:#dbeafe;color:#1d4ed8;}
+.status-chip.blocked{background:#fee2e2;color:#991b1b;}
+.task-card.status-inprogress{background:#fafeff;}
+.task-card.status-blocked{background:#fffafa;}
+</style>
+
+<style id="demoBannerCss">
+#pjmDemoBanner{position:fixed;top:0;left:0;right:0;z-index:99999;background:#8A5CFF;color:#fff;
+ font:600 12px/1.4 system-ui,-apple-system,Segoe UI,sans-serif;padding:7px 44px 7px 16px;text-align:center;
+ letter-spacing:.2px;box-shadow:0 1px 6px rgba(0,0,0,.18)}
+#pjmDemoBanner a{color:#fff;text-decoration:underline}
+#pjmDemoBanner button{position:absolute;right:10px;top:4px;background:none;border:none;color:#fff;
+ font-size:17px;line-height:1;cursor:pointer;padding:4px}
+body.has-demo-banner{padding-top:30px}
+</style>
+<script id="pjmDemoMode">
+/* ===== PUBLIC DEMO BUILD =====
+   All data in this build is fictional. No credentials ship with it and no
+   outbound calls to third-party APIs are permitted. */
+(function(){
+  window.PJM_DEMO = true;
+  var BLOCK = /(api\.linear\.app|api\.github\.com|graphql|googleapis\.com|slack\.com|atlassian\.net)/i;
+  var of = window.fetch;
+  window.fetch = function(input){
+    var u = (typeof input === 'string') ? input : (input && input.url) || '';
+    if (BLOCK.test(u)) {
+      console.info('[demo] blocked outbound call:', u);
+      return Promise.resolve(new Response(JSON.stringify({data:null,demo:true}),
+        {status:200, headers:{'Content-Type':'application/json'}}));
+    }
+    return of.apply(this, arguments);
+  };
+  var ox = window.XMLHttpRequest && window.XMLHttpRequest.prototype.open;
+  if (ox) window.XMLHttpRequest.prototype.open = function(m,u){
+    if (BLOCK.test(String(u))) { console.info('[demo] blocked XHR:', u); u = 'data:application/json,{}'; }
+    return ox.apply(this, [m,u].concat([].slice.call(arguments,2)));
+  };
+  document.addEventListener('DOMContentLoaded', function(){
+    if (sessionStorage.getItem('pjmDemoBannerHidden')) return;
+    var b = document.createElement('div');
+    b.id = 'pjmDemoBanner';
+    b.innerHTML = 'DEMO BUILD \u2014 every person, project, ticket and meeting below is fictional. ' +
+                  'Live integrations are disabled in this build.' +
+                  '<button title="Dismiss" onclick="this.parentNode.remove();' +
+                  'document.body.classList.remove(\'has-demo-banner\');' +
+                  'sessionStorage.setItem(\'pjmDemoBannerHidden\',\'1\')">&times;</button>';
+    document.body.appendChild(b);
+    document.body.classList.add('has-demo-banner');
+  });
+})();
+</script>
+</head>
+<body>
+<div id="loginOverlay"><div class="login-box"><div class="login-logo">⬡</div><h2>Meridian PJM</h2><p>Sign in with your Meridian account to continue.</p><div id="googleSignInBtn"></div><div id="loginError"></div></div></div>
+<div id="pjmSidebarContainer"></div>
+<div class="pjm-main">
+  <div class="module-header">
+    <div>
+      <div class="module-title">⚡ My Action Items</div>
+      <div class="section-sub">Compiled from Slack &amp; Gemini meeting notes — personal sticky notes on the run</div>
+    </div>
+    <div class="module-header-right">
+      <div class="view-toggle">
+        <button class="view-btn active" id="vbList"     onclick="setView('list')"     title="List view">☰ List</button>
+        <button class="view-btn"        id="vbBoard"    onclick="setView('board')"    title="Board view">⬛ Board</button>
+        <button class="view-btn"        id="vbTimeline" onclick="setView('timeline')" title="Timeline view">📅 Timeline</button>
+      </div>
+      <span id="lastSyncedLabel" class="last-synced-label">Never synced</span>
+      <div class="date-badge" id="todayDate"></div>
+      <button class="sync-btn" id="syncBtn" onclick="doSync(false)"><span class="sync-icon">🔄</span> Sync</button>
+      <button class="sync-btn" id="forceRefreshBtn" onclick="doSync(true)" title="Bypass 24h cache and fetch now" style="background:transparent;border:1px solid var(--border,#e5e7eb);color:#6b7280;font-size:11px;padding:6px 10px;">⚡ Force Refresh</button>
+    </div>
+  </div>
+  <!-- File persistence banner -->
+  <div id="fileBanner" class="file-banner fb-unlinked">
+    <span class="fb-icon">💾</span>
+    <span class="fb-text">Checking for linked data file…</span>
+  </div>
+  <div id="moduleContent"><div class="loading-state"><div class="spinner"></div>Loading…</div></div>
+</div>
+<div id="toastEl" class="toast"></div>
+<script src="shared/pjm-sync.js"></script>
+<script src="shared/pjm-nav.js"></script>
+<script>
+/* ════════════════════════════════════════════════════════════════
+   CONSTANTS
+════════════════════════════════════════════════════════════════ */
+(function(){
+  var d=new Date();
+  var days=['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
+  var months=['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+  var el=document.getElementById('todayDate');
+  if(el) el.textContent='📅 '+days[d.getDay()]+' '+months[d.getMonth()]+' '+d.getDate();
+})();
+
+var MODULE_ID        = 'action-items';
+var STORAGE_KEY      = 'pjmdemo_ai_tasks_v2';
+var LIVE_GEMINI_KEY  = 'pjmdemo_pjm_gemini_v1';
+var LIVE_SLACK_KEY   = 'pjmdemo_pjm_slack_v1';
+var GEMINI_SYNC_TS_KEY = 'pjmdemo_ai_gemini_sync_ts';  /* per-source sync anchors */
+var SLACK_SYNC_TS_KEY  = 'pjmdemo_ai_slack_sync_ts';
+var CACHE_GEMINI       = 12 * 60 * 60 * 1000;        /* Gemini: 12h cache      */
+var CACHE_SLACK        =  4 * 60 * 60 * 1000;        /* Slack:  4h cache       */
+var CACHE_24H          = 24 * 60 * 60 * 1000;        /* legacy fallback        */
+
+/* ── Cowork MCP constants ── */
+var MY_NAME_HINT    = 'sujit';
+var MY_SLACK_HANDLE = 'sujit';
+
+var filterType   = 'all';
+var filterPri    = 'all';
+var filterSrc    = 'all';
+var currentView  = 'list';    /* 'list' | 'board' | 'timeline' */
+var sectionState = {my:true, waiting:false, done:false};
+
+/* ── Per-source sync-timestamp helpers ── */
+function getGeminiSyncTs(){ try{ var v=localStorage.getItem(GEMINI_SYNC_TS_KEY); return v?parseInt(v,10):null; }catch(e){ return null; } }
+function getSlackSyncTs(){  try{ var v=localStorage.getItem(SLACK_SYNC_TS_KEY);  return v?parseInt(v,10):null; }catch(e){ return null; } }
+function setGeminiSyncTs(){ try{ localStorage.setItem(GEMINI_SYNC_TS_KEY, String(Date.now())); }catch(e){} }
+function setSlackSyncTs(){  try{ localStorage.setItem(SLACK_SYNC_TS_KEY,  String(Date.now())); }catch(e){} }
+/* Back-compat aliases used by legacy callers */
+function getLastSyncTs(){ var g=getGeminiSyncTs()||0, s=getSlackSyncTs()||0; return Math.max(g,s)||null; }
+function setLastSyncTs(){ setGeminiSyncTs(); setSlackSyncTs(); }
+
+/* Returns 'Xd' string for Gemini newer_than — e.g. '2d'. Min 1d, default 31d on first sync. */
+function deltaNewerThan(){
+  var last=getGeminiSyncTs();
+  if(!last) return '31d';
+  var days=Math.ceil((Date.now()-last)/86400000)+1; /* +1 day buffer */
+  return Math.max(1,days)+'d';
+}
+/* Returns ' after:YYYY-MM-DD' clause for Slack query, empty string on first sync */
+function deltaAfterClause(){
+  var last=getSlackSyncTs();
+  if(!last) return '';
+  var d=new Date(last-86400000); /* -1 day buffer */
+  return ' after:'+d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');
+}
+function deltaLabel(){
+  var gLast=getGeminiSyncTs(), sLast=getSlackSyncTs();
+  if(!gLast && !sLast) return 'First sync — scanning 30 days';
+  var now=Date.now();
+  var fmt=function(ms){ var h=Math.floor(ms/3600000),m=Math.floor((ms%3600000)/60000); return h>0?h+'h '+m+'m ago':m+'m ago'; };
+  var parts=[];
+  if(gLast) parts.push('Gemini '+fmt(now-gLast));
+  if(sLast) parts.push('Slack '+fmt(now-sLast));
+  return parts.join(' · ');
+}
+
+/* ── View switcher ── */
+function setView(v){
+  currentView=v;
+  ['list','board','timeline'].forEach(function(n){
+    var btn=document.getElementById('vb'+n.charAt(0).toUpperCase()+n.slice(1));
+    if(btn) btn.classList.toggle('active', n===v);
+  });
+  render();
+}
+
+/* ── Status helpers ── */
+function changeStatus(id, newStatus){
+  var tasks=loadTasks();
+  var t=tasks.find(function(x){return x.id===id;});
+  if(!t) return;
+  t.status=newStatus;
+  if(newStatus==='done')     t.doneAt=Date.now();
+  else if(t.doneAt)          delete t.doneAt;
+  saveTasks(tasks); render();
+}
+
+var FSA_SUPPORTED = (typeof window !== 'undefined' && 'showOpenFilePicker' in window);
+
+/* ════════════════════════════════════════════════════════════════
+   FILE PERSISTENCE  (IndexedDB + File System Access API)
+════════════════════════════════════════════════════════════════ */
+var IDB_DB    = 'pjmdemo_pjm_fsa_v1';
+var IDB_STORE = 'handles';
+var IDB_KEY   = 'action_items';
+
+function openIDB() {
+  return new Promise(function(resolve, reject) {
+    if (!window.indexedDB) { reject(new Error('No IndexedDB')); return; }
+    var req = indexedDB.open(IDB_DB, 1);
+    req.onupgradeneeded = function(e) { e.target.result.createObjectStore(IDB_STORE); };
+    req.onsuccess = function(e) { resolve(e.target.result); };
+    req.onerror = function() { reject(req.error); };
+  });
+}
+
+function getStoredHandle() {
+  return openIDB().then(function(db) {
+    return new Promise(function(resolve) {
+      var tx = db.transaction(IDB_STORE, 'readonly');
+      var req = tx.objectStore(IDB_STORE).get(IDB_KEY);
+      req.onsuccess = function() { resolve(req.result || null); };
+      req.onerror   = function() { resolve(null); };
+    });
+  }).catch(function() { return null; });
+}
+
+function storeHandleIDB(handle) {
+  return openIDB().then(function(db) {
+    return new Promise(function(resolve) {
+      var tx = db.transaction(IDB_STORE, 'readwrite');
+      tx.objectStore(IDB_STORE).put(handle, IDB_KEY);
+      tx.oncomplete = function() { resolve(true); };
+      tx.onerror    = function() { resolve(false); };
+    });
+  }).catch(function() { return false; });
+}
+
+function removeHandleIDB() {
+  return openIDB().then(function(db) {
+    return new Promise(function(resolve) {
+      var tx = db.transaction(IDB_STORE, 'readwrite');
+      tx.objectStore(IDB_STORE).delete(IDB_KEY);
+      tx.oncomplete = function() { resolve(); };
+    });
+  }).catch(function() {});
+}
+
+var activeFileHandle = null;
+var linkedFileName   = null;
+
+function writeTasksToFile(tasks) {
+  if (!activeFileHandle) return Promise.resolve();
+  return activeFileHandle.requestPermission({mode:'readwrite'}).then(function(perm) {
+    if (perm !== 'granted') return;
+    return activeFileHandle.createWritable().then(function(writable) {
+      return writable.write(JSON.stringify(tasks, null, 2)).then(function() {
+        return writable.close();
+      });
+    });
+  }).catch(function(e) {
+    console.warn('[action-items] File write:', e.message);
+  });
+}
+
+function tryAutoLink() {
+  if (!FSA_SUPPORTED) { updateFileBanner(false); return Promise.resolve(); }
+  return getStoredHandle().then(function(handle) {
+    if (!handle) { updateFileBanner(false); return; }
+    return handle.requestPermission({mode:'readwrite'}).then(function(perm) {
+      if (perm !== 'granted') { updateFileBanner(false); return; }
+      return handle.getFile().then(function(file) {
+        return file.text().then(function(text) {
+          try {
+            var parsed = JSON.parse(text);
+            if (Array.isArray(parsed) && parsed.length > 0) {
+              localStorage.setItem(STORAGE_KEY, JSON.stringify(parsed));
+            }
+          } catch(e) {}
+          activeFileHandle = handle;
+          linkedFileName   = file.name;
+          updateFileBanner(true, file.name);
+          render();
+        });
+      });
+    }).catch(function() { updateFileBanner(false); });
+  }).catch(function() { updateFileBanner(false); });
+}
+
+function doLinkFile() {
+  if (!FSA_SUPPORTED) { showToast('File System API not available in this browser'); return; }
+  window.showOpenFilePicker({
+    types: [{description:'JSON Files', accept:{'application/json':['.json']}}],
+    multiple: false
+  }).then(function(handles) {
+    var handle = handles[0];
+    return handle.requestPermission({mode:'readwrite'}).then(function(perm) {
+      if (perm !== 'granted') { showToast('Permission denied'); return; }
+      return handle.getFile().then(function(file) {
+        return file.text().then(function(text) {
+          var tasks = null;
+          try { var p = JSON.parse(text); if (Array.isArray(p)) tasks = p; } catch(e){}
+          if (tasks && tasks.length > 0) {
+            localStorage.setItem(STORAGE_KEY, JSON.stringify(tasks));
+          } else {
+            // Write current tasks into the newly linked file
+            var current = loadTasks();
+            return handle.createWritable().then(function(w) {
+              return w.write(JSON.stringify(current, null, 2)).then(function() { return w.close(); });
+            }).then(function() {
+              activeFileHandle = handle;
+              linkedFileName   = file.name;
+              return storeHandleIDB(handle).then(function() {
+                updateFileBanner(true, file.name);
+                render();
+                showToast('✅ Linked to ' + file.name);
+              });
+            });
+          }
+          activeFileHandle = handle;
+          linkedFileName   = file.name;
+          return storeHandleIDB(handle).then(function() {
+            updateFileBanner(true, file.name);
+            render();
+            showToast('✅ Linked to ' + file.name);
+          });
+        });
+      });
+    });
+  }).catch(function(e) {
+    if (e.name !== 'AbortError') showToast('Could not link file');
+  });
+}
+
+function doCreateNewFile() {
+  if (!FSA_SUPPORTED) { showToast('File System API not available in this browser'); return; }
+  window.showSaveFilePicker({
+    suggestedName: 'meridian-action-items.json',
+    types: [{description:'JSON Files', accept:{'application/json':['.json']}}]
+  }).then(function(handle) {
+    var tasks = loadTasks();
+    return handle.createWritable().then(function(w) {
+      return w.write(JSON.stringify(tasks, null, 2)).then(function() { return w.close(); });
+    }).then(function() {
+      return handle.getFile().then(function(file) {
+        activeFileHandle = handle;
+        linkedFileName   = file.name;
+        return storeHandleIDB(handle).then(function() {
+          updateFileBanner(true, file.name);
+          showToast('✅ Created & linked ' + file.name);
+        });
+      });
+    });
+  }).catch(function(e) {
+    if (e.name !== 'AbortError') showToast('Could not create file');
+  });
+}
+
+function doUnlinkFile() {
+  removeHandleIDB().then(function() {
+    activeFileHandle = null;
+    linkedFileName   = null;
+    updateFileBanner(false);
+    showToast('File unlinked — using browser storage');
+  });
+}
+
+function updateFileBanner(linked, name) {
+  var el = document.getElementById('fileBanner');
+  if (!el) return;
+  if (!FSA_SUPPORTED) {
+    el.innerHTML = '<span class="fb-icon">⚠️</span><span class="fb-text">File System API not available — data saved in browser storage only</span>';
+    el.className = 'file-banner fb-warn-bar';
+    return;
+  }
+  if (linked) {
+    el.innerHTML = '<span class="fb-icon">📎</span>'
+      + '<span class="fb-text">Auto-saving to <strong>' + escHtml(name) + '</strong> — your data persists across sessions</span>'
+      + '<button class="fb-btn fb-unlink" onclick="doUnlinkFile()">Unlink</button>';
+    el.className = 'file-banner fb-linked';
+  } else {
+    el.innerHTML = '<span class="fb-icon">💾</span>'
+      + '<span class="fb-text">Browser storage only — link a JSON file to persist across sessions</span>'
+      + '<button class="fb-btn" onclick="doLinkFile()" style="margin-left:auto;">Link existing JSON</button>'
+      + '<button class="fb-btn" onclick="doCreateNewFile()">Create new JSON</button>';
+    el.className = 'file-banner fb-unlinked';
+  }
+}
+
+/* ════════════════════════════════════════════════════════════════
+   LIVE DATA READERS
+════════════════════════════════════════════════════════════════ */
+function getLiveGemini(){ try{return JSON.parse(localStorage.getItem(LIVE_GEMINI_KEY))||null;}catch(e){return null;} }
+function getLiveSlack(){  try{return JSON.parse(localStorage.getItem(LIVE_SLACK_KEY))||null;} catch(e){return null;} }
+
+function isCacheStale(data, maxAgeMs) {
+  if (!data || !data.ts) return true;
+  return (Date.now() - data.ts) > (maxAgeMs || CACHE_24H);
+}
+
+function liveDataSummary(){
+  var g=getLiveGemini(), s=getLiveSlack(), parts=[];
+  if(g&&g.meetingCount)                              parts.push(g.meetingCount+' meeting'+(g.meetingCount!==1?'s':'')+' (Gemini)');
+  if(s&&(s.mentionCount||s.commitCount||s.dmCount))  parts.push((s.commitCount||0)+' commits · '+(s.mentionCount||0)+' mentions · '+(s.dmCount||0)+' DMs (Slack)');
+  return parts;
+}
+
+function deltaSyncBar(){
+  var last=getLastSyncTs();
+  if(!last) return '';
+  var ms=Date.now()-last;
+  var h=Math.floor(ms/3600000), m=Math.floor((ms%3600000)/60000);
+  var age = h>0 ? h+'h '+m+'m ago' : m+'m ago';
+  return '<span style="font-size:11px;color:#6b7280;font-weight:500;">· Last delta sync: '+age+'</span>';
+}
+
+/* ════════════════════════════════════════════════════════════════
+   SEED TASKS
+════════════════════════════════════════════════════════════════ */
+var seedTasks = [
+  {id:'t1',title:'Ask Chuli for clarification regarding the project roadmap',source:'meeting',sourceRef:'All Teams Sync Apr 27',date:'Apr 27',type:'action',priority:'high',status:'pending',addedAt:Date.now()-1296000000},
+  {id:'t4',title:'Confirm BEACON v1.0 release date with Alina',source:'meeting',sourceRef:'BEACON Sync',date:'May 11',type:'action',priority:'medium',status:'pending',addedAt:Date.now()-172800000},
+  {id:'t5',title:'Schedule XP portal demo with Q',source:'meeting',sourceRef:'Labs Standup Apr 27',date:'Apr 27',type:'action',priority:'medium',status:'pending',addedAt:Date.now()-1296000000},
+  {id:'t6',title:'Share sprint 11 goals with stakeholders',source:'manual',sourceRef:'',date:'May 11',type:'action',priority:'medium',status:'pending',addedAt:Date.now()-172800000}
+];
+
+/* ════════════════════════════════════════════════════════════════
+   STORAGE
+════════════════════════════════════════════════════════════════ */
+function loadTasks(){
+  try{ var raw=localStorage.getItem(STORAGE_KEY); if(raw) return JSON.parse(raw); }catch(e){}
+  saveTasks(seedTasks);
+  return seedTasks.slice();
+}
+
+function saveTasks(tasks){
+  try{ localStorage.setItem(STORAGE_KEY, JSON.stringify(tasks)); }catch(e){}
+  writeTasksToFile(tasks); // async fire-and-forget
+}
+
+function genId(){ return 't'+Date.now()+Math.random().toString(36).slice(2,6); }
+function normalizeTitle(s){
+  return (s||'').toLowerCase()
+    .replace(/[^\w\s]/g,' ')
+    .replace(/\b(the|a|an|and|or|to|for|with|by|of|in|on|at|from|into|via|please|can|you|me|my|your|our|their|will|i'll|i|it|this|that)\b/g,' ')
+    .replace(/\s+/g,' ').trim().slice(0,120);
+}
+/* Jaccard word-set similarity — returns 0..1 */
+function jaccardSim(n1, n2){
+  var w1=n1.split(' ').filter(function(w){ return w.length>3; });
+  var w2=n2.split(' ').filter(function(w){ return w.length>3; });
+  if(!w1.length && !w2.length) return 1;
+  if(!w1.length || !w2.length) return 0;
+  var set1=new Set(w1), inter=0;
+  w2.forEach(function(w){ if(set1.has(w)) inter++; });
+  var union=set1.size+w2.length-inter;
+  return union===0?0:inter/union;
+}
+/* Returns true if title matches an existing normalised title exactly or is >60% similar */
+function isDuplicate(title, existingNorms){
+  var norm=normalizeTitle(title);
+  if(existingNorms.has(norm)) return true;
+  var dup=false;
+  existingNorms.forEach(function(ex){ if(!dup && jaccardSim(norm,ex)>0.6) dup=true; });
+  return dup;
+}
+function todayShort(){
+  var d=new Date();
+  var months=['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+  return months[d.getMonth()]+' '+d.getDate();
+}
+
+/* ════════════════════════════════════════════════════════════════
+   LIVE DATA INGEST
+════════════════════════════════════════════════════════════════ */
+function ingestLiveData(){
+  var gemini=getLiveGemini(), slack=getLiveSlack();
+  var tasks=loadTasks();
+  var existing=new Set(tasks.map(function(t){return normalizeTitle(t.title);}));
+  var added=0;
+
+  if(gemini&&gemini.allActionItems&&gemini.allActionItems.length){
+    gemini.allActionItems.forEach(function(ai){
+      var title='';
+      if(ai.action&&ai.description) title=ai.action+': '+ai.description;
+      else if(ai.description) title=ai.description;
+      else if(ai.action)      title=ai.action;
+      title=title.trim().slice(0,140);
+      if(!title) return;
+      if(isDuplicate(title, existing)) return;  /* exact + fuzzy dedup */
+      var isMine=(ai.person||'').toLowerCase().indexOf('sujit')>=0;
+      tasks.unshift({id:genId(),title:title,source:'gemini',sourceRef:ai.meetingTitle||'',
+        date:ai.date||todayShort(),type:isMine?'action':'delegate',
+        delegateTo:isMine?'':(ai.person||''),priority:'medium',status:'pending',addedAt:Date.now()});
+      existing.add(normalizeTitle(title)); added++;
+    });
+  }
+  if(slack&&slack.blockers&&slack.blockers.length){
+    slack.blockers.forEach(function(b){
+      var title=(b.text||'').trim().slice(0,140);
+      if(!title) return;
+      if(isDuplicate(title, existing)) return;
+      tasks.unshift({id:genId(),title:title,source:'slack',sourceRef:b.channel||'',
+        date:todayShort(),type:'blocker',priority:'high',status:'pending',addedAt:Date.now()});
+      existing.add(normalizeTitle(title)); added++;
+    });
+  }
+  if(slack&&slack.actionItems&&slack.actionItems.length){
+    slack.actionItems.forEach(function(b){
+      var title=(b.text||'').trim().slice(0,140);
+      if(!title) return;
+      if(isDuplicate(title, existing)) return;
+      tasks.unshift({id:genId(),title:title,source:'slack',sourceRef:b.channel||'',
+        date:todayShort(),type:'action',priority:'medium',status:'pending',addedAt:Date.now()});
+      existing.add(normalizeTitle(title)); added++;
+    });
+  }
+  /* DM requests — things people asked Sujit to do in 1-on-1 conversations */
+  if(slack&&slack.requests&&slack.requests.length){
+    slack.requests.forEach(function(b){
+      var title=(b.text||'').trim().slice(0,140);
+      if(!title) return;
+      if(isDuplicate(title, existing)) return;
+      tasks.unshift({id:genId(),title:title,source:'slack',sourceRef:'DM: '+(b.channel||'direct'),
+        date:todayShort(),type:'request',priority:'medium',status:'pending',addedAt:Date.now()});
+      existing.add(normalizeTitle(title)); added++;
+    });
+  }
+  if(added>0) saveTasks(tasks);
+  return added;
+}
+
+/* ════════════════════════════════════════════════════════════════
+   TOAST
+════════════════════════════════════════════════════════════════ */
+function showToast(msg){
+  var t=document.getElementById('toastEl');
+  if(!t) return;
+  t.textContent=msg;
+  t.classList.add('show');
+  setTimeout(function(){t.classList.remove('show');},3000);
+}
+
+/* ════════════════════════════════════════════════════════════════
+   FILTERS & ACTIONS
+════════════════════════════════════════════════════════════════ */
+function applyFilters(tasks){
+  return tasks.filter(function(t){
+    if(filterType!=='all' && t.type!==filterType) return false;
+    if(filterPri!=='all'  && t.priority!==filterPri) return false;
+    if(filterSrc!=='all'  && t.source!==filterSrc) return false;
+    return true;
+  });
+}
+
+function toggleSection(key){ sectionState[key]=!sectionState[key]; render(); }
+
+function toggleDone(id){
+  var tasks=loadTasks();
+  var t=tasks.find(function(x){return x.id===id;});
+  if(!t) return;
+  t.status = t.status==='done' ? 'pending' : 'done';
+  t.doneAt = t.status==='done' ? Date.now() : null;
+  saveTasks(tasks); render();
+}
+
+function deleteTask(id){
+  saveTasks(loadTasks().filter(function(x){return x.id!==id;}));
+  render();
+}
+
+function changePri(id, pri){
+  var tasks=loadTasks();
+  var t=tasks.find(function(x){return x.id===id;});
+  if(t){ t.priority=pri; saveTasks(tasks); render(); }
+}
+
+function setFilter(kind, val){
+  if(kind==='type') filterType=val;
+  else if(kind==='pri') filterPri=val;
+  else if(kind==='src') filterSrc=val;
+  render();
+}
+
+function addTask(){
+  var inp    = document.getElementById('newTaskInput');
+  var typeEl = document.getElementById('newTaskType');
+  var priEl  = document.getElementById('newTaskPri');
+  if(!inp || !inp.value.trim()) return;
+  var tasks=loadTasks();
+  tasks.unshift({
+    id:genId(), title:inp.value.trim(), source:'manual', sourceRef:'',
+    date:todayShort(), type:typeEl?typeEl.value:'action',
+    priority:priEl?priEl.value:'medium', status:'pending', addedAt:Date.now()
+  });
+  saveTasks(tasks); inp.value=''; render();
+}
+
+/* ════════════════════════════════════════════════════════════════
+   IMPORT FROM GEMINI / MEETING NOTES
+════════════════════════════════════════════════════════════════ */
+function importFromMeetings(){
+  /* If Cowork is live, fetch or use cache */
+  if (window.cowork && window.cowork.callMcpTool) {
+    var cached = getLiveGemini();
+    var fetchFn = isCacheStale(cached, CACHE_GEMINI) ? fetchGeminiDirect() : Promise.resolve(cached);
+    showToast(isCacheStale(cached, CACHE_GEMINI) ? '📋 Fetching Gemini notes…' : '📋 Using cached Gemini notes…');
+    fetchFn.then(function() {
+      var added=ingestLiveData(); render();
+      showToast(added?'✅ Imported '+added+' item'+(added>1?'s':'')+' from Gemini':'All Gemini items already imported');
+    }).catch(function() {
+      showToast('Could not reach Gemini — check connection');
+    });
+    return;
+  }
+  var gemini=getLiveGemini();
+  if(gemini&&gemini.allActionItems&&gemini.allActionItems.length){
+    var added=ingestLiveData(); render();
+    showToast(added?'Imported '+added+' item'+(added>1?'s':'')+' from Gemini & live sources':'All Gemini items already imported');
+    return;
+  }
+  var notes=null;
+  try{notes=JSON.parse(localStorage.getItem('pjmdemo_meeting_notes_v1'));}catch(e){}
+  if(!notes||!notes.length){
+    showToast('No Gemini notes found — run the Data Pump first');
+    return;
+  }
+  var tasks=loadTasks();
+  var existing=new Set(tasks.map(function(t){return normalizeTitle(t.title);}));
+  var added=0;
+  notes.forEach(function(note){
+    if(note.actionItems){
+      note.actionItems.forEach(function(ai){
+        if((ai||'').toLowerCase().indexOf('[sujit')>=0){
+          var clean=ai.replace(/^\[Sujit[^\]]*\]\s*/i,'').trim();
+          if(clean&&!existing.has(normalizeTitle(clean))){
+            tasks.unshift({id:genId(),title:clean,source:'meeting',sourceRef:note.title||'',
+              date:todayShort(),type:'action',priority:'medium',status:'pending',addedAt:Date.now()});
+            existing.add(normalizeTitle(clean)); added++;
+          }
+        }
+      });
+    }
+  });
+  saveTasks(tasks); render();
+  showToast(added?'Imported '+added+' item'+(added>1?'s':'')+' from meeting notes':'No new items in meeting notes');
+}
+
+/* ════════════════════════════════════════════════════════════════
+   RENDER HELPERS
+════════════════════════════════════════════════════════════════ */
+function escHtml(s){
+  if(!s) return '';
+  return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+
+function priLabel(p){
+  return p==='high'?'🔴 High': p==='low'?'🟢 Low':'🟡 Med';
+}
+
+function typeLabel(t){
+  var m={action:'⚡ Action', blocker:'🚧 Blocker', delegate:'↗ Delegate', request:'📩 Request'};
+  return m[t]||t;
+}
+
+function srcLabel(s){
+  if(s==='gemini') return 'GEMINI';
+  return s.toUpperCase();
+}
+
+function renderCard(t){
+  var isDone     = t.status==='done';
+  var isWip      = t.status==='in_progress';
+  var isBlocked  = t.status==='blocked';
+  var extraClass = isDone?' done-card': isWip?' status-inprogress': isBlocked?' status-blocked':'';
+  return '<div class="task-card pri-'+t.priority+extraClass+'" id="tc_'+t.id+'">'
+    /* Check circle */
+    +'<div class="task-check'+(isDone?' checked':'')+'" onclick="toggleDone(\''+t.id+'\')">'+(isDone?'✓':'')+'</div>'
+    /* Body */
+    +'<div style="flex:1;min-width:0;">'
+      +'<div class="task-title">'+escHtml(t.title)+'</div>'
+      +'<div class="task-meta">'
+        +'<span class="pri-badge '+t.priority+'">'+priLabel(t.priority)+'</span>'
+        +'<span class="type-badge '+t.type+'">'+typeLabel(t.type)+'</span>'
+        +(isWip?'<span class="status-chip in_progress">▶ In Progress</span>':'')
+        +(isBlocked?'<span class="status-chip blocked">🚧 Blocked</span>':'')
+        +'<span class="source-badge '+t.source+'">'+escHtml(srcLabel(t.source))+'</span>'
+        +(t.sourceRef?'<span class="ref-chip">'+escHtml(t.sourceRef)+'</span>':'')
+        +(t.date?'<span class="date-chip">'+escHtml(t.date)+'</span>':'')
+        +(t.delegateTo?'<span class="delegate-to">→ '+escHtml(t.delegateTo)+'</span>':'')
+      +'</div>'
+    +'</div>'
+    /* Actions */
+    +'<div class="task-actions">'
+      +'<select class="pri-select" onchange="changeStatus(\''+t.id+'\',this.value)" title="Change status">'
+        +'<option value="pending"'+(t.status==='pending'?' selected':'')+'>📋 To Do</option>'
+        +'<option value="in_progress"'+(t.status==='in_progress'?' selected':'')+'>▶ In Progress</option>'
+        +'<option value="blocked"'+(t.status==='blocked'?' selected':'')+'>🚧 Blocked</option>'
+        +'<option value="done"'+(t.status==='done'?' selected':'')+'>✅ Done</option>'
+      +'</select>'
+      +'<select class="pri-select" onchange="changePri(\''+t.id+'\',this.value)" title="Change priority">'
+        +'<option value="high"'+(t.priority==='high'?' selected':'')+'>🔴</option>'
+        +'<option value="medium"'+(t.priority==='medium'?' selected':'')+'>🟡</option>'
+        +'<option value="low"'+(t.priority==='low'?' selected':'')+'>🟢</option>'
+      +'</select>'
+      +'<button class="task-action-btn" onclick="deleteTask(\''+t.id+'\')" title="Delete">🗑️</button>'
+    +'</div>'
+  +'</div>';
+}
+
+/* ════════════════════════════════════════════════════════════════
+   BOARD CARD (compact, with status-move buttons)
+════════════════════════════════════════════════════════════════ */
+function renderBoardCard(t, colStatus){
+  var isDone = t.status==='done';
+  /* Determine which move buttons to show depending on the column */
+  var btns = '';
+  if(colStatus==='todo'){
+    btns += '<button class="status-btn" onclick="changeStatus(\''+t.id+'\',\'in_progress\')">▶ Start</button>';
+    btns += '<button class="status-btn" onclick="changeStatus(\''+t.id+'\',\'blocked\')">🚧 Block</button>';
+  } else if(colStatus==='in_progress'){
+    btns += '<button class="status-btn" onclick="changeStatus(\''+t.id+'\',\'done\')">✅ Done</button>';
+    btns += '<button class="status-btn" onclick="changeStatus(\''+t.id+'\',\'blocked\')">🚧 Block</button>';
+  } else if(colStatus==='delegated'){
+    btns += '<button class="status-btn" onclick="changeStatus(\''+t.id+'\',\'done\')">✅ Done</button>';
+  } else if(colStatus==='blocked'){
+    btns += '<button class="status-btn" onclick="changeStatus(\''+t.id+'\',\'in_progress\')">▶ Unblock</button>';
+    btns += '<button class="status-btn" onclick="changeStatus(\''+t.id+'\',\'done\')">✅ Done</button>';
+  } else if(colStatus==='done'){
+    btns += '<button class="status-btn" onclick="changeStatus(\''+t.id+'\',\'pending\')">↩ Reopen</button>';
+  }
+  return '<div class="board-card pri-'+t.priority+(isDone?' done-card':'')+'" id="bc_'+t.id+'">'
+    +'<div class="board-card-title'+(isDone?' done-title':'')+'">'+escHtml(t.title)+'</div>'
+    +'<div class="board-card-meta">'
+      +'<span class="pri-badge '+t.priority+'">'+priLabel(t.priority)+'</span>'
+      +'<span class="type-badge '+t.type+'">'+typeLabel(t.type)+'</span>'
+      +(t.sourceRef?'<span class="ref-chip">'+escHtml(t.sourceRef)+'</span>':'')
+    +'</div>'
+    +'<div class="board-card-actions">'
+      +btns
+      +'<button class="del-btn-sm" onclick="deleteTask(\''+t.id+'\')" title="Delete">🗑</button>'
+    +'</div>'
+  +'</div>';
+}
+
+function renderBoardCol(id, label, emoji, items, colStatus){
+  return '<div class="board-col col-'+id+'">'
+    +'<div class="board-col-header">'+emoji+' '+label+' <span class="col-count">'+items.length+'</span></div>'
+    +'<div class="board-col-body">'
+    +(items.length
+        ? items.map(function(t){ return renderBoardCard(t, colStatus); }).join('')
+        : '<div class="empty-section" style="font-size:11px;padding:8px 4px;">Empty</div>'
+      )
+    +'</div>'
+    +'</div>';
+}
+
+/* ════════════════════════════════════════════════════════════════
+   BOARD VIEW RENDER
+════════════════════════════════════════════════════════════════ */
+function renderBoardView(){
+  var tasks    = applyFilters(loadTasks());
+  var todo      = tasks.filter(function(t){ return t.status==='pending'     && t.type!=='delegate'; });
+  var wip       = tasks.filter(function(t){ return t.status==='in_progress'; });
+  var delegated = tasks.filter(function(t){ return t.type==='delegate'       && t.status!=='done' && t.status!=='blocked'; });
+  var blocked   = tasks.filter(function(t){ return t.status==='blocked'; });
+  var done      = tasks.filter(function(t){ return t.status==='done'; })
+                       .sort(function(a,b){ return (b.doneAt||0)-(a.doneAt||0); })
+                       .slice(0,15); /* show last 15 done */
+
+  var html = buildLiveBar() + buildFilterPanel() + buildImportBtns();
+  html += '<div class="board-view">';
+  html += renderBoardCol('todo',      'To Do',       '📋', todo,      'todo');
+  html += renderBoardCol('inprogress','In Progress', '▶',  wip,       'in_progress');
+  html += renderBoardCol('delegated', 'Delegated',   '↗',  delegated, 'delegated');
+  html += renderBoardCol('blocked',   'Blocked',     '🚧', blocked,   'blocked');
+  html += renderBoardCol('done',      'Done',        '✅', done,      'done');
+  html += '</div>';
+  html += buildAddBar();
+  document.getElementById('moduleContent').innerHTML = html;
+}
+
+/* ════════════════════════════════════════════════════════════════
+   TIMELINE VIEW RENDER  (grouped by recency)
+════════════════════════════════════════════════════════════════ */
+function renderTimelineView(){
+  var tasks    = applyFilters(loadTasks());
+  var pending  = tasks.filter(function(t){ return t.status!=='done'; });
+  var done     = tasks.filter(function(t){ return t.status==='done'; });
+
+  var now      = Date.now();
+  var DAY      = 86400000;
+  var todayItems  = pending.filter(function(t){ return (now - (t.addedAt||0)) <  1*DAY; });
+  var weekItems   = pending.filter(function(t){ var a=now-(t.addedAt||0); return a>=1*DAY && a<7*DAY; });
+  var olderItems  = pending.filter(function(t){ return (now - (t.addedAt||0)) >= 7*DAY; });
+
+  function tGroup(label, emoji, items){
+    if(!items.length) return '';
+    return '<div class="timeline-group">'
+      +'<div class="timeline-group-header">'+emoji+' '+label+' <span class="tg-count">'+items.length+'</span></div>'
+      +items.map(renderCard).join('')
+      +'</div>';
+  }
+
+  var html = buildLiveBar() + buildFilterPanel() + buildImportBtns();
+  if(!pending.length && !done.length){
+    html += '<div class="empty-section">No action items. 🎉</div>';
+  } else {
+    html += tGroup('Today',     '🔥', todayItems);
+    html += tGroup('This Week', '📅', weekItems);
+    html += tGroup('Older',     '🗂️', olderItems);
+    if(done.length){
+      html += '<div class="timeline-group">'
+        +'<div class="timeline-group-header">✅ Completed <span class="tg-count">'+done.length+'</span></div>'
+        +done.sort(function(a,b){return (b.doneAt||0)-(a.doneAt||0);}).map(renderCard).join('')
+        +'</div>';
+    }
+  }
+  html += buildAddBar();
+  document.getElementById('moduleContent').innerHTML = html;
+}
+
+/* ════════════════════════════════════════════════════════════════
+   SHARED RENDER HELPERS (extracted so all three views can reuse)
+════════════════════════════════════════════════════════════════ */
+function buildLiveBar(){
+  var g=getLiveGemini(), s=getLiveSlack();
+  var liveParts=liveDataSummary();
+  var cacheAge='';
+  var oldestTs = Math.min(g&&g.ts?g.ts:Infinity, s&&s.ts?s.ts:Infinity);
+  if(oldestTs!==Infinity){
+    var ageMs=Date.now()-oldestTs;
+    var ageH=Math.floor(ageMs/3600000);
+    var ageM=Math.floor((ageMs%3600000)/60000);
+    cacheAge = ageH>0 ? ageH+'h '+ageM+'m ago' : ageM+'m ago';
+  }
+  if(!liveParts.length) return '';
+  var isStaleNow = isCacheStale(g, CACHE_GEMINI)||isCacheStale(s, CACHE_SLACK);
+  return '<div class="live-data-bar">'
+    +'<span class="ldb-dot" style="background:'+(isStaleNow?'#f59e0b':'#10b981')+';"></span>'
+    +'<strong>'+(isStaleNow?'🟡 Cache stale':'🟢 Live data active')+'</strong> — '+liveParts.join(' · ')
+    +(cacheAge?' <span style="color:#6b7280;font-weight:400;">· fetched '+cacheAge+'</span>':'')
+    +' '+deltaSyncBar()
+    +'<span style="margin-left:auto;font-size:11px;color:#6b7280;">'+(isStaleNow?'Click ⚡ Force Refresh':'Delta syncs every 24h')+'</span>'
+    +'</div>';
+}
+
+function buildFilterPanel(){
+  return '<div class="filters-panel">'
+    +'<div class="filter-row">'
+    +'<span class="filter-label">TYPE</span>'
+    +'<button class="filter-chip'+(filterType==='all'?' active':'')+'" onclick="setFilter(\'type\',\'all\')">All</button>'
+    +'<button class="filter-chip'+(filterType==='action'?' active':'')+'" onclick="setFilter(\'type\',\'action\')">⚡ Action</button>'
+    +'<button class="filter-chip'+(filterType==='blocker'?' active':'')+'" onclick="setFilter(\'type\',\'blocker\')">🚧 Blocker</button>'
+    +'<button class="filter-chip'+(filterType==='delegate'?' active':'')+'" onclick="setFilter(\'type\',\'delegate\')">↗ Delegate</button>'
+    +'<button class="filter-chip'+(filterType==='request'?' active':'')+'" onclick="setFilter(\'type\',\'request\')">📩 Request</button>'
+    +'<div class="filter-divider"></div>'
+    +'<span class="filter-label">PRI</span>'
+    +'<button class="filter-chip'+(filterPri==='all'?' active':'')+'" onclick="setFilter(\'pri\',\'all\')">All</button>'
+    +'<button class="filter-chip'+(filterPri==='high'?' active':'')+'" onclick="setFilter(\'pri\',\'high\')">🔴 High</button>'
+    +'<button class="filter-chip'+(filterPri==='medium'?' active':'')+'" onclick="setFilter(\'pri\',\'medium\')">🟡 Med</button>'
+    +'<button class="filter-chip'+(filterPri==='low'?' active':'')+'" onclick="setFilter(\'pri\',\'low\')">🟢 Low</button>'
+    +'<div class="filter-divider"></div>'
+    +'<span class="filter-label">SRC</span>'
+    +'<button class="filter-chip'+(filterSrc==='all'?' active':'')+'" onclick="setFilter(\'src\',\'all\')">All</button>'
+    +'<button class="filter-chip'+(filterSrc==='slack'?' active':'')+'" onclick="setFilter(\'src\',\'slack\')">💬 Slack</button>'
+    +'<button class="filter-chip'+(filterSrc==='gemini'?' active':'')+'" onclick="setFilter(\'src\',\'gemini\')">✨ Gemini</button>'
+    +'<button class="filter-chip'+(filterSrc==='meeting'?' active':'')+'" onclick="setFilter(\'src\',\'meeting\')">📋 Meeting</button>'
+    +'<button class="filter-chip'+(filterSrc==='manual'?' active':'')+'" onclick="setFilter(\'src\',\'manual\')">✏️ Manual</button>'
+    +'</div>'
+    +'</div>';
+}
+
+function buildImportBtns(){
+  return '<div class="import-btns">'
+    +'<button class="import-btn" onclick="importFromMeetings()">✨ Import from Gemini Notes</button>'
+    +'<button class="import-btn" onclick="doSync(false)">💬 Sync Slack</button>'
+    +'</div>';
+}
+
+function buildAddBar(){
+  return '<div class="add-bar">'
+    +'<input id="newTaskInput" type="text" placeholder="Add new action item…" onkeydown="if(event.key===\'Enter\')addTask()">'
+    +'<select id="newTaskType">'
+      +'<option value="action">⚡ Action</option>'
+      +'<option value="blocker">🚧 Blocker</option>'
+      +'<option value="delegate">↗ Delegate</option>'
+      +'<option value="request">📩 Request</option>'
+    +'</select>'
+    +'<select id="newTaskPri">'
+      +'<option value="high">🔴 High</option>'
+      +'<option value="medium" selected>🟡 Med</option>'
+      +'<option value="low">🟢 Low</option>'
+    +'</select>'
+    +'<button onclick="addTask()">+ Add</button>'
+    +'</div>';
+}
+
+/* ════════════════════════════════════════════════════════════════
+   MAIN RENDER  — dispatches to the active view
+════════════════════════════════════════════════════════════════ */
+function render(){
+  if(currentView==='board')    { renderBoardView();    return; }
+  if(currentView==='timeline') { renderTimelineView(); return; }
+
+  /* ── List view (default) ── */
+  var tasks    = loadTasks();
+  var filtered = applyFilters(tasks);
+  /* In list view, "My Actions" = everything not delegated and not done */
+  var myActions= filtered.filter(function(t){return t.status!=='done' && t.type!=='delegate';});
+  var waiting  = filtered.filter(function(t){return t.status!=='done' && t.type==='delegate';});
+  var done     = filtered.filter(function(t){return t.status==='done';})
+                         .sort(function(a,b){return (b.doneAt||0)-(a.doneAt||0);});
+
+  var html = buildLiveBar() + buildFilterPanel() + buildImportBtns();
+  html += renderSection('my',      '⚡ My Actions',       myActions);
+  html += renderSection('waiting', '↗ Waiting on Others', waiting);
+  html += renderSection('done',    '✅ Done',              done);
+  html += buildAddBar();
+
+  document.getElementById('moduleContent').innerHTML=html;
+}
+
+function renderSection(key, label, items){
+  var open = sectionState[key];
+  return '<div class="section-header'+(open?'':' collapsed')+'" onclick="toggleSection(\''+key+'\')">'
+    +label+' <span class="count-badge">'+items.length+'</span>'
+    +'<span class="toggle-arrow">▾</span>'
+    +'</div>'
+    +'<div class="section-content'+(open?'':' collapsed')+'">'
+    +(items.length ? items.map(renderCard).join('') : '<div class="empty-section">'+(key==='done'?'No completed items yet.':key==='waiting'?'No delegated items.':'No pending actions. 🎉')+'</div>')
+    +'</div>';
+}
+
+/* ════════════════════════════════════════════════════════════════
+   COWORK DIRECT FETCH  (bypasses Data Pump / localStorage bridge)
+════════════════════════════════════════════════════════════════ */
+
+/* Unwrap window.cowork.callMcpTool() envelope */
+function parseResult(raw) {
+  if (!raw) return {};
+  if (raw.content && Array.isArray(raw.content)) {
+    for (var i = 0; i < raw.content.length; i++) {
+      var item = raw.content[i];
+      if (item && item.type === 'text' && item.text) {
+        try { return JSON.parse(item.text); } catch(e) { return { _text: item.text }; }
+      }
+    }
+    return {};
+  }
+  if (typeof raw === 'string') { try { return JSON.parse(raw); } catch(e) { return {}; } }
+  return raw;
+}
+
+/* Fetch Slack mentions + own commitments + DM requests → write to LIVE_SLACK_KEY */
+function fetchSlackDirect() {
+  var after = deltaAfterClause(); /* e.g. ' after:2026-05-10' — empty on first sync */
+
+  /* Search 1 — Sujit's own commitment messages in public/private channels.
+     Tightened to phrases that indicate a genuine personal commitment. */
+  var commitSearch = window.cowork.callMcpTool(
+    'mcp__c76c2a5a-02c9-4b13-9583-42f4c3598e6a__slack_search_public_and_private',
+    { query: 'from:'+MY_SLACK_HANDLE+' ("I will" OR "I\'ll" OR "will share" OR "will send" OR "will follow up" OR "will check" OR "will update" OR "will review" OR "will schedule" OR "will create" OR "will reach out" OR "taking ownership" OR "on my end")'+after, limit: 30 }
+  ).then(function(r){ return parseResult(r); }).catch(function(){ return null; });
+
+  /* Search 2 — DMs: requests made TO Sujit that he may forget.
+     Require at least one strong-request term to reduce noise. */
+  var dmSearch = window.cowork.callMcpTool(
+    'mcp__c76c2a5a-02c9-4b13-9583-42f4c3598e6a__slack_search_public_and_private',
+    { query: 'is:dm to:'+MY_SLACK_HANDLE+' ("can you" OR "could you" OR "need you to" OR "please" OR "action item" OR "following up" OR "your side" OR "from your end" OR "waiting on you")'+after, limit: 25 }
+  ).then(function(r){ return parseResult(r); }).catch(function(){ return null; });
+
+  /* Search 3 — Channel mentions with genuine request verbs (not just @-notifs) */
+  var mentionSearch = window.cowork.callMcpTool(
+    'mcp__c76c2a5a-02c9-4b13-9583-42f4c3598e6a__slack_search_public_and_private',
+    { query: '@'+MY_SLACK_HANDLE+' (confirm OR review OR update OR share OR send OR check OR schedule OR "let me know" OR "can you" OR "could you" OR "please")'+after, limit: 20 }
+  ).then(function(r){ return parseResult(r); }).catch(function(){ return null; });
+
+  return Promise.all([commitSearch, dmSearch, mentionSearch]).then(function(results) {
+    var commits  = extractSlackItems(results[0], 'commit');
+    var dms      = extractSlackItems(results[1], 'dm');
+    var mentions = extractSlackItems(results[2], 'mention');
+
+    /* Deduplicate by text across all three sets */
+    var seen = new Set();
+    var actionItems = [], blockers = [], requests = [];
+    commits.concat(mentions).forEach(function(item) {
+      var key = (item.text||'').toLowerCase().slice(0,80);
+      if(seen.has(key)) return; seen.add(key);
+      if(/block|stuck|waiting on|depend/i.test(item.text)) blockers.push(item);
+      else actionItems.push(item);
+    });
+    dms.forEach(function(item) {
+      var key = (item.text||'').toLowerCase().slice(0,80);
+      if(seen.has(key)) return; seen.add(key);
+      requests.push(item); /* DMs tagged separately as 'request' type */
+    });
+
+    var data = {
+      ts:           Date.now(),
+      mentionCount: mentions.length,
+      commitCount:  commits.length,
+      dmCount:      dms.length,
+      actionItems:  actionItems,
+      blockers:     blockers,
+      requests:     requests
+    };
+    try { localStorage.setItem(LIVE_SLACK_KEY, JSON.stringify(data)); } catch(e) {}
+    return data;
+  }).catch(function(e) {
+    console.warn('[action-items] Slack direct fetch failed:', e.message||e);
+    return null;
+  });
+}
+
+/* Extract action item objects from a Slack search result */
+function extractSlackItems(result, kind) {
+  if (!result) return [];
+  /* Slack search MCP returns matches in result.messages or result.matches */
+  var messages = (result.messages && result.messages.matches)
+    || result.matches
+    || (Array.isArray(result) ? result : []);
+  var items = [];
+  messages.forEach(function(msg) {
+    /* Skip bot messages */
+    if (msg.bot_id || msg.subtype === 'bot_message' || msg.subtype === 'channel_join') return;
+    var raw     = (msg.text || msg.content || '').replace(/<[^>]+>/g, '').replace(/\s+/g,' ').trim();
+    var channel = (msg.channel && (msg.channel.name || msg.channel)) || '';
+
+    /* Minimum useful length */
+    if (!raw || raw.length < 15) return;
+
+    /* Skip pure reactions / acknowledgements */
+    if (/^(hi|hello|hey|thanks|thank you|ok|okay|sure|got it|sounds good|great|noted|will do|done|👍|✅|🙏)[!.\s]*$/i.test(raw)) return;
+
+    var text = raw;
+
+    /* For commits: extract the most actionable sentence so we don't store walls of text */
+    if (kind === 'commit') {
+      var sentences = raw.split(/[.\n!?]+/).map(function(s){ return s.trim(); }).filter(function(s){ return s.length > 10; });
+      var bestSentence = sentences.find(function(s){
+        return /\b(I('ll| will)|will (send|share|check|review|update|schedule|create|follow up|reach out)|taking ownership|on my end)\b/i.test(s);
+      });
+      if (bestSentence) text = bestSentence;
+    }
+
+    /* For mentions: skip if there's nothing actionable */
+    if (kind === 'mention' && !/\b(confirm|review|update|share|send|check|follow|please|can you|could you|need|let me know|action|schedule|deadline|when can|by when)\b/i.test(text)) return;
+
+    /* For DMs: skip short exchanges and greetings even after min-length check */
+    if (kind === 'dm' && text.length < 25) return;
+
+    items.push({ text: text.slice(0, 220), channel: typeof channel === 'string' ? channel : '', ts: msg.ts || '' });
+  });
+  return items;
+}
+
+/* Fetch Gemini meeting note threads and write to LIVE_GEMINI_KEY */
+function fetchGeminiDirect() {
+  var newerThan = deltaNewerThan(); /* e.g. '2d' if synced yesterday, '31d' on first run */
+  return window.cowork.callMcpTool(
+    'mcp__1f7056e7-f917-414d-91af-88c95efa7174__search_threads',
+    { query: 'from:meeting-notes@example.com newer_than:'+newerThan, pageSize: 12 }
+  ).then(function(rawThreads) {
+    var threadsResult = parseResult(rawThreads);
+    var allThreads = (threadsResult.threads || []).slice(0, 8);
+    if (!allThreads.length) {
+      var empty = { ts: Date.now(), notes: [], allActionItems: [], meetingCount: 0 };
+      try { localStorage.setItem(LIVE_GEMINI_KEY, JSON.stringify(empty)); } catch(e) {}
+      return empty;
+    }
+    var detailPromises = allThreads.map(function(t) {
+      return window.cowork.callMcpTool(
+        'mcp__1f7056e7-f917-414d-91af-88c95efa7174__get_thread',
+        { threadId: t.id }
+      ).then(function(r) { return parseResult(r); }).catch(function() { return null; });
+    });
+    return Promise.all(detailPromises).then(function(details) {
+      var allActionItems = [];
+      var meetingTitles = new Set();
+      details.forEach(function(detail, i) {
+        if (!detail) return;
+        var msg = (detail.messages && detail.messages[0]) || detail;
+        if (!msg) return;
+        var subject = msg.subject || '';
+        var body = msg.plaintextBody || msg.body || msg.snippet || '';
+        if (typeof body === 'object') { try { body = JSON.stringify(body); } catch(e) { body = ''; } }
+        var titleMatch = subject.match(/Notes:\s*'([^']+)'/i) || subject.match(/Notes from '([^']+)'/i);
+        var meetingTitle = titleMatch ? titleMatch[1].trim() : subject.replace(/^Notes[:\s]+/i,'').trim() || ('Meeting '+(i+1));
+        meetingTitles.add(meetingTitle);
+        /* ── Multi-format action item extraction ── */
+        var lines = body.split('\n');
+        var inActions = false, inNextSteps = false;
+        /* Capture inline "Sujit will/to …" mentions even outside structured sections */
+        var fullBodyLower = body.toLowerCase();
+        if (/\bsujit\b/.test(fullBodyLower)) {
+          var inlineRe = /\bSujit\b[^.\n]*?(will|to)\s+([^.\n!?]{10,})/gi;
+          var m;
+          while ((m = inlineRe.exec(body)) !== null) {
+            var desc = (m[1]+' '+m[2]).trim().replace(/\s+/g,' ').slice(0, 140);
+            if (desc) allActionItems.push({ person: 'Sujit', description: desc, meetingTitle: meetingTitle, date: msg.date || '', _inline: true });
+          }
+        }
+        lines.forEach(function(line) {
+          var l = line.trim();
+          if (!l) return;
+          /* Detect section headers */
+          if (/^#+\s*(action items?|follow.up actions?|action points?|tasks?)\b/i.test(l) ||
+              /^(action items?|follow.up actions?|action points?)[\s:*\-]*/i.test(l)) {
+            inActions = true; inNextSteps = false; return;
+          }
+          if (/^#+\s*(next steps?|follow.up)\b/i.test(l) ||
+              /^(next steps?|follow.up items?)[\s:*\-]*/i.test(l)) {
+            inNextSteps = true; inActions = false; return;
+          }
+          /* End section on any other heading */
+          if (/^#+\s*(key decisions?|summary|attendees?|agenda|discussion|overview|notes?)\b/i.test(l) ||
+              /^(key decisions?|summary|attendees?|agenda)[\s:*\-]*/i.test(l)) {
+            inActions = false; inNextSteps = false; return;
+          }
+          if (!(inActions || inNextSteps) || l.length < 10) return;
+          /* Format 1: [Person]: desc  or  Person: desc  or  - [Person] - desc */
+          var fmt1 = l.match(/^[\-\*\d.]+\s*\[?([A-Z][a-zA-Z]+(?:\s+[A-Z][a-zA-Z]*)?)\]?[\s:\-]+(.{8,})/);
+          /* Format 2: - Person to do X  or  - Person will do X */
+          var fmt2 = !fmt1 && l.match(/^[\-\*\d.]+\s*([A-Z][a-zA-Z]+(?:\s+[A-Z][a-zA-Z]*)?)(?:\s+to\s+|\s+will\s+)(.{8,})/);
+          /* Format 3: bare bullet */
+          var fmt3 = !fmt1 && !fmt2 && /^[\-\*\d.]/.test(l);
+          var person = '', description = '';
+          if (fmt1)      { person = fmt1[1].trim(); description = fmt1[2].trim(); }
+          else if (fmt2) { person = fmt2[1].trim(); description = (fmt2[1]+' '+l.replace(/^[\-\*\d.]+\s*/,'')).trim(); }
+          else if (fmt3) { description = l.replace(/^[\-\*\d.]+\s*/, ''); }
+          if (description && description.length > 8) {
+            /* Avoid double-adding inline Sujit items already captured above */
+            var isAlreadyInline = person.toLowerCase()==='sujit' && allActionItems.some(function(x){ return x._inline && x.description.toLowerCase().indexOf(description.toLowerCase().slice(0,40))>=0; });
+            if (!isAlreadyInline) allActionItems.push({ person: person, description: description.slice(0,140), meetingTitle: meetingTitle, date: msg.date || '' });
+          }
+        });
+      });
+      var data = { ts: Date.now(), notes: [], allActionItems: allActionItems, meetingCount: meetingTitles.size };
+      try { localStorage.setItem(LIVE_GEMINI_KEY, JSON.stringify(data)); } catch(e) {}
+      return data;
+    });
+  }).catch(function(e) {
+    console.warn('[action-items] Gemini direct fetch failed:', e.message || e);
+    return null;
+  });
+}
+
+/* Orchestrate all direct fetches, then ingest */
+function fetchAndCacheLiveData() {
+  return Promise.all([ fetchGeminiDirect(), fetchSlackDirect() ]);
+}
+
+/* ════════════════════════════════════════════════════════════════
+   SYNC   (forceRefresh = true bypasses 24h cache)
+════════════════════════════════════════════════════════════════ */
+function doSync(forceRefresh){
+  PJMSync.markLoading(MODULE_ID);
+  PJMSync.setSyncBtnState(true);
+
+  var fetchPromise;
+
+  if (window.cowork && window.cowork.callMcpTool) {
+    /* Check whether caches are still fresh (per-source thresholds) */
+    var geminiStale = forceRefresh || isCacheStale(getLiveGemini(), CACHE_GEMINI);
+    var slackStale  = forceRefresh || isCacheStale(getLiveSlack(),  CACHE_SLACK);
+    var needsFetch  = geminiStale || slackStale;
+
+    if (needsFetch) {
+      var dLabel = deltaLabel();
+      var label  = forceRefresh
+        ? '⚡ Force-fetching from Slack & Gemini…'
+        : '🔄 Delta sync — '+dLabel+'…';
+      showToast(label);
+      var fetches = [];
+      /* Update per-source timestamp only when that source actually returned data */
+      if (geminiStale) fetches.push(fetchGeminiDirect().then(function(r){ if(r) setGeminiSyncTs(); return r; }));
+      if (slackStale)  fetches.push(fetchSlackDirect().then(function(r){  if(r) setSlackSyncTs();  return r; }));
+      fetchPromise = Promise.all(fetches);
+    } else {
+      showToast('✅ Cache fresh (< 24h) — use ⚡ Force Refresh to re-fetch');
+      fetchPromise = Promise.resolve();
+    }
+  } else {
+    fetchPromise = Promise.resolve();
+  }
+
+  fetchPromise.then(function() {
+    var added   = ingestLiveData();
+    var g       = getLiveGemini(), s = getLiveSlack();
+    var summary = {};
+    if(g){ summary.geminiMeetings = g.meetingCount||0; summary.geminiItems = (g.allActionItems||[]).length; }
+    if(s){ summary.slackActions   = (s.actionItems||[]).length; summary.slackBlockers = (s.blockers||[]).length; summary.slackDMs = (s.requests||[]).length; }
+    render();
+    PJMSync.markSynced(MODULE_ID, summary);
+    PJMSync.setSyncBtnState(false);
+    var liveParts = liveDataSummary();
+    if (liveParts.length && added > 0) {
+      showToast('✅ Delta synced — '+added+' new item'+(added>1?'s':'')+' added');
+    } else if (liveParts.length) {
+      showToast('✅ All caught up — no new items since last sync');
+    } else if (!window.cowork) {
+      showToast('No live data — open via Cowork to fetch Slack & Gemini');
+    }
+  }).catch(function(e) {
+    console.warn('[action-items] Sync error:', e);
+    PJMSync.setSyncBtnState(false);
+    showToast('Sync failed — check console for details');
+  });
+}
+
+/* ════════════════════════════════════════════════════════════════
+   INIT
+════════════════════════════════════════════════════════════════ */
+document.addEventListener('DOMContentLoaded', function(){
+  PJMNav.render(MODULE_ID);
+  PJMSync.initModule(MODULE_ID, doSync);
+  render();          // render from localStorage immediately
+  tryAutoLink();     // then try to sync from linked JSON file
+});
+</script>
+</body>
+</html>

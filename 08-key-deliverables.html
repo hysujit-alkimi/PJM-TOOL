@@ -1,0 +1,717 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Key Deliverables — Meridian PJM</title>
+<!--
+  DATA SOURCE: MERIDIAN KEY DELIVERABLES 2026
+  Google Sheet: https://docs.google.com/spreadsheets/d/1-DtsU6iLCqHQftTwMV0JFLm_zDshRiIdYOcp04Jo-KI/edit
+  Local file:   ../data/MERIDIAN - KEY DELIVERABLES 2026.xlsx
+  Last synced:  28 May 2026 — LAB (18 items, incl. MAY release) + ADTECH Q1+Q2 (56 items, incl. APR & MAY releases)
+  Beacon / EMBER / Agentic sourced from roadmap-data.json (synced 28 May 2026). ATLAS maintained manually.
+-->
+<script src="https://accounts.google.com/gsi/client" async defer></script>
+<link rel="stylesheet" href="shared/pjm.css">
+<style>
+/* ── Sub-tabs ── */
+.sub-tabs{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:18px;}
+.sub-tab{padding:7px 16px;border-radius:20px;border:1px solid #e5e7eb;background:#fff;font-size:13px;font-weight:600;cursor:pointer;color:#6b7280;transition:all .15s;}
+.sub-tab.active{background:#3B82F6;color:#fff;border-color:#3B82F6;}
+.sub-tab:hover:not(.active){background:#f3f4f6;}
+
+/* ── Source banner ── */
+.src-banner{display:flex;align-items:center;gap:10px;background:#f0fdf4;border:1px solid #bbf7d0;border-radius:10px;padding:10px 16px;margin-bottom:16px;font-size:12px;color:#15803d;}
+.src-banner a{color:#15803d;font-weight:600;}
+
+/* ── Global KPI bar ── */
+.gkpi-row{display:flex;gap:12px;flex-wrap:wrap;margin-bottom:20px;background:#fff;border:1px solid #e5e7eb;border-radius:12px;padding:16px;}
+.gkpi-item{display:flex;flex-direction:column;align-items:center;gap:3px;min-width:80px;flex:1;}
+.gkpi-item .gv{font-size:26px;font-weight:800;}
+.gkpi-item .gl{font-size:11px;color:#6b7280;font-weight:500;text-align:center;}
+
+/* ── Mini KPI strip ── */
+.mkpi-row{display:flex;gap:10px;flex-wrap:wrap;margin-bottom:14px;}
+.mkpi{background:#fff;border:1px solid #e5e7eb;border-radius:10px;padding:10px 18px;display:flex;flex-direction:column;align-items:center;gap:2px;min-width:100px;}
+.mkpi .mv{font-size:22px;font-weight:800;line-height:1;}
+.mkpi .ml{font-size:11px;color:#6b7280;font-weight:500;}
+.mkpi.blue .mv{color:#3B82F6;} .mkpi.green .mv{color:#10b981;} .mkpi.red .mv{color:#ef4444;}
+.mkpi.orange .mv{color:#f59e0b;} .mkpi.purple .mv{color:#8b5cf6;} .mkpi.grey .mv{color:#6b7280;}
+
+/* ── Progress bar ── */
+.prog-wrap{background:#e5e7eb;border-radius:8px;height:8px;margin-bottom:20px;overflow:hidden;}
+.prog-bar{height:100%;border-radius:8px;transition:width .5s;}
+
+/* ── Release group header ── */
+.rel-group{background:#fff;border:1px solid #e5e7eb;border-radius:12px;overflow:hidden;margin-bottom:16px;}
+.rel-group-hdr{padding:14px 20px;border-bottom:1px solid #e5e7eb;display:flex;align-items:center;gap:10px;flex-wrap:wrap;}
+.rel-group-hdr.labs-hdr{background:linear-gradient(135deg,rgba(16,185,129,.08),rgba(59,130,246,.05));}
+.rel-group-hdr.adtech-hdr{background:linear-gradient(135deg,rgba(59,130,246,.06),rgba(99,102,241,.03));}
+.rel-group-hdr.q2-hdr{background:linear-gradient(135deg,rgba(245,158,11,.07),rgba(239,68,68,.04));}
+.rel-group-hdr strong{font-size:16px;font-weight:700;color:#1f2937;}
+
+/* ── Tables ── */
+.del-tbl{width:100%;border-collapse:collapse;font-size:13px;}
+.del-tbl th{background:#f9fafb;padding:9px 14px;text-align:left;font-weight:600;font-size:11px;color:#6b7280;border-bottom:1px solid #e5e7eb;white-space:nowrap;}
+.del-tbl td{padding:9px 14px;border-bottom:1px solid #f3f4f6;vertical-align:middle;}
+.del-tbl tr:last-child td{border-bottom:none;}
+.del-tbl tr:hover td{background:#f9fafb;}
+.del-tbl .num{color:#9ca3af;font-size:11px;width:40px;}
+
+/* ── Badges ── */
+.badge{display:inline-flex;align-items:center;padding:2px 9px;border-radius:12px;font-size:11px;font-weight:700;white-space:nowrap;}
+.b-done{background:#d1fae5;color:#065f46;}
+.b-ip{background:#dbeafe;color:#1d4ed8;}
+.b-qa{background:#ede9fe;color:#6d28d9;}
+.b-blocked{background:#fee2e2;color:#991b1b;}
+.b-todo{background:#f3f4f6;color:#6b7280;}
+.b-planning{background:#fef3c7;color:#92400e;}
+.b-beacon{background:#fef3c7;color:#92400e;}
+.b-exchange{background:#ede9fe;color:#5b21b6;}
+.b-q{background:#f3f4f6;border-radius:8px;padding:2px 9px;font-size:12px;font-weight:600;color:#374151;}
+
+/* ── Summary count row ── */
+.sum-row{display:flex;align-items:center;gap:12px;margin-bottom:14px;flex-wrap:wrap;}
+.sum-row .big{font-size:28px;font-weight:700;color:#1f2937;}
+.sum-row .lbl{font-size:13px;color:#6b7280;}
+
+/* ── Tech-stack cards ── */
+.stack-cards{display:flex;gap:12px;margin-bottom:20px;flex-wrap:wrap;}
+.stack-card{background:#fff;border:1px solid #e5e7eb;border-radius:10px;padding:12px 16px;flex:1;min-width:180px;}
+.stack-card .sc-title{font-size:11px;text-transform:uppercase;color:#6b7280;font-weight:600;margin-bottom:6px;}
+.stack-card .sc-val{font-size:13px;color:#1f2937;}
+
+/* ── ATLAS track cards ── */
+.track-cards{display:flex;gap:12px;margin-bottom:18px;flex-wrap:wrap;}
+.track-card{background:#fff;border:1px solid #e5e7eb;border-radius:10px;padding:14px 18px;flex:1;min-width:260px;}
+.track-card .tc-head{display:flex;align-items:center;gap:8px;margin-bottom:8px;}
+.track-card .tc-head span{font-size:14px;font-weight:700;color:#1f2937;}
+.track-card .tc-sub{font-size:12px;color:#6b7280;line-height:1.5;}
+
+/* ── ATLAS pillars ── */
+.pillar-row{display:flex;gap:12px;margin-bottom:18px;flex-wrap:wrap;}
+.pillar{background:linear-gradient(135deg,rgba(99,102,241,.06),rgba(139,92,246,.04));border:1px solid #e5e7eb;border-radius:10px;padding:12px 16px;flex:1;min-width:160px;}
+.pillar .pt{font-size:12px;font-weight:700;color:#6366f1;margin-bottom:4px;}
+.pillar .pd{font-size:12px;color:#6b7280;}
+
+/* ── Placeholder ── */
+.placeholder{text-align:center;padding:60px 20px;}
+.placeholder .ph-icon{font-size:48px;margin-bottom:12px;}
+.placeholder .ph-title{font-size:18px;font-weight:600;color:#1f2937;margin-bottom:8px;}
+.placeholder .ph-sub{font-size:14px;color:#6b7280;max-width:400px;margin:0 auto;}
+
+/* ── Toast ── */
+.toast{position:fixed;bottom:28px;left:50%;transform:translateX(-50%);background:#1f2937;color:#fff;padding:12px 24px;border-radius:10px;font-size:13px;font-weight:600;z-index:9999;opacity:0;transition:opacity .25s;pointer-events:none;}
+.toast.show{opacity:1;}
+</style>
+
+<style id="demoBannerCss">
+#pjmDemoBanner{position:fixed;top:0;left:0;right:0;z-index:99999;background:#8A5CFF;color:#fff;
+ font:600 12px/1.4 system-ui,-apple-system,Segoe UI,sans-serif;padding:7px 44px 7px 16px;text-align:center;
+ letter-spacing:.2px;box-shadow:0 1px 6px rgba(0,0,0,.18)}
+#pjmDemoBanner a{color:#fff;text-decoration:underline}
+#pjmDemoBanner button{position:absolute;right:10px;top:4px;background:none;border:none;color:#fff;
+ font-size:17px;line-height:1;cursor:pointer;padding:4px}
+body.has-demo-banner{padding-top:30px}
+</style>
+<script id="pjmDemoMode">
+/* ===== PUBLIC DEMO BUILD =====
+   All data in this build is fictional. No credentials ship with it and no
+   outbound calls to third-party APIs are permitted. */
+(function(){
+  window.PJM_DEMO = true;
+  var BLOCK = /(api\.linear\.app|api\.github\.com|graphql|googleapis\.com|slack\.com|atlassian\.net)/i;
+  var of = window.fetch;
+  window.fetch = function(input){
+    var u = (typeof input === 'string') ? input : (input && input.url) || '';
+    if (BLOCK.test(u)) {
+      console.info('[demo] blocked outbound call:', u);
+      return Promise.resolve(new Response(JSON.stringify({data:null,demo:true}),
+        {status:200, headers:{'Content-Type':'application/json'}}));
+    }
+    return of.apply(this, arguments);
+  };
+  var ox = window.XMLHttpRequest && window.XMLHttpRequest.prototype.open;
+  if (ox) window.XMLHttpRequest.prototype.open = function(m,u){
+    if (BLOCK.test(String(u))) { console.info('[demo] blocked XHR:', u); u = 'data:application/json,{}'; }
+    return ox.apply(this, [m,u].concat([].slice.call(arguments,2)));
+  };
+  document.addEventListener('DOMContentLoaded', function(){
+    if (sessionStorage.getItem('pjmDemoBannerHidden')) return;
+    var b = document.createElement('div');
+    b.id = 'pjmDemoBanner';
+    b.innerHTML = 'DEMO BUILD \u2014 every person, project, ticket and meeting below is fictional. ' +
+                  'Live integrations are disabled in this build.' +
+                  '<button title="Dismiss" onclick="this.parentNode.remove();' +
+                  'document.body.classList.remove(\'has-demo-banner\');' +
+                  'sessionStorage.setItem(\'pjmDemoBannerHidden\',\'1\')">&times;</button>';
+    document.body.appendChild(b);
+    document.body.classList.add('has-demo-banner');
+  });
+})();
+</script>
+</head>
+<body>
+<div id="loginOverlay"><div class="login-box"><div class="login-logo">⬡</div><h2>Meridian PJM</h2><p>Sign in with your Meridian account to continue.</p><div id="googleSignInBtn"></div><div id="loginError"></div></div></div>
+<div id="pjmSidebarContainer"></div>
+
+<div class="pjm-main">
+  <div class="module-header">
+    <div>
+      <div class="module-title">📦 Key Deliverables</div>
+      <div class="section-sub">2026 key deliverables — Labs, AdTech, Beacon, EMBER, ATLAS, Agentic</div>
+    </div>
+    <div class="module-header-right">
+      <span id="lastSyncedLabel" class="last-synced-label">Never synced</span>
+      <div class="date-badge" id="todayDate"></div>
+      <button class="sync-btn" id="syncBtn" onclick="doSync()"><span class="sync-icon">🔄</span> Sync</button>
+    </div>
+  </div>
+  <div id="moduleContent"></div>
+</div>
+
+<div id="toastEl" class="toast"></div>
+<script src="shared/pjm-sync.js"></script>
+<script src="shared/pjm-nav.js"></script>
+<script>
+/* ═══════════════════════════════════════════════════════════
+   DATA SOURCE
+   Google Sheet: https://docs.google.com/spreadsheets/d/1-DtsU6iLCqHQftTwMV0JFLm_zDshRiIdYOcp04Jo-KI/edit
+   When updating: open the sheet, copy LAB + ADTECH rows into labsData / adtechData below.
+   Beacon / EMBER / ATLAS / Agentic are maintained manually until those sheets are added.
+═══════════════════════════════════════════════════════════ */
+
+/* ── LABS DATA (Excel: LAB tab) ── */
+var labsData = [
+  {no:1, feature:"Access requests",           sub:false, pipeline:"FEB, MAR", release:"02/04/2026", statusClass:"done"},
+  {no:2, feature:"Session handling",                     sub:true, pipeline:"FEB, MAR", release:"02/04/2026", statusClass:"done"},
+  {no:3, feature:"Saved views",                             sub:true, pipeline:"FEB, MAR", release:"02/04/2026", statusClass:"done"},
+  {no:4, feature:"Partner API v2",      sub:true, pipeline:"FEB, MAR", release:"02/04/2026", statusClass:"done"},
+  {no:5, feature:"Profile settings",                                              sub:true, pipeline:"FEB, MAR", release:"02/04/2026", statusClass:"done"},
+  {no:6, feature:"Dark mode",                           sub:true, pipeline:"FEB, MAR", release:"02/04/2026", statusClass:"done"},
+  {no:7, feature:"Localisation pass",                      sub:true, pipeline:"FEB, MAR", release:"02/04/2026", statusClass:"done"},
+  {no:8, feature:"Rate limiter",              sub:true, pipeline:"FEB, MAR", release:"02/04/2026", statusClass:"done"},
+  {no:9, feature:"Change history",                                          sub:true, pipeline:"FEB, MAR", release:"02/04/2026", statusClass:"done"},
+  {no:10,feature:"Keyboard shortcuts", sub:true, pipeline:"FEB, MAR", release:"02/04/2026", statusClass:"done"},
+  {no:11,feature:"Template library",          sub:true, pipeline:"FEB, MAR", release:"02/04/2026", statusClass:"done"},
+  {no:12,feature:"Localisation pass",                         sub:true, pipeline:"FEB, MAR", release:"02/04/2026", statusClass:"done"},
+  {no:13,feature:"Profile settings",                                           sub:true, pipeline:"FEB, MAR", release:"02/04/2026", statusClass:"done"},
+  {no:14,feature:"SSO integration",                               sub:true, pipeline:"FEB, MAR", release:"02/04/2026", statusClass:"done"},
+  {no:15,feature:"Health checks",                                      sub:true, pipeline:"FEB, MAR", release:"02/04/2026", statusClass:"done"},
+  {no:16,feature:"Bulk import",                                           sub:true, pipeline:"FEB, MAR", release:"02/04/2026", statusClass:"done"},
+  /* ── MAY Release ── */
+  {no:17,feature:"Feature flags",                                  sub:true, pipeline:"MAY",      release:"14/05/2026", statusClass:"done"},
+  {no:18,feature:"Usage alerts",                      sub:true, pipeline:"MAY",      release:"14/05/2026", statusClass:"done"}
+];
+
+/* ── ADTECH DATA (Excel: ADTECH tab — Q1 + Q2 APR & MAY) ── */
+var adtechData = [
+  /* ── Q1 : JAN ── */
+  {no:1,  feature:"Feature flags",                                                product:"BEACON",      pipeline:"JAN", release:"10/02/2026", quarter:"Q1", statusClass:"done"},
+  {no:2,  feature:"Localisation pass",                                             product:"BEACON",      pipeline:"JAN", release:"10/02/2026", quarter:"Q1", statusClass:"done"},
+  {no:3,  feature:"Comment threads",                                                         product:"BEACON",      pipeline:"JAN", release:"10/02/2026", quarter:"Q1", statusClass:"done"},
+  {no:4,  feature:"Audit log",                                                      product:"BEACON",      pipeline:"JAN", release:"10/02/2026", quarter:"Q1", statusClass:"done"},
+  {no:5,  feature:"Archive & restore",                                          product:"BEACON",      pipeline:"JAN", release:"10/02/2026", quarter:"Q1", statusClass:"done"},
+  {no:6,  feature:"Team invites",                                          product:"BEACON",      pipeline:"JAN", release:"10/02/2026", quarter:"Q1", statusClass:"done"},
+  {no:7,  feature:"Partner API v2",                                                         product:"BEACON",      pipeline:"JAN", release:"10/02/2026", quarter:"Q1", statusClass:"done"},
+  {no:8,  feature:"Template library",                                       product:"EXCHANGE", pipeline:"JAN", release:"05/02/2026", quarter:"Q1", statusClass:"done"},
+  {no:9,  feature:"Print view",                               product:"EXCHANGE", pipeline:"JAN", release:"05/02/2026", quarter:"Q1", statusClass:"done"},
+  {no:10, feature:"Activity feed",                                    product:"EXCHANGE", pipeline:"JAN", release:"05/02/2026", quarter:"Q1", statusClass:"done"},
+  {no:11, feature:"Usage dashboard",                                       product:"EXCHANGE", pipeline:"JAN", release:"09/02/2026", quarter:"Q1", statusClass:"done"},
+  {no:12, feature:"Audit log",                                                product:"EXCHANGE", pipeline:"JAN", release:"09/02/2026", quarter:"Q1", statusClass:"done"},
+  {no:13, feature:"Template library",                                               product:"EXCHANGE", pipeline:"JAN", release:"09/02/2026", quarter:"Q1", statusClass:"done"},
+  {no:14, feature:"Health checks",                                                        product:"EXCHANGE", pipeline:"JAN", release:"09/02/2026", quarter:"Q1", statusClass:"done"},
+  {no:15, feature:"Inline editing",                                              product:"EXCHANGE", pipeline:"JAN", release:"09/02/2026", quarter:"Q1", statusClass:"done"},
+  {no:16, feature:"Bulk import",                                         product:"EXCHANGE", pipeline:"JAN", release:"09/02/2026", quarter:"Q1", statusClass:"done"},
+  {no:17, feature:"Sandbox reset",                                        product:"EXCHANGE", pipeline:"JAN", release:"09/02/2026", quarter:"Q1", statusClass:"done"},
+  {no:18, feature:"Usage dashboard",                                         product:"EXCHANGE", pipeline:"JAN", release:"09/02/2026", quarter:"Q1", statusClass:"done"},
+  {no:19, feature:"Template library",                                                                       product:"EXCHANGE", pipeline:"JAN", release:"09/02/2026", quarter:"Q1", statusClass:"done"},
+  {no:20, feature:"Activity feed",                                      product:"EXCHANGE", pipeline:"JAN", release:"09/02/2026", quarter:"Q1", statusClass:"done"},
+  /* ── Q1 : FEB ── */
+  {no:21, feature:"Keyboard shortcuts",                                              product:"EXCHANGE", pipeline:"FEB", release:"17/02/2026", quarter:"Q1", statusClass:"done"},
+  {no:22, feature:"Partner API v2",                                      product:"EXCHANGE", pipeline:"FEB", release:"17/02/2026", quarter:"Q1", statusClass:"done"},
+  {no:23, feature:"Template library",                                               product:"EXCHANGE", pipeline:"FEB", release:"17/02/2026", quarter:"Q1", statusClass:"done"},
+  {no:24, feature:"Onboarding flow",                                  product:"EXCHANGE", pipeline:"FEB", release:"23/02/2026", quarter:"Q1", statusClass:"done"},
+  {no:25, feature:"Attachment storage",                                                                   product:"EXCHANGE", pipeline:"FEB", release:"23/02/2026", quarter:"Q1", statusClass:"done"},
+  {no:26, feature:"Localisation pass",                                                               product:"EXCHANGE", pipeline:"FEB", release:"26/02/2026", quarter:"Q1", statusClass:"done"},
+  {no:27, feature:"Feature flags",                                                     product:"EXCHANGE", pipeline:"FEB", release:"26/02/2026", quarter:"Q1", statusClass:"done"},
+  {no:28, feature:"Print view",                                     product:"EXCHANGE", pipeline:"FEB", release:"26/02/2026", quarter:"Q1", statusClass:"done"},
+  {no:29, feature:"Self-serve signup",                                     product:"EXCHANGE", pipeline:"FEB", release:"26/02/2026", quarter:"Q1", statusClass:"done"},
+  {no:30, feature:"Diff viewer",                                         product:"EXCHANGE", pipeline:"FEB", release:"26/02/2026", quarter:"Q1", statusClass:"done"},
+  /* ── Q1 : MAR ── */
+  {no:31, feature:"Rate limiter",                                          product:"EXCHANGE", pipeline:"MAR", release:"12/03/2026", quarter:"Q1", statusClass:"done"},
+  {no:32, feature:"Usage dashboard",                                                     product:"EXCHANGE", pipeline:"MAR", release:"12/03/2026", quarter:"Q1", statusClass:"done"},
+  {no:33, feature:"Search filters",                                            product:"EXCHANGE", pipeline:"MAR", release:"12/03/2026", quarter:"Q1", statusClass:"done"},
+  {no:34, feature:"Sandbox reset",                                                 product:"EXCHANGE", pipeline:"MAR", release:"12/03/2026", quarter:"Q1", statusClass:"done"},
+  {no:35, feature:"Print view",                                                 product:"EXCHANGE", pipeline:"MAR", release:"12/03/2026", quarter:"Q1", statusClass:"done"},
+  {no:36, feature:"Usage dashboard",                                                    product:"EXCHANGE", pipeline:"MAR", release:"12/03/2026", quarter:"Q1", statusClass:"done"},
+  {no:37, feature:"Bulk import",                              product:"EXCHANGE", pipeline:"MAR", release:"12/03/2026", quarter:"Q1", statusClass:"done"},
+  {no:38, feature:"Webhook delivery",                                                         product:"EXCHANGE", pipeline:"MAR", release:"12/03/2026", quarter:"Q1", statusClass:"done"},
+  {no:39, feature:"Notification centre",                                                  product:"EXCHANGE", pipeline:"MAR", release:"12/03/2026", quarter:"Q1", statusClass:"done"},
+  {no:40, feature:"Usage dashboard",                                                    product:"EXCHANGE", pipeline:"MAR", release:"12/03/2026", quarter:"Q1", statusClass:"done"},
+  {no:41, feature:"Template library",                                              product:"EXCHANGE", pipeline:"MAR", release:"12/03/2026", quarter:"Q1", statusClass:"done"},
+  {no:42, feature:"Onboarding flow",                                      product:"EXCHANGE", pipeline:"MAR", release:"12/03/2026", quarter:"Q1", statusClass:"done"},
+  {no:43, feature:"Audit log",                                         product:"EXCHANGE", pipeline:"MAR", release:"12/03/2026", quarter:"Q1", statusClass:"done"},
+  {no:44, feature:"Usage alerts",                                                                       product:"EXCHANGE", pipeline:"MAR", release:"27/03/2026", quarter:"Q1", statusClass:"done"},
+  /* ── Q2 : APR ── */
+  {no:45, feature:"Partner API v2",product:"BEACON",      pipeline:"APR", release:"21/04/2026", quarter:"Q2", statusClass:"done"},
+  {no:46, feature:"Attachment storage",                            product:"BEACON",      pipeline:"APR", release:"21/04/2026", quarter:"Q2", statusClass:"done"},
+  {no:47, feature:"Report scheduler",                    product:"BEACON",      pipeline:"APR", release:"21/04/2026", quarter:"Q2", statusClass:"done"},
+  {no:48, feature:"Report scheduler",                                 product:"BEACON",      pipeline:"APR", release:"21/04/2026", quarter:"Q2", statusClass:"done"},
+  {no:49, feature:"Diff viewer",                               product:"BEACON",      pipeline:"APR", release:"21/04/2026", quarter:"Q2", statusClass:"done"},
+  /* ── Q2 : MAY ── */
+  {no:50, feature:"BEACON Reports: Total against eCPM Column appearing with \"$\" sign fix",               product:"EXCHANGE", pipeline:"MAY", release:"06/05/2026", quarter:"Q2", statusClass:"done"},
+  {no:51, feature:"Custom fields",            product:"EXCHANGE", pipeline:"MAY", release:"06/05/2026", quarter:"Q2", statusClass:"done"},
+  {no:52, feature:"Archive & restore",                    product:"EXCHANGE", pipeline:"MAY", release:"06/05/2026", quarter:"Q2", statusClass:"done"},
+  {no:53, feature:"Profile settings",                                                                  product:"EXCHANGE", pipeline:"MAY", release:"06/05/2026", quarter:"Q2", statusClass:"done"},
+  {no:54, feature:"Attachment storage",                                     product:"EXCHANGE", pipeline:"MAY", release:"06/05/2026", quarter:"Q2", statusClass:"done"},
+  {no:55, feature:"Quota management",                                                          product:"EXCHANGE", pipeline:"MAY", release:"06/05/2026", quarter:"Q2", statusClass:"done"},
+  {no:56, feature:"Dark mode",                       product:"EXCHANGE", pipeline:"MAY", release:"06/05/2026", quarter:"Q2", statusClass:"done"},
+  {no:57, feature:"Custom fields",            product:"EXCHANGE", pipeline:"MAY", release:"06/05/2026", quarter:"Q2", statusClass:"done"},
+  {no:58, feature:"Feature flags",                                               product:"EXCHANGE", pipeline:"MAY", release:"06/05/2026", quarter:"Q2", statusClass:"done"},
+  {no:59, feature:"Comment threads",                               product:"EXCHANGE", pipeline:"MAY", release:"06/05/2026", quarter:"Q2", statusClass:"done"},
+  {no:60, feature:"Bulk import",         product:"EXCHANGE", pipeline:"MAY", release:"12/05/2026", quarter:"Q2", statusClass:"done"},
+  {no:61, feature:"Onboarding flow",               product:"EXCHANGE", pipeline:"MAY", release:"12/05/2026", quarter:"Q2", statusClass:"done"}
+];
+
+/* ── Beacon DATA (source: roadmap-data.json — synced 28 May 2026) ── */
+var beaconData = [
+  {no:1, feature:"Profile settings",  pipeline:"Q1 – Q2 2026", status:"In Progress",    statusClass:"ip",   owner:"Alice, Alina"},
+  {no:2, feature:"Diff viewer",       pipeline:"Q2 2026",      status:"System Testing", statusClass:"qa",   owner:"Alice, Alina"},
+  {no:3, feature:"Diff viewer",    pipeline:"Q2 2026",      status:"In Progress",    statusClass:"ip",   owner:"Alice, Alina"},
+  {no:4, feature:"Sandbox reset",              pipeline:"Q2 2026",      status:"Planned",        statusClass:"todo", owner:"Alice, Alina"}
+];
+
+/* ── EMBER DATA (source: roadmap-data.json — synced 28 May 2026) ── */
+var mmpData = [
+  {no:1, feature:"Usage dashboard",  pipeline:"Q1 – Q3 2026", status:"System Testing", statusClass:"qa",   owner:"Huy"},
+  {no:2, feature:"Activity feed",     pipeline:"Q2 2026",      status:"In Progress",    statusClass:"ip",   owner:"Huy"},
+  {no:3, feature:"Onboarding flow",   pipeline:"Q2 – Q3 2026", status:"In Progress",    statusClass:"ip",   owner:"Huy, Grace"},
+  {no:4, feature:"Dark mode",         pipeline:"Q2 2026",      status:"In Progress",    statusClass:"ip",   owner:"Huy, Grace"},
+  {no:5, feature:"SSO integration",          pipeline:"Q4 2026",      status:"Planned",        statusClass:"todo", owner:"TBD"}
+];
+
+/* ── ATLAS DATA (from dashboard reference) ── */
+var ampData = [
+  {no:1,  feature:"Template library",                    product:"Enterprise ATLAS", pipeline:"Q2 2026",      status:"In Progress",  statusClass:"ip",   desc:"Blocked on a partner contract."},
+  {no:2,  feature:"Session handling",             product:"Enterprise ATLAS", pipeline:"Q2 2026",      status:"In Progress",  statusClass:"ip",   desc:"Scoped at planning; no external dependencies."},
+  {no:3,  feature:"Comment threads",             product:"Enterprise ATLAS", pipeline:"Q2 2026",      status:"In Progress",  statusClass:"ip",   desc:"Blocked on a partner contract."},
+  {no:4,  feature:"Change history",             product:"Enterprise ATLAS", pipeline:"Q2 – Q3 2026", status:"In Progress",  statusClass:"ip",   desc:"Low risk; good filler if capacity frees up."},
+  {no:5,  feature:"Profile settings",                   product:"Enterprise ATLAS", pipeline:"Q2 – Q3 2026", status:"Planned",      statusClass:"todo", desc:"Design complete; build starts next cycle."},
+  {no:6,  feature:"Search filters",      product:"SMB Edition",    pipeline:"MAY 2026",     status:"In Progress",  statusClass:"ip",   desc:"Needs a data migration before rollout."},
+  {no:7,  feature:"Notification centre",          product:"SMB Edition",    pipeline:"MAY 2026",     status:"In Progress",  statusClass:"ip",   desc:"Design complete; build starts next cycle."},
+  {no:8,  feature:"Archive & restore",             product:"SMB Edition",    pipeline:"MAY – JUN 2026",status:"In Progress", statusClass:"ip",   desc:"Needs a data migration before rollout."},
+  {no:9,  feature:"Health checks",      product:"SMB Edition",    pipeline:"MAY 2026",     status:"Largely Built",statusClass:"ip",   desc:"Blocked on a partner contract."},
+  {no:10, feature:"Custom fields",product:"SMB Edition",  pipeline:"MAY 2026",     status:"In Progress",  statusClass:"ip",   desc:"Low risk; good filler if capacity frees up."},
+  {no:11, feature:"Partner API v2",product:"SMB Edition",  pipeline:"MAY – JUN 2026",status:"Planned",    statusClass:"todo", desc:"Design complete; build starts next cycle."},
+  {no:12, feature:"Team invites",           product:"V2",             pipeline:"Q3 – Q4 2026", status:"V2 Roadmap",   statusClass:"todo", desc:"Carried over from the previous cycle."}
+];
+
+/* ── AGENTIC DATA (source: roadmap-data.json — synced 28 May 2026) ── */
+var agenticData = [
+  {no:1,  feature:"Keyboard shortcuts",               pipeline:"Q2 2026",      status:"In Progress",   statusClass:"ip",   owner:"Rohan"},
+  {no:2,  feature:"Usage alerts",              pipeline:"Q2 2026",      status:"In Progress",   statusClass:"ip",   owner:"Rohan"},
+  {no:3,  feature:"Data retention job",                         pipeline:"Q2 2026",      status:"Dev Completed", statusClass:"done", owner:"Ravi"},
+  {no:4,  feature:"Profile settings",                     pipeline:"Q2 2026",      status:"Dev Completed", statusClass:"done", owner:"Mei"},
+  {no:5,  feature:"Change history",                       pipeline:"Q2 2026",      status:"In Progress",   statusClass:"ip",   owner:"Ines"},
+  {no:6,  feature:"Profile settings",                    pipeline:"Q2 2026",      status:"In Progress",   statusClass:"ip",   owner:"Ines"},
+  {no:7,  feature:"Diff viewer", pipeline:"Q2 2026",      status:"In Progress",   statusClass:"ip",   owner:"Ines, VJ, Rohan"},
+  {no:8,  feature:"APF",                                  pipeline:"Q2 – Q3 2026", status:"In Progress",   statusClass:"ip",   owner:"Ben"},
+  {no:9,  feature:"Billing summary",                               pipeline:"Q2 – Q3 2026", status:"Planned",       statusClass:"todo", owner:"Rohan"},
+  {no:10, feature:"Self-serve signup",             pipeline:"Q3 2026",      status:"Planned",       statusClass:"todo", owner:"Rohan"},
+  {no:11, feature:"Template library",             pipeline:"Q3 2026",      status:"Planned",       statusClass:"todo", owner:"Ben"},
+  {no:12, feature:"Template library",                    pipeline:"Q4 2026",      status:"Planned",       statusClass:"todo", owner:"Ben, Rohan"}
+];
+
+/* ═══════════════════════════════════════════════════════════
+   HELPERS
+═══════════════════════════════════════════════════════════ */
+var SHEET_URL = 'https://docs.google.com/spreadsheets/d/1-DtsU6iLCqHQftTwMV0JFLm_zDshRiIdYOcp04Jo-KI/edit';
+var MODULE_ID = 'key-deliverables';
+var activeTab = 'labs';
+
+var tabDefs = [
+  {key:'labs',    label:'🧪 Labs'},
+  {key:'adtech',  label:'📡 AdTech'},
+  {key:'beacon',    label:'💰 Beacon'},
+  {key:'ember',     label:'🔄 EMBER'},
+  {key:'amp',     label:'🤖 ATLAS'},
+  {key:'agentic', label:'🌐 Agentic'}
+];
+
+var statusMap = {
+  done:'b-done', ip:'b-ip', qa:'b-qa', blocked:'b-blocked', todo:'b-todo', planning:'b-planning', devdone:'b-done'
+};
+
+function esc(s){ return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
+function badge(text, cls){ return '<span class="badge '+cls+'">'+esc(text)+'</span>'; }
+function statusBadge(sc, label){ return badge(label||sc, statusMap[sc]||'b-todo'); }
+function progressBar(pct, gradient){
+  return '<div class="prog-wrap"><div class="prog-bar" style="background:'+gradient+';width:'+pct+'%"></div></div>';
+}
+
+function globalKPIs(){
+  var all = labsData.concat(adtechData).concat(beaconData).concat(mmpData).concat(ampData).concat(agenticData);
+  var total   = all.length;
+  var done    = all.filter(function(d){return d.statusClass==='done';}).length;
+  var ip      = all.filter(function(d){return d.statusClass==='ip'||d.statusClass==='qa';}).length;
+  var blocked = all.filter(function(d){return d.statusClass==='blocked';}).length;
+  return '<div class="gkpi-row">'
+    +'<div class="gkpi-item"><span class="gv" style="color:#1f2937">'+total+'</span><span class="gl">Total Deliverables</span></div>'
+    +'<div class="gkpi-item"><span class="gv" style="color:#10b981">'+done+'</span><span class="gl">Released / Done</span></div>'
+    +'<div class="gkpi-item"><span class="gv" style="color:#3B82F6">'+ip+'</span><span class="gl">In Progress / Testing</span></div>'
+    +'<div class="gkpi-item"><span class="gv" style="color:#ef4444">'+blocked+'</span><span class="gl">Blocked</span></div>'
+    +'</div>';
+}
+
+function tabs(){
+  return '<div class="sub-tabs">'+tabDefs.map(function(t){
+    return '<button class="sub-tab'+(t.key===activeTab?' active':'')+'" onclick="switchTab(\''+t.key+'\')">'+t.label+'</button>';
+  }).join('')+'</div>';
+}
+
+function switchTab(key){ activeTab=key; render(); }
+
+function showToast(msg){
+  var t=document.getElementById('toastEl');
+  t.textContent=msg; t.classList.add('show');
+  setTimeout(function(){t.classList.remove('show');},3000);
+}
+
+/* ═══════════════════════════════════════════════════════════
+   TAB RENDERERS
+═══════════════════════════════════════════════════════════ */
+
+/* ── LABS ── */
+function renderLabs(){
+  var total=labsData.length, done=labsData.filter(function(d){return d.statusClass==='done';}).length;
+  var pct=Math.round(done/total*100);
+  var html='';
+  html+='<div class="sum-row">'
+    +'<span class="big">'+total+'</span><span class="lbl">total features</span>'
+    +badge(done+' released','b-done')
+    +(done<total?badge((total-done)+' remaining','b-ip'):'')
+    +'<a href="'+SHEET_URL+'" target="_blank" style="margin-left:auto;font-size:12px;color:#3B82F6;font-weight:600">📄 Open Source Sheet →</a>'
+    +'</div>';
+  html+=progressBar(pct,'linear-gradient(90deg,#10b981,#34d399)');
+
+  /* ── Group 1: LABS V4.0 (FEB–MAR, release 02 Apr 2026) ── */
+  var v4Items = labsData.filter(function(d){ return d.pipeline==='FEB, MAR'; });
+  html+='<div class="rel-group">'
+    +'<div class="rel-group-hdr labs-hdr">'
+    +'<strong>LABS V4.0</strong>'
+    +'<span class="b-q">Dev Pipeline: FEB – MAR</span>'
+    +'<span class="b-q">Release: 02 Apr 2026</span>'
+    +'<span style="margin-left:auto">'+badge('✔ Released','b-done')+'</span>'
+    +'</div>'
+    +'<table class="del-tbl"><thead><tr>'
+    +'<th>#</th><th>Feature</th><th>Dev Pipeline</th><th>Release Date</th><th>Status</th>'
+    +'</tr></thead><tbody>';
+  v4Items.forEach(function(item){
+    var isSub=item.sub;
+    html+='<tr>'
+      +'<td class="num">#'+item.no+'</td>'
+      +'<td style="'+(isSub?'padding-left:32px':'font-weight:600')+'">'
+      +(isSub?'<span style="color:#9ca3af;margin-right:6px">›</span>':'')+esc(item.feature)+'</td>'
+      +'<td style="color:#6b7280">'+esc(item.pipeline)+'</td>'
+      +'<td style="color:#6b7280">'+esc(item.release)+'</td>'
+      +'<td>'+badge('✔ Released','b-done')+'</td>'
+      +'</tr>';
+  });
+  html+='</tbody></table></div>';
+
+  /* ── Group 2: MAY Release (14 May 2026) ── */
+  var mayItems = labsData.filter(function(d){ return d.pipeline==='MAY'; });
+  if(mayItems.length){
+    html+='<div class="rel-group">'
+      +'<div class="rel-group-hdr q2-hdr">'
+      +'<strong>MAY Release</strong>'
+      +'<span class="b-q">Dev Pipeline: MAY</span>'
+      +'<span class="b-q">Release: 14 May 2026</span>'
+      +'<span style="margin-left:auto">'+badge('✔ Released','b-done')+'</span>'
+      +'</div>'
+      +'<table class="del-tbl"><thead><tr>'
+      +'<th>#</th><th>Feature</th><th>Dev Pipeline</th><th>Release Date</th><th>Status</th>'
+      +'</tr></thead><tbody>';
+    mayItems.forEach(function(item){
+      html+='<tr>'
+        +'<td class="num">#'+item.no+'</td>'
+        +'<td style="padding-left:32px"><span style="color:#9ca3af;margin-right:6px">›</span>'+esc(item.feature)+'</td>'
+        +'<td style="color:#6b7280">'+esc(item.pipeline)+'</td>'
+        +'<td style="color:#6b7280">'+esc(item.release)+'</td>'
+        +'<td>'+badge('✔ Released','b-done')+'</td>'
+        +'</tr>';
+    });
+    html+='</tbody></table></div>';
+  }
+
+  return html;
+}
+
+/* ── ADTECH ── */
+function renderAdtech(){
+  var total=adtechData.length, done=adtechData.filter(function(d){return d.statusClass==='done';}).length;
+  var pct=Math.round(done/total*100);
+  var html='';
+
+  html+='<div class="sum-row">'
+    +'<span class="big">'+total+'</span><span class="lbl">total features</span>'
+    +badge(done+' released','b-done')
+    +(done<total?badge((total-done)+' in pipeline','b-ip'):'')
+    +'<a href="'+SHEET_URL+'" target="_blank" style="margin-left:auto;font-size:12px;color:#3B82F6;font-weight:600">📄 Open Source Sheet →</a>'
+    +'</div>';
+  html+=progressBar(pct,'linear-gradient(90deg,#10b981,#34d399)');
+
+  // Group by pipeline month
+  var groups={}, order=[];
+  adtechData.forEach(function(d){
+    var key=d.quarter+' · '+d.pipeline;
+    if(!groups[key]){groups[key]=[];order.push(key);}
+    groups[key].push(d);
+  });
+
+  order.forEach(function(key){
+    var items=groups[key];
+    var isQ2=items[0].quarter==='Q2';
+    var relDates={};items.forEach(function(i){relDates[i.release]=true;});
+    var relStr=Object.keys(relDates).join(', ');
+    var dspCount=items.filter(function(i){return i.product==='BEACON';}).length;
+    var exCount=items.filter(function(i){return i.product==='EXCHANGE';}).length;
+
+    html+='<div class="rel-group">'
+      +'<div class="rel-group-hdr '+(isQ2?'q2-hdr':'adtech-hdr')+'">'
+      +'<strong>Dev Pipeline: '+items[0].pipeline+'</strong>'
+      +badge(items[0].quarter,'b-q')
+      +'<span class="b-q">Release: '+relStr+'</span>'
+      +(dspCount?badge('BEACON: '+dspCount,'b-beacon'):'')
+      +(exCount?badge('Exchange: '+exCount,'b-exchange'):'')
+      +'<span style="margin-left:auto">'+badge(items.length+' features','b-ip')+'</span>'
+      +'</div>'
+      +'<table class="del-tbl"><thead><tr>'
+      +'<th>#</th><th>Feature</th><th>Product</th><th>Release Date</th><th>Status</th>'
+      +'</tr></thead><tbody>';
+
+    items.forEach(function(item){
+      html+='<tr>'
+        +'<td class="num">#'+item.no+'</td>'
+        +'<td>'+esc(item.feature)+'</td>'
+        +'<td>'+badge(item.product, item.product==='BEACON'?'b-beacon':'b-exchange')+'</td>'
+        +'<td style="color:#6b7280;font-size:12px">'+esc(item.release)+'</td>'
+        +'<td>'+badge('✔ Released','b-done')+'</td>'
+        +'</tr>';
+    });
+
+    html+='</tbody></table></div>';
+  });
+
+  return html;
+}
+
+/* ── Beacon ── */
+function renderBeacon(){
+  var total=beaconData.length, done=beaconData.filter(function(d){return d.statusClass==='done';}).length;
+  var ipCount=beaconData.filter(function(d){return d.statusClass==='ip'||d.statusClass==='qa';}).length;
+  var pct=total?Math.round(done/total*100):0;
+  var html='<div class="sum-row">'
+    +'<span class="big">'+total+'</span><span class="lbl">total features</span>'
+    +(done?badge(done+' released','b-done'):'')
+    +badge(ipCount+' in pipeline','b-ip')
+    +'</div>';
+  html+=progressBar(pct,'linear-gradient(90deg,#10b981,#34d399)');
+
+  html+='<div class="rel-group"><div class="rel-group-hdr adtech-hdr">'
+    +'<strong>Beacon Product Pipeline</strong>'
+    +'<span class="b-q">Q1 – Q2 2026</span>'
+    +'</div>'
+    +'<table class="del-tbl"><thead><tr>'
+    +'<th>#</th><th>Feature</th><th>Owner</th><th>Timeline</th><th>Status</th>'
+    +'</tr></thead><tbody>';
+  beaconData.forEach(function(item){
+    html+='<tr>'
+      +'<td class="num">#'+item.no+'</td>'
+      +'<td style="font-weight:600">'+esc(item.feature)+'</td>'
+      +'<td style="color:#6b7280;font-size:12px">'+esc(item.owner||'—')+'</td>'
+      +'<td style="color:#6b7280">'+esc(item.pipeline)+'</td>'
+      +'<td>'+statusBadge(item.statusClass, item.status)+'</td>'
+      +'</tr>';
+  });
+  html+='</tbody></table></div>';
+  return html;
+}
+
+/* ── EMBER ── */
+function renderMmp(){
+  var total=mmpData.length;
+  var done=mmpData.filter(function(d){return d.statusClass==='done';}).length;
+  var ipCount=mmpData.filter(function(d){return d.statusClass==='ip';}).length;
+  var planned=total-done-ipCount;
+  var pct=total?Math.round((done+ipCount*0.5)/total*100):0;
+
+  var html='<div class="sum-row">'
+    +'<span class="big">'+total+'</span><span class="lbl">total deliverables</span>'
+    +(done?badge(done+' completed','b-done'):'')
+    +badge(ipCount+' in progress','b-ip')
+    +badge(planned+' planned','b-todo')
+    +'</div>';
+  html+=progressBar(pct,'linear-gradient(90deg,#10b981,#3b82f6)');
+
+  html+='<div class="stack-cards">'
+    +'<div class="stack-card"><div class="sc-title">Owner</div><div class="sc-val">Huy · Grace</div></div>'
+    +'<div class="stack-card"><div class="sc-title">CEX Targets</div><div class="sc-val">Gate.io · KuCoin · MEXC · Kraken · Binance</div></div>'
+    +'<div class="stack-card"><div class="sc-title">DEX Targets</div><div class="sc-val">Cetus Protocol (Sui) · Bluefin DEX</div></div>'
+    +'</div>';
+
+  html+='<div class="rel-group"><div class="rel-group-hdr adtech-hdr">'
+    +'<strong>EMBER Product Pipeline</strong>'
+    +'<span class="b-q">Q1 – Q4 2026</span>'
+    +'<span style="margin-left:auto">'+badge('⚡ Active Development','b-ip')+'</span>'
+    +'</div>'
+    +'<table class="del-tbl"><thead><tr>'
+    +'<th>#</th><th>Deliverable</th><th>Owner</th><th>Timeline</th><th>Status</th>'
+    +'</tr></thead><tbody>';
+  mmpData.forEach(function(item){
+    html+='<tr>'
+      +'<td class="num">#'+item.no+'</td>'
+      +'<td style="font-weight:600">'+esc(item.feature)+'</td>'
+      +'<td style="color:#6b7280;font-size:12px">'+esc(item.owner||'—')+'</td>'
+      +'<td style="color:#6b7280">'+esc(item.pipeline)+'</td>'
+      +'<td>'+statusBadge(item.statusClass, item.status)+'</td>'
+      +'</tr>';
+  });
+  html+='</tbody></table></div>';
+  return html;
+}
+
+/* ── ATLAS ── */
+function renderAmp(){
+  var total=ampData.length;
+  var done=ampData.filter(function(d){return d.statusClass==='done';}).length;
+  var ipCount=ampData.filter(function(d){return d.statusClass==='ip';}).length;
+  var planned=total-done-ipCount;
+  var pct=total?Math.round((done+ipCount*0.5)/total*100):0;
+
+  var html='<div class="sum-row">'
+    +'<span class="big">'+total+'</span><span class="lbl">total deliverables</span>'
+    +(done?badge(done+' completed','b-done'):'')
+    +badge(ipCount+' in progress','b-ip')
+    +badge(planned+' planned','b-todo')
+    +'</div>';
+  html+=progressBar(pct,'linear-gradient(90deg,#6366f1,#8b5cf6)');
+
+  html+='<div class="track-cards">'
+    +'<div class="track-card"><div class="tc-head"><span>🏢</span><span>Track 1: Enterprise ATLAS (v1.29)</span></div>'
+    +'<div class="tc-sub">Target: Ad Ops, CS/Sales at large advertisers &amp; agencies<br>DSPs: Google DV360, Beeswax, Meridian Exchange<br>Timeline: ~26 weeks for Phase 1 MVP</div></div>'
+    +'<div class="track-card"><div class="tc-head"><span>🚀</span><span>Track 2: SMB Self-Serve Edition</span></div>'
+    +'<div class="tc-sub">GTM Target: May 2026 (8-week build)<br>Product Owner: Alice Hong<br>Vision: Launch premium campaigns in under 10 minutes</div></div>'
+    +'</div>';
+
+  html+='<div class="pillar-row">'
+    +'<div class="pillar"><div class="pt">✨ Simplicity</div><div class="pd">Goal-based wizard, AI creative gen, plain-English interface</div></div>'
+    +'<div class="pillar"><div class="pt">🔍 Transparency</div><div class="pd">Visible pricing, real ad previews, blockchain-verified delivery</div></div>'
+    +'<div class="pillar"><div class="pt">⚙️ Automation</div><div class="pd">AI Agent management (Copilot / Meridian / BYO), auto-optimisation</div></div>'
+    +'</div>';
+
+  html+='<div class="rel-group"><div class="rel-group-hdr adtech-hdr">'
+    +'<strong>ATLAS Product Pipeline</strong>'
+    +'<span class="b-q">Q2 – Q4 2026</span>'
+    +'<span style="margin-left:auto">'+badge('⚡ Active Development','b-ip')+'</span>'
+    +'</div>'
+    +'<table class="del-tbl"><thead><tr>'
+    +'<th>#</th><th>Deliverable</th><th>Track</th><th>Timeline</th><th>Status</th>'
+    +'</tr></thead><tbody>';
+  ampData.forEach(function(item){
+    var trackBg=item.product==='Enterprise ATLAS'?'b-ip':item.product==='SMB Edition'?'b-qa':'b-todo';
+    html+='<tr>'
+      +'<td class="num">#'+item.no+'</td>'
+      +'<td><div style="font-weight:600">'+esc(item.feature)+'</div>'
+      +(item.desc?'<div style="font-size:11px;color:#6b7280;margin-top:2px">'+esc(item.desc)+'</div>':'')
+      +'</td>'
+      +'<td>'+badge(item.product, trackBg)+'</td>'
+      +'<td style="color:#6b7280;font-size:12px">'+esc(item.pipeline)+'</td>'
+      +'<td>'+statusBadge(item.statusClass, item.status)+'</td>'
+      +'</tr>';
+  });
+  html+='</tbody></table></div>';
+  return html;
+}
+
+/* ── AGENTIC ── */
+function renderAgentic(){
+  var total=agenticData.length;
+  var done=agenticData.filter(function(d){return d.statusClass==='done';}).length;
+  var ipCount=agenticData.filter(function(d){return d.statusClass==='ip';}).length;
+  var pct=total?Math.round((done+ipCount*0.5)/total*100):0;
+
+  var html='<div class="sum-row">'
+    +'<span class="big">'+total+'</span><span class="lbl">deliverables tracked</span>'
+    +badge(ipCount+' in progress','b-ip')
+    +badge(agenticData.filter(function(d){return d.statusClass==='blocked';}).length+' blocked','b-blocked')
+    +'</div>';
+  html+=progressBar(pct,'linear-gradient(90deg,#8b5cf6,#6366f1)');
+
+  html+='<div class="rel-group"><div class="rel-group-hdr" style="background:linear-gradient(135deg,rgba(139,92,246,.08),rgba(99,102,241,.04))">'
+    +'<strong>Agentic Marketplace Pipeline</strong>'
+    +'<span class="b-q">Q2 – Q3 2026</span>'
+    +'</div>'
+    +'<table class="del-tbl"><thead><tr>'
+    +'<th>#</th><th>Deliverable</th><th>Owner</th><th>Timeline</th><th>Status</th>'
+    +'</tr></thead><tbody>';
+  agenticData.forEach(function(item){
+    html+='<tr>'
+      +'<td class="num">#'+item.no+'</td>'
+      +'<td style="font-weight:600">'+esc(item.feature)+'</td>'
+      +'<td style="color:#6b7280;font-size:12px">'+esc(item.owner)+'</td>'
+      +'<td style="color:#6b7280">'+esc(item.pipeline)+'</td>'
+      +'<td>'+statusBadge(item.statusClass, item.status)+'</td>'
+      +'</tr>';
+  });
+  html+='</tbody></table></div>';
+  return html;
+}
+
+/* ═══════════════════════════════════════════════════════════
+   MAIN RENDER
+═══════════════════════════════════════════════════════════ */
+function render(){
+  var tabContent = '';
+  if(activeTab==='labs')    tabContent = renderLabs();
+  else if(activeTab==='adtech')  tabContent = renderAdtech();
+  else if(activeTab==='beacon')    tabContent = renderBeacon();
+  else if(activeTab==='ember')     tabContent = renderMmp();
+  else if(activeTab==='amp')     tabContent = renderAmp();
+  else if(activeTab==='agentic') tabContent = renderAgentic();
+
+  var html = '';
+  html += '<div class="src-banner">📊 <span><strong>Source:</strong> MERIDIAN KEY DELIVERABLES 2026 · '
+         +'<a href="'+SHEET_URL+'" target="_blank">Open Google Sheet →</a>'
+         +' · Last synced from Excel: 28 May 2026</span></div>';
+  html += globalKPIs();
+  html += tabs();
+  html += tabContent;
+
+  document.getElementById('moduleContent').innerHTML = html;
+}
+
+function doSync(){
+  PJMSync.markLoading(MODULE_ID);
+  PJMSync.setSyncBtnState(true);
+  setTimeout(function(){
+    render();
+    PJMSync.markSynced(MODULE_ID, {});
+    PJMSync.setSyncBtnState(false);
+    showToast('Showing data from Excel · Connect Google Sheet for live updates');
+  }, 600);
+}
+
+document.addEventListener('DOMContentLoaded', function(){
+  PJMNav.render(MODULE_ID);
+  PJMSync.initModule(MODULE_ID, doSync);
+  var d=new Date();
+  var days=['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
+  var months=['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+  var el=document.getElementById('todayDate');
+  if(el) el.textContent='📅 '+days[d.getDay()]+' '+months[d.getMonth()]+' '+d.getDate();
+  render();
+});
+</script>
+</body>
+</html>

@@ -1,0 +1,155 @@
+{
+ "meta": {
+  "source": "manual",
+  "asOf": "2026-07-14",
+  "cto": "Marcus Vidal",
+  "pm": "Alina Rowe",
+  "pjm": "Idris Khan"
+ },
+ "scale": [
+  {
+   "p": 1,
+   "label": "Rate limiter",
+   "desc": "Low risk, good candidate if capacity frees up."
+  },
+  {
+   "p": 2,
+   "label": "Webhook delivery",
+   "desc": "Carried from the previous cycle; scope confirmed at planning."
+  },
+  {
+   "p": 3,
+   "label": "Onboarding flow",
+   "desc": "Split out of a larger epic to keep the cycle realistic."
+  },
+  {
+   "p": 4,
+   "label": "Template library",
+   "desc": "Carried from the previous cycle; scope confirmed at planning."
+  },
+  {
+   "p": 5,
+   "label": "Activity feed",
+   "desc": "Carried from the previous cycle; scope confirmed at planning."
+  }
+ ],
+ "governanceNotes": [
+  "All AdTech deliveries in the pipeline are to be shared with John to check the ROI. The release proceeds based on that review; otherwise, releases are to be held.",
+  "Linear boards are to be organised.",
+  "Slack needs to be cleaned up."
+ ],
+ "special": [
+  {
+   "name": "Sandbox reset",
+   "label": "Webhook delivery",
+   "tags": [
+    {
+     "text": "FE \u2014 P5 (Sunset scale)",
+     "style": "purple"
+    },
+    {
+     "text": "BE \u2014 P4",
+     "style": "grey"
+    }
+   ],
+   "note": "Straightforward once the schema change is merged."
+  }
+ ],
+ "projects": [
+  {
+   "name": "Bulk import",
+   "priority": 1
+  },
+  {
+   "name": "Search filters",
+   "priority": 1
+  },
+  {
+   "name": "Search filters",
+   "priority": 2
+  },
+  {
+   "name": "Saved views",
+   "priority": 2,
+   "note": "Split out of a larger epic to keep the cycle realistic."
+  },
+  {
+   "name": "Rate limiter",
+   "priority": 2,
+   "note": "Low risk, good candidate if capacity frees up."
+  },
+  {
+   "name": "Billing summary",
+   "priority": 2,
+   "note": "Low risk, good candidate if capacity frees up."
+  },
+  {
+   "name": "Sandbox reset",
+   "priority": 2
+  },
+  {
+   "name": "Attachment storage",
+   "priority": 3,
+   "note": "Depends on the partner integration landing first."
+  },
+  {
+   "name": "Session handling",
+   "priority": 3
+  },
+  {
+   "name": "Rate limiter",
+   "priority": 3
+  },
+  {
+   "name": "Search filters",
+   "priority": 3
+  },
+  {
+   "name": "Approval workflow",
+   "priority": 3
+  },
+  {
+   "name": "Activity feed",
+   "priority": 3,
+   "note": "Carried from the previous cycle; scope confirmed at planning."
+  },
+  {
+   "name": "Inline editing",
+   "priority": 4
+  },
+  {
+   "name": "Onboarding flow",
+   "priority": 4
+  },
+  {
+   "name": "Activity feed",
+   "priority": 4
+  },
+  {
+   "name": "Health checks",
+   "priority": 5
+  },
+  {
+   "name": "Onboarding flow",
+   "priority": 5
+  },
+  {
+   "name": "Feature flags",
+   "priority": 5
+  },
+  {
+   "name": "Approval workflow",
+   "priority": 5
+  },
+  {
+   "name": "Report scheduler",
+   "priority": 5,
+   "note": "Needs design sign-off before build starts."
+  },
+  {
+   "name": "Health checks",
+   "priority": 0,
+   "note": "Carried from the previous cycle; scope confirmed at planning."
+  }
+ ]
+}

@@ -1,0 +1,744 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Resources — Meridian PJM</title>
+<script src="https://accounts.google.com/gsi/client" async defer></script>
+<link rel="stylesheet" href="shared/pjm.css">
+<style>
+.sub-tabs{display:flex;gap:0;margin-bottom:24px;border-bottom:2px solid var(--border);overflow-x:auto}
+.sub-tab{padding:10px 16px;font-size:13px;font-weight:600;cursor:pointer;color:var(--muted);border-bottom:2px solid transparent;margin-bottom:-2px;transition:all .15s;white-space:nowrap}
+.sub-tab.active{color:var(--primary);border-color:var(--primary)}
+.sub-tab:hover{color:var(--text)}
+.kpi-bar{display:grid;grid-template-columns:repeat(5,1fr);gap:16px;margin-bottom:24px}
+.kpi-card{background:var(--card);border:1px solid var(--border);border-radius:var(--radius);padding:18px 20px}
+.kpi-label{font-size:11px;color:var(--muted);font-weight:600;text-transform:uppercase;letter-spacing:.5px;margin-bottom:6px}
+.kpi-value{font-size:28px;font-weight:800;line-height:1}
+.kpi-sub{font-size:12px;color:var(--muted);margin-top:4px}
+.kpi-card.blue .kpi-value{color:#3b82f6}
+.kpi-card.green .kpi-value{color:#10b981}
+.kpi-card.orange .kpi-value{color:#f59e0b}
+.kpi-card.purple .kpi-value{color:#8b5cf6}
+.load-legend{display:flex;gap:16px;margin-bottom:24px;flex-wrap:wrap}
+.ll-card{background:var(--card);border:1px solid var(--border);border-radius:var(--radius);padding:14px 20px;flex:1;min-width:160px;display:flex;align-items:center;gap:12px}
+.ll-dot{width:14px;height:14px;border-radius:50%;flex-shrink:0}
+.ll-info .ll-label{font-size:13px;font-weight:700}
+.ll-info .ll-range{font-size:11px;color:var(--muted)}
+.ll-count{margin-left:auto;font-size:24px;font-weight:800}
+.filter-bar{display:flex;gap:10px;margin-bottom:16px;flex-wrap:wrap;align-items:center}
+.filter-bar select,.filter-bar input{height:34px;padding:0 10px;border:1px solid var(--border);border-radius:8px;font-size:13px;background:var(--card);color:var(--text);outline:none}
+.filter-bar select:focus,.filter-bar input:focus{border-color:var(--primary)}
+.chart-wrap{background:var(--card);border:1px solid var(--border);border-radius:var(--radius);padding:20px;margin-bottom:24px}
+.chart-title{font-size:14px;font-weight:700;margin-bottom:14px}
+.resource-table{width:100%;border-collapse:collapse;background:var(--card);border:1px solid var(--border);border-radius:var(--radius);overflow:hidden}
+.resource-table th{padding:10px 14px;font-size:11px;color:var(--muted);font-weight:600;text-transform:uppercase;border-bottom:1px solid var(--border);text-align:left;background:var(--bg)}
+.resource-table td{padding:10px 14px;font-size:13px;border-bottom:1px solid var(--border);vertical-align:middle}
+.resource-table tr:last-child td{border-bottom:none}
+.resource-table tr:hover td{background:var(--hover)}
+.load-badge{font-size:11px;font-weight:700;padding:3px 9px;border-radius:10px}
+.load-badge.available{background:#d1fae5;color:#065f46}
+.load-badge.balanced{background:#fef3c7;color:#92400e}
+.load-badge.overloaded{background:#fee2e2;color:#b91c1c}
+.mini-bar{height:5px;border-radius:3px;background:var(--border);overflow:hidden;width:80px;display:inline-block;vertical-align:middle;margin-left:8px}
+.mini-bar-fill{height:100%;border-radius:3px}
+.team-chip{font-size:11px;font-weight:600;padding:2px 8px;border-radius:10px;color:#fff;display:inline-block}
+.lead-crown{font-size:12px;margin-left:4px}
+.bandwidth-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(180px,1fr));gap:12px}
+.bw-card{border-radius:12px;padding:14px;border:1px solid transparent}
+.bw-card.available{background:#f0fdf4;border-color:#bbf7d0}
+.bw-card.balanced{background:#fffbeb;border-color:#fde68a}
+.bw-card.overloaded{background:#fef2f2;border-color:#fecaca}
+.bw-name{font-size:14px;font-weight:700;margin-bottom:4px}
+.bw-team{font-size:11px;margin-bottom:6px;opacity:.8}
+.bw-tickets{font-size:20px;font-weight:800;line-height:1}
+.bw-projects{font-size:11px;color:var(--muted);margin-top:4px;word-break:break-word}
+.matrix-wrap{overflow-x:auto;-webkit-overflow-scrolling:touch}
+.matrix-table{border-collapse:collapse;font-size:12px;width:100%}
+.matrix-table th{padding:8px 10px;background:var(--bg);border:1px solid var(--border);font-weight:600;white-space:nowrap;font-size:11px;position:sticky;top:0;z-index:2}
+.matrix-table th:first-child{left:0;z-index:3;min-width:130px}
+.matrix-table td{padding:6px 10px;border:1px solid var(--border);text-align:center;white-space:nowrap}
+.matrix-table td:first-child{font-weight:600;text-align:left;background:var(--card);position:sticky;left:0;z-index:1}
+.matrix-table tr:hover td{background:#f0f9ff}
+.matrix-table tr:hover td:first-child{background:#e0f2fe}
+.dot-assigned{color:#10b981;font-size:16px}
+.team-group{margin-bottom:28px}
+.team-group-hdr{padding:12px 16px;border-radius:10px;margin-bottom:10px;display:flex;align-items:center;justify-content:space-between}
+.tg-name{font-size:15px;font-weight:800;color:#fff}
+.tg-count{font-size:12px;color:rgba(255,255,255,.8);background:rgba(0,0,0,.15);padding:2px 8px;border-radius:10px}
+.team-members-list{display:flex;flex-wrap:wrap;gap:8px}
+.tm-item{background:var(--card);border:1px solid var(--border);border-radius:8px;padding:8px 12px;font-size:13px;display:flex;align-items:center;gap:6px}
+.tm-ext{font-size:11px;color:var(--muted)}
+.dev-grid{display:flex;gap:16px;flex-wrap:wrap;align-items:flex-start}
+.dev-col{min-width:160px;flex:1}
+.dev-col-hdr{border-radius:8px;padding:10px 14px;color:#fff;font-size:13px;font-weight:700;margin-bottom:8px;text-align:center}
+.dev-member-box{background:var(--card);border:1px solid var(--border);border-radius:6px;padding:7px 10px;margin-bottom:6px;font-size:12px;font-weight:500}
+.dev-member-box.lead{border-left:3px solid #f59e0b}
+.legend-bar{display:flex;gap:16px;flex-wrap:wrap;margin-bottom:16px;font-size:12px;color:var(--muted)}
+@media(max-width:900px){.kpi-bar{grid-template-columns:repeat(2,1fr)}}
+/* ── Departure badges ── */
+.leaving-badge{display:inline-flex;align-items:center;gap:3px;font-size:10px;font-weight:700;padding:2px 7px;border-radius:10px;margin-left:6px;vertical-align:middle;white-space:nowrap}
+.leaving-badge.immediate{background:#fff1f2;color:#be123c;border:1px solid #fecdd3}
+.leaving-badge.soon{background:#fff7ed;color:#c2410c;border:1px solid #fed7aa}
+.leaving-badge.later{background:#fefce8;color:#854d0e;border:1px solid #fef08a}
+.bw-card.departing{opacity:.75;position:relative}
+.bw-card.departing::after{content:'';position:absolute;inset:0;border-radius:12px;border:2px dashed #fca5a5;pointer-events:none}
+/* ── Deep Dive tab ── */
+.dd-header{background:var(--card);border:1px solid var(--border);border-radius:var(--radius);padding:16px 20px;margin-bottom:16px;display:flex;align-items:center;gap:16px;flex-wrap:wrap}
+.dd-name{font-size:18px;font-weight:800}
+.dd-team-chip{font-size:11px;font-weight:700;padding:3px 10px;border-radius:10px;color:#fff;display:inline-block;margin-left:6px;vertical-align:middle}
+.dd-stats{display:flex;gap:0;margin-left:auto}
+.dd-stat{text-align:center;padding:0 18px;border-left:1px solid var(--border)}
+.dd-stat-val{font-size:22px;font-weight:800;line-height:1}
+.dd-stat-lbl{font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:.5px;margin-top:2px}
+.dd-table-wrap{overflow-x:auto;-webkit-overflow-scrolling:touch;margin-bottom:20px}
+.dd-table{width:100%;border-collapse:collapse;background:var(--card);border:1px solid var(--border);border-radius:var(--radius);overflow:hidden;min-width:500px}
+.dd-table th{padding:9px 14px;font-size:11px;color:var(--muted);font-weight:700;text-transform:uppercase;letter-spacing:.4px;border-bottom:2px solid var(--border);text-align:center;background:var(--bg);white-space:nowrap}
+.dd-table th:first-child{text-align:left;min-width:140px}
+.dd-table th.th-active{color:#3b82f6}.dd-table th.th-review{color:#6366f1}
+.dd-table th.th-testing{color:#8b5cf6}.dd-table th.th-done{color:#10b981}
+.dd-table th.th-todo{color:#64748b}.dd-table th.th-backlog{color:#94a3b8}
+.dd-table th.th-blocked{color:#ef4444}.dd-table th.th-rtr{color:#f59e0b}
+.dd-table td{padding:9px 14px;font-size:13px;border-bottom:1px solid var(--border);text-align:center;vertical-align:middle}
+.dd-table td:first-child{text-align:left;font-weight:600;background:var(--card)}
+.dd-table tbody tr:last-child td{border-bottom:none}
+.dd-table tbody tr:hover td{background:var(--hover)}
+.dd-table tbody tr:hover td:first-child{background:var(--hover)}
+.dd-table tfoot td{font-weight:800;background:var(--bg);border-top:2px solid var(--border);font-size:13px}
+.dd-table tfoot td:first-child{text-align:left}
+.dd-table tr.row-active td{background:#eff6ff !important}.dd-table tr.row-active td:first-child{border-left:3px solid #3b82f6}
+.cell-ip{color:#1d4ed8;font-weight:700}.cell-st{color:#6d28d9;font-weight:700}
+.cell-bl{color:#b91c1c;font-weight:700}.cell-rtr{color:#d97706;font-weight:700}
+.cell-dc{color:#059669;font-weight:600}.cell-zero{color:#d1d5db}
+.dd-chips{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:16px}
+.dd-chip{display:inline-flex;align-items:center;gap:5px;padding:5px 12px;border-radius:20px;font-size:12px;font-weight:600;border:1px solid transparent}
+.dd-placeholder{text-align:center;padding:56px 24px;color:var(--muted)}
+.dd-placeholder .ph-icon{font-size:40px;margin-bottom:12px}
+.dd-placeholder p{font-size:14px;margin:0}
+</style>
+
+<style id="demoBannerCss">
+#pjmDemoBanner{position:fixed;top:0;left:0;right:0;z-index:99999;background:#8A5CFF;color:#fff;
+ font:600 12px/1.4 system-ui,-apple-system,Segoe UI,sans-serif;padding:7px 44px 7px 16px;text-align:center;
+ letter-spacing:.2px;box-shadow:0 1px 6px rgba(0,0,0,.18)}
+#pjmDemoBanner a{color:#fff;text-decoration:underline}
+#pjmDemoBanner button{position:absolute;right:10px;top:4px;background:none;border:none;color:#fff;
+ font-size:17px;line-height:1;cursor:pointer;padding:4px}
+body.has-demo-banner{padding-top:30px}
+</style>
+<script id="pjmDemoMode">
+/* ===== PUBLIC DEMO BUILD =====
+   All data in this build is fictional. No credentials ship with it and no
+   outbound calls to third-party APIs are permitted. */
+(function(){
+  window.PJM_DEMO = true;
+  var BLOCK = /(api\.linear\.app|api\.github\.com|graphql|googleapis\.com|slack\.com|atlassian\.net)/i;
+  var of = window.fetch;
+  window.fetch = function(input){
+    var u = (typeof input === 'string') ? input : (input && input.url) || '';
+    if (BLOCK.test(u)) {
+      console.info('[demo] blocked outbound call:', u);
+      return Promise.resolve(new Response(JSON.stringify({data:null,demo:true}),
+        {status:200, headers:{'Content-Type':'application/json'}}));
+    }
+    return of.apply(this, arguments);
+  };
+  var ox = window.XMLHttpRequest && window.XMLHttpRequest.prototype.open;
+  if (ox) window.XMLHttpRequest.prototype.open = function(m,u){
+    if (BLOCK.test(String(u))) { console.info('[demo] blocked XHR:', u); u = 'data:application/json,{}'; }
+    return ox.apply(this, [m,u].concat([].slice.call(arguments,2)));
+  };
+  document.addEventListener('DOMContentLoaded', function(){
+    if (sessionStorage.getItem('pjmDemoBannerHidden')) return;
+    var b = document.createElement('div');
+    b.id = 'pjmDemoBanner';
+    b.innerHTML = 'DEMO BUILD \u2014 every person, project, ticket and meeting below is fictional. ' +
+                  'Live integrations are disabled in this build.' +
+                  '<button title="Dismiss" onclick="this.parentNode.remove();' +
+                  'document.body.classList.remove(\'has-demo-banner\');' +
+                  'sessionStorage.setItem(\'pjmDemoBannerHidden\',\'1\')">&times;</button>';
+    document.body.appendChild(b);
+    document.body.classList.add('has-demo-banner');
+  });
+})();
+</script>
+</head>
+<body>
+<div id="loginOverlay"><div class="login-box"><div class="login-logo">⬡</div><h2>Meridian PJM</h2><p>Sign in with your Meridian account to continue.</p><div id="googleSignInBtn"></div><div id="loginError"></div></div></div>
+<div id="pjmSidebarContainer"></div>
+<div class="pjm-main">
+  <div class="module-header">
+    <div>
+      <div class="module-title">👥 Resources</div>
+      <div class="section-sub">Team workload, bandwidth &amp; project resource mapping — Sprint 21 / 30 Sep 2026</div>
+    </div>
+    <div class="module-header-right">
+      <span id="lastSyncedLabel" class="last-synced-label">Never synced</span>
+      <div class="date-badge" id="todayDate"></div>
+      <button class="sync-btn" id="syncBtn" onclick="doSync()"><span class="sync-icon">🔄</span> Sync</button>
+    </div>
+  </div>
+  <div id="moduleContent"><div class="loading-state"><div class="spinner"></div>Loading…</div></div>
+</div>
+<script src="shared/pjm-sync.js"></script>
+<script src="shared/pjm-nav.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+<script>
+(function(){var d=new Date();var days=['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];var months=['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];var el=document.getElementById('todayDate');if(el)el.textContent='📅 '+days[d.getDay()]+' '+months[d.getMonth()]+' '+d.getDate();})();
+
+const MODULE_ID='resources';
+
+const teamColors={Java:'#3b82f6',AI:'#8b5cf6',FE:'#06b6d4',Web3:'#10b981',QA:'#f59e0b',DevOps:'#ef4444',Product:'#6366f1',BA:'#84cc16',AdOps:'#f97316',TechOps:'#14b8a6',Marketing:'#ec4899',Design:'#a78bfa',Delivery:'#64748b'};
+
+// QA ticket counts — active only (excl. Ready to Release), synced 30 Sep 2026 from Linear
+const qaStatusBreakdown={
+  // synced 30 Sep 2026 from Linear — active = total non-Done excl. Ready to Release
+  "Theo B":{active:34,total:34,rtr:0,byStatus:{"Hold or Blocked":1,"In Progress":15,"Todo":18}},
+  "Samir":{active:42,total:61,rtr:19,byStatus:{"Backlog":5,"Dev Completed":28,"Hold or Blocked":1,"In Progress":3,"System Testing":2,"Todo":3}},
+  "Arjun":{active:3,total:15,rtr:12,byStatus:{"In Progress":1,"System Testing":2}},
+  "Vinay Krishna Bhat":{active:0,total:8,rtr:8,byStatus:{}},
+};
+
+const teamMembers=[
+  // Java — synced 30 Sep 2026 from Linear
+  {name:"Pushpa",team:"Java",projects:["Marketplace","Connectors"],jiraTickets:38,lead:true},
+  {name:"Theo S",team:"Java",projects:["Marketplace"],jiraTickets:23},
+  {name:"Lena M",team:"Java",projects:["Marketplace","Connectors"],jiraTickets:12},
+  {name:"Priya Alina",team:"Java",projects:["Marketplace","Connectors"],jiraTickets:17},
+  {name:"Jonas",team:"Java",projects:["LABS"],jiraTickets:4},
+  // AI — synced 30 Sep 2026 from Linear
+  {name:"Prem",team:"AI",projects:["Marketplace","Harness","Google Workshop"],jiraTickets:121,lead:true},
+  {name:"Ravi Menon",team:"AI",projects:["Harness","Marketplace","LABS"],jiraTickets:67},
+  {name:"Subham",team:"AI",projects:[],jiraTickets:0},
+  {name:"Samir Chaubey",team:"AI",projects:["Marketplace"],jiraTickets:4},
+  {name:"Lena",team:"AI",projects:[],jiraTickets:0},
+  {name:"Elena Marsh",team:"AI",projects:["Summit-Bench","APF Media Negotiation Framework"],jiraTickets:40},
+  {name:"Rohan",team:"AI",projects:["APF Media Negotiation Framework","sme","Google Workshop"],jiraTickets:23},
+  // FE — synced 30 Sep 2026 from Linear
+  {name:"Mei",team:"FE",projects:["Marketplace","Connectors","Google Workshop","meridian.dev landing page rebuild"],jiraTickets:72,lead:true},
+  {name:"Daniel Calvo Lopez",team:"FE",projects:["Summit-Bench","meridian.dev landing page rebuild"],jiraTickets:3},
+  {name:"Alina Rowe",team:"FE",projects:[],jiraTickets:0},
+  {name:"Tomas Berg",team:"FE",projects:["Connectors","LABS"],jiraTickets:17},
+  // Web3 — synced 30 Sep 2026 from Linear
+  {name:"VJ",team:"Web3",projects:["Marketplace","Google Workshop"],jiraTickets:23,lead:true},
+  {name:"Marcus Gaonkar",team:"Web3",projects:["LABS","Marketplace"],jiraTickets:4},
+  {name:"Kwame Boateng",team:"Web3",projects:["LABS","Meridian Support Tool","Harness"],jiraTickets:24},
+  {name:"Gunjan",team:"Web3",projects:[],jiraTickets:0},
+  {name:"Jonas",team:"Web3",projects:["Harness"],jiraTickets:18},
+  {name:"Oscar",team:"Web3",projects:["Harness"],jiraTickets:10},
+  {name:"Grace",team:"Web3",projects:["Meridian Support Tool","Harness"],jiraTickets:26},
+  {name:"Sriram",team:"Web3",projects:[],jiraTickets:0,leaving:"Oct 2026"},
+  // QA — synced 30 Sep 2026 from Linear
+  {name:"Theo B",team:"QA",projects:["Marketplace"],jiraTickets:34,jiraTotal:34,lead:true},
+  {name:"Samir",team:"QA",projects:["Marketplace","LABS"],jiraTickets:42,jiraTotal:61},
+  {name:"Arjun",team:"QA",projects:["Meridian Support Tool","Marketplace"],jiraTickets:3,jiraTotal:15},
+  {name:"Vinay Krishna Bhat",team:"QA",projects:["Beacon"],jiraTickets:0,jiraTotal:8},
+  // DevOps — synced 30 Sep 2026 from Linear
+  {name:"Sudarshan",team:"DevOps",projects:["Harness","Google Workshop","DRIFT HARNESS"],jiraTickets:6,lead:true},
+  {name:"Freya Nilsen",team:"DevOps",projects:["Beacon"],jiraTickets:1},
+  {name:"Nadia",team:"DevOps",projects:["Marketplace","LABS"],jiraTickets:10},
+  {name:"Priya",team:"DevOps",projects:[],jiraTickets:0},
+  {name:"Clara",team:"DevOps",projects:[],jiraTickets:0},
+  // Product — synced 30 Sep 2026 from Linear
+  {name:"Ines",team:"Product",projects:["Marketplace","APF Media Negotiation Framework"],jiraTickets:13,lead:true},
+  {name:"Vishnupriya",team:"Product",projects:["Marketplace","LABS"],jiraTickets:150},
+  {name:"Grace",team:"Product",projects:[],jiraTickets:3},
+  {name:"Alice Hong",team:"Product",projects:[],jiraTickets:5},
+  {name:"Mark",team:"Product",projects:["Marketplace"],jiraTickets:2},
+  // BA — synced 30 Sep 2026 from Linear
+  {name:"Alina",team:"BA",projects:["Beacon (non-tech)","Google Workshop","APF Media Negotiation Framework","Beacon"],jiraTickets:10,lead:true},
+  {name:"Jyotishikha",team:"BA",projects:[],jiraTickets:0},
+  // AdOps — synced 30 Sep 2026 from Linear
+  {name:"Priyambada",team:"AdOps",projects:[],jiraTickets:0,lead:true},
+  {name:"Lokeshwari",team:"AdOps",projects:[],jiraTickets:0},
+  {name:"Vishwas",team:"AdOps",projects:[],jiraTickets:0},
+  {name:"Harish",team:"AdOps",projects:[],jiraTickets:0},
+  // TechOps — synced 30 Sep 2026 from Linear
+  {name:"Kali",team:"TechOps",projects:["Marketplace"],jiraTickets:1,lead:true},
+  // Marketing — synced 30 Sep 2026 from Linear
+  {name:"Ravi",team:"Marketing",projects:["Marketplace"],jiraTickets:5,lead:true},
+  {name:"Ines",team:"Marketing",projects:["Marketplace","LABS"],jiraTickets:2},
+  {name:"Tanya",team:"Marketing",projects:[],jiraTickets:0},
+  {name:"Daniel",team:"Marketing",projects:["Marketplace"],jiraTickets:1},
+  // Design — synced 30 Sep 2026 from Linear
+  {name:"Clara",team:"Design",projects:["Marketplace"],jiraTickets:6,lead:true},
+  {name:"Sana",team:"Design",projects:[],jiraTickets:0},
+  {name:"Akshay",team:"Design",projects:[],jiraTickets:0},
+  {name:"Tomas",team:"Design",projects:[],jiraTickets:0},
+  // Delivery — synced 30 Sep 2026 from Linear
+  {name:"Sujit",team:"Delivery",projects:["Marketplace","Beacon","Google Workshop","Harness"],jiraTickets:15,lead:true,type:"I"},
+  {name:"Mei",team:"Delivery",projects:[],jiraTickets:0,type:"E"},
+];
+
+const allProjects=["Marketplace","LABS","Harness","APF Media Negotiation Framework","Meridian Support Tool","Connectors","Summit-Bench","Google Workshop","Beacon","Beacon (non-tech)","sme","meridian.dev landing page rebuild","DRIFT HARNESS"];
+// short display labels for the matrix column headers (values above stay canonical)
+const colLabel={"APF Media Negotiation Framework":"APF","meridian.dev landing page rebuild":"meridian.dev","Meridian Support Tool":"Support Tool","Summit-Bench":"Summit","Beacon (non-tech)":"Beacon (n-t)","Google Workshop":"GWorkshop","DRIFT HARNESS":"DRIFT Harness"};
+
+function getLoad(t){return t<=5?'available':t<=30?'balanced':'overloaded';}
+function getLoadLabel(t){return t<=5?'Available':t<=30?'Balanced':'Overloaded';}
+
+// ── Deep Dive: per-person project×status breakdown from Linear (synced 30 Sep 2026) ──
+const personBreakdown={"Pushpa":{"Marketplace":{"Backlog":2,"Hold or Blocked":2,"In Progress":31,"Todo":2},"Connectors":{"In Progress":1}},"Theo S":{"Marketplace":{"Backlog":7,"Dev Completed":1,"In Progress":12,"Todo":3}},"Lena M":{"Marketplace":{"Backlog":2,"In Progress":6},"Connectors":{"Hold or Blocked":2,"Todo":1},"No Project":{"Todo":1}},"Priya Alina":{"Marketplace":{"Backlog":3,"In Progress":4,"Todo":2},"Connectors":{"Hold or Blocked":7},"No Project":{"Todo":1}},"Jonas":{"LABS":{"In Progress":2,"Todo":2}},"Prem":{"Marketplace":{"Backlog":23,"In Progress":37,"System Testing":1,"Todo":49},"Harness":{"Backlog":2,"In Progress":1,"In Review":4},"Google Workshop":{"Backlog":1},"No Project":{"Backlog":2,"In Progress":1}},"Ravi Menon":{"Harness":{"Dev Completed":2,"In Progress":1,"In Review":11},"Marketplace":{"Backlog":1,"In Progress":4},"LABS":{"Todo":1},"No Project":{"Backlog":23,"Dev Completed":22,"In Progress":1,"In Review":1}},"Samir Chaubey":{"Marketplace":{"In Progress":2},"No Project":{"Backlog":2}},"Elena Marsh":{"Summit-Bench":{"Backlog":3,"Hold or Blocked":6,"In Progress":15},"APF Media Negotiation Framework":{"Backlog":2,"In Progress":1,"In Review":4,"Todo":5},"No Project":{"In Progress":2,"Todo":2}},"Rohan":{"APF Media Negotiation Framework":{"Backlog":4,"In Progress":1,"In Review":3,"Todo":9},"sme":{"Dev Completed":1,"In Progress":2},"Google Workshop":{"Todo":1},"No Project":{"In Progress":2}},"Mei":{"Marketplace":{"Backlog":22,"Hold or Blocked":6,"In Progress":29,"Todo":4},"Connectors":{"In Progress":4,"In Review":1,"Todo":1},"Google Workshop":{"Backlog":1,"In Progress":1},"meridian.dev landing page rebuild":{"Backlog":1},"No Project":{"Backlog":2}},"Daniel Calvo Lopez":{"Summit-Bench":{"Todo":1},"meridian.dev landing page rebuild":{"Todo":1},"No Project":{"In Progress":1}},"Tomas Berg":{"Connectors":{"Dev Completed":10,"In Progress":1},"LABS":{"Dev Completed":3},"No Project":{"Backlog":1,"In Progress":1,"Todo":1}},"VJ":{"Marketplace":{"Backlog":3,"Dev Completed":2,"In Progress":15,"Todo":1},"Google Workshop":{"Backlog":1,"In Progress":1}},"Marcus Gaonkar":{"LABS":{"Backlog":1,"Dev Completed":1},"Marketplace":{"In Progress":1},"No Project":{"Dev Completed":1}},"Kwame Boateng":{"LABS":{"Dev Completed":2,"In Progress":2,"Todo":4},"Meridian Support Tool":{"Backlog":3},"Harness":{"Todo":1},"No Project":{"Backlog":12}},"Jonas":{"Harness":{"Backlog":1,"In Progress":1,"Todo":1},"No Project":{"Dev Completed":1,"Hold or Blocked":6,"In Progress":1,"Todo":7}},"Oscar":{"Harness":{"Dev Completed":8,"Todo":1},"No Project":{"In Progress":1}},"Grace":{"Meridian Support Tool":{"Backlog":2,"Dev Completed":4,"In Progress":5,"Todo":2},"Harness":{"In Progress":1},"No Project":{"Dev Completed":6,"In Progress":6}},"Theo B":{"Marketplace":{"Hold or Blocked":1,"In Progress":4,"Todo":7},"No Project":{"In Progress":11,"Todo":11}},"Samir":{"Marketplace":{"Backlog":5,"Dev Completed":27,"In Progress":3,"Ready to Release":3,"System Testing":2,"Todo":2},"LABS":{"Hold or Blocked":1,"Ready to Release":16,"Todo":1},"No Project":{"Dev Completed":1}},"Arjun":{"Meridian Support Tool":{"In Progress":1,"Ready to Release":12,"System Testing":1},"Marketplace":{"System Testing":1}},"Vinay Krishna Bhat":{"Beacon":{"Ready to Release":1},"No Project":{"Ready to Release":7}},"Sudarshan":{"Harness":{"In Progress":1,"Todo":2},"Google Workshop":{"In Progress":1,"Todo":1},"DRIFT HARNESS":{"In Progress":1}},"Freya Nilsen":{"Beacon":{"In Progress":1}},"Nadia":{"Marketplace":{"Todo":6},"LABS":{"Todo":2},"No Project":{"In Progress":1,"Todo":1}},"Ines":{"Marketplace":{"Backlog":6,"In Progress":3},"APF Media Negotiation Framework":{"In Review":2,"Todo":2}},"Vishnupriya":{"Marketplace":{"Backlog":123,"Dev Completed":1,"In Progress":6,"In Review":2,"System Testing":2,"Todo":15},"LABS":{"Ready to Release":1}},"Grace":{"No Project":{"Hold or Blocked":1,"In Progress":2}},"Alice Hong":{"No Project":{"Backlog":2,"In Progress":1,"Todo":2}},"Mark":{"Marketplace":{"Backlog":2}},"Alina":{"Beacon (non-tech)":{"Hold or Blocked":1,"In Progress":1,"Todo":3},"Google Workshop":{"Backlog":1},"APF Media Negotiation Framework":{"Backlog":1},"Beacon":{"In Progress":1},"No Project":{"Ready to Release":1,"Todo":1}},"Kali":{"Marketplace":{"In Progress":1}},"Ravi":{"Marketplace":{"In Progress":4,"Todo":1}},"Ines":{"Marketplace":{"In Progress":1},"LABS":{"Todo":1}},"Daniel":{"Marketplace":{"In Progress":1}},"Clara":{"Marketplace":{"Backlog":2,"Hold or Blocked":2,"Todo":2}},"Sujit":{"Marketplace":{"Backlog":1,"In Progress":9},"Beacon":{"In Progress":1,"System Testing":1},"Google Workshop":{"In Progress":1,"Todo":1},"Harness":{"In Progress":1}}};
+
+let activeTab='overview';
+let workloadTeamFilter='ALL';
+let bwTeamFilter='ALL';
+let bwLoadFilter='ALL';
+let matrixTeamFilter='ALL';
+let ddTeamFilter='ALL';
+let ddPersonFilter='';
+let barChartInstance=null;
+
+const teams=[...new Set(teamMembers.map(m=>m.team))];
+
+function renderTabBar(){
+  const tabs=[
+    {id:'overview',label:'📊 Overview'},
+    {id:'workload',label:'📋 Workload Table'},
+    {id:'bandwidth',label:'📡 Bandwidth Grid'},
+    {id:'matrix',label:'🗺️ Project Resource Mapping'},
+    {id:'structure',label:'👥 Team Structure'},
+    {id:'orgchart',label:'🏢 Org Chart'},
+    {id:'deepdive',label:'🔍 Resource Deep Dive'}
+  ];
+  return `<div class="sub-tabs">${tabs.map(t=>`<div class="sub-tab${activeTab===t.id?' active':''}" onclick="switchTab('${t.id}')">${t.label}</div>`).join('')}</div>`;
+}
+
+function leavingBadge(m){
+  if(!m.leaving) return '';
+  const cls=m.leaving==='Immediate'?'immediate':(m.leaving.includes('Jul')||m.leaving.includes('17')?'soon':'later');
+  return `<span class="leaving-badge ${cls}">🚪 ${m.leaving}</span>`;
+}
+
+function renderOverviewTab(){
+  const total=teamMembers.length;
+  const active=teamMembers.filter(m=>m.jiraTickets>0).length;
+  const available=teamMembers.filter(m=>getLoad(m.jiraTickets)==='available').length;
+  const balanced=teamMembers.filter(m=>getLoad(m.jiraTickets)==='balanced').length;
+  const overloaded=teamMembers.filter(m=>getLoad(m.jiraTickets)==='overloaded').length;
+  const departing=teamMembers.filter(m=>m.leaving).length;
+
+  const teamCounts={};
+  teamMembers.forEach(m=>{teamCounts[m.team]=(teamCounts[m.team]||0)+1;});
+
+  let html=`
+  <div class="kpi-bar">
+    <div class="kpi-card blue"><div class="kpi-label">Total Team</div><div class="kpi-value">${total}</div><div class="kpi-sub">Across all departments</div></div>
+    <div class="kpi-card green"><div class="kpi-label">Active (w/ Tickets)</div><div class="kpi-value">${active}</div><div class="kpi-sub">Have Linear work assigned</div></div>
+    <div class="kpi-card orange"><div class="kpi-label">Teams</div><div class="kpi-value">${teams.length}</div><div class="kpi-sub">Functional departments</div></div>
+    <div class="kpi-card purple"><div class="kpi-label">Overloaded</div><div class="kpi-value">${overloaded}</div><div class="kpi-sub">31+ tickets assigned</div></div>
+    <div class="kpi-card" style="border-left:4px solid #be123c"><div class="kpi-label" style="color:#be123c">Departing</div><div class="kpi-value" style="color:#be123c">${departing}</div><div class="kpi-sub">On notice — plan coverage</div></div>
+  </div>
+  <div class="load-legend">
+    <div class="ll-card"><div class="ll-dot" style="background:#10b981"></div><div class="ll-info"><div class="ll-label">Available</div><div class="ll-range">0–5 tickets</div></div><div class="ll-count" style="color:#10b981">${available}</div></div>
+    <div class="ll-card"><div class="ll-dot" style="background:#f59e0b"></div><div class="ll-info"><div class="ll-label">Balanced</div><div class="ll-range">6–30 tickets</div></div><div class="ll-count" style="color:#f59e0b">${balanced}</div></div>
+    <div class="ll-card"><div class="ll-dot" style="background:#ef4444"></div><div class="ll-info"><div class="ll-label">Overloaded</div><div class="ll-range">31+ tickets</div></div><div class="ll-count" style="color:#ef4444">${overloaded}</div></div>
+  </div>
+  <div class="chart-wrap">
+    <div class="chart-title">Team Size Distribution</div>
+    <canvas id="teamBarChart" height="80"></canvas>
+  </div>`;
+
+  return html;
+}
+
+function renderStatusPills(byStatus){
+  const colors={'In Progress':'#3b82f6','System Testing':'#8b5cf6','Todo':'#94a3b8','Hold or Blocked':'#ef4444','Backlog':'#64748b','Dev Completed':'#10b981','Blocked':'#dc2626'};
+  return Object.entries(byStatus).map(([s,c])=>{
+    const col=colors[s]||'#64748b';
+    return `<span style="display:inline-flex;align-items:center;gap:3px;background:${col}18;color:${col};border:1px solid ${col}40;border-radius:10px;padding:2px 7px;font-size:10px;font-weight:700;margin:1px;">${c} <span style="font-weight:400;opacity:.8">${s}</span></span>`;
+  }).join('');
+}
+
+function renderWorkloadTab(){
+  const filtered=workloadTeamFilter==='ALL'?teamMembers:teamMembers.filter(m=>m.team===workloadTeamFilter);
+  const top20=[...filtered].sort((a,b)=>b.jiraTickets-a.jiraTickets).slice(0,20);
+  const isQAFilter=workloadTeamFilter==='QA';
+
+  let html=`
+  <div class="filter-bar">
+    <select onchange="workloadTeamFilter=this.value;switchTab('workload')">
+      <option value="ALL">All Teams</option>
+      ${teams.map(t=>`<option value="${t}"${workloadTeamFilter===t?' selected':''}>${t}</option>`).join('')}
+    </select>
+  </div>`;
+
+  if(isQAFilter){
+    html+=`<div style="background:#fef9ec;border:1px solid #fde68a;border-radius:10px;padding:10px 14px;margin-bottom:14px;font-size:12px;color:#92400e;">
+      <strong>ℹ️ QA ticket counts show active work only</strong> — excludes "Ready to Release" tickets (Linear). The <em>Total</em> column includes Ready to Release for reference.
+    </div>`;
+  }
+
+  html+=`
+  <div class="chart-wrap">
+    <div class="chart-title">Top ${top20.length} by Active Linear Tickets</div>
+    <canvas id="workloadBarChart" height="120"></canvas>
+  </div>
+  <table class="resource-table">
+    <thead><tr>
+      <th>Name</th><th>Team</th><th>Projects</th>
+      <th>Active Linear Tickets${isQAFilter?' (excl. Ready to Release)':''}</th>
+      ${isQAFilter?'<th>Total (incl. RTR)</th><th>Status Breakdown</th>':''}
+      <th>Load Status</th>
+    </tr></thead>
+    <tbody>`;
+
+  filtered.sort((a,b)=>b.jiraTickets-a.jiraTickets).forEach(m=>{
+    const load=getLoad(m.jiraTickets);
+    const pct=Math.min(Math.round(m.jiraTickets/30*100),100);
+    const qa=qaStatusBreakdown[m.name];
+    const rowStyle=m.leaving?'opacity:.8;background:#fff8f8':'';
+    html+=`<tr style="${rowStyle}">
+      <td><strong>${m.name}</strong>${m.lead?'<span class="lead-crown">👑</span>':''}${m.type==='E'?' <span class="tm-ext">(E)</span>':''}</td>
+      <td><span class="team-chip" style="background:${teamColors[m.team]||'#64748b'}">${m.team}</span></td>
+      <td style="font-size:12px;color:var(--muted)">${m.projects.length>0?m.projects.join(', '):'—'}</td>
+      <td>${m.jiraTickets} <span class="mini-bar"><span class="mini-bar-fill" style="width:${pct}%;background:${load==='available'?'#10b981':load==='balanced'?'#f59e0b':'#ef4444'}"></span></span></td>
+      ${isQAFilter&&qa?`<td style="color:var(--muted);font-size:12px">${qa.total}${qa.rtr>0?` <span style="color:#d97706;font-size:10px">(+${qa.rtr} RTR)</span>`:''}</td><td style="max-width:280px">${renderStatusPills(qa.byStatus)}</td>`:''}
+      <td><span class="load-badge ${load}">${getLoadLabel(m.jiraTickets)}</span></td>
+    </tr>`;
+  });
+
+  html+=`</tbody></table>`;
+  return html;
+}
+
+function renderBandwidthTab(){
+  let filtered=teamMembers;
+  if(bwTeamFilter!=='ALL') filtered=filtered.filter(m=>m.team===bwTeamFilter);
+  if(bwLoadFilter!=='ALL') filtered=filtered.filter(m=>getLoad(m.jiraTickets)===bwLoadFilter);
+
+  let html=`
+  <div class="filter-bar">
+    <select onchange="bwTeamFilter=this.value;switchTab('bandwidth')">
+      <option value="ALL">All Teams</option>
+      ${teams.map(t=>`<option value="${t}"${bwTeamFilter===t?' selected':''}>${t}</option>`).join('')}
+    </select>
+    <select onchange="bwLoadFilter=this.value;switchTab('bandwidth')">
+      <option value="ALL">All Loads</option>
+      <option value="available"${bwLoadFilter==='available'?' selected':''}>Available</option>
+      <option value="balanced"${bwLoadFilter==='balanced'?' selected':''}>Balanced</option>
+      <option value="overloaded"${bwLoadFilter==='overloaded'?' selected':''}>Overloaded</option>
+    </select>
+    <span style="font-size:13px;color:var(--muted)">${filtered.length} people</span>
+  </div>
+  <div class="bandwidth-grid">`;
+
+  filtered.forEach(m=>{
+    const load=getLoad(m.jiraTickets);
+    const qa=qaStatusBreakdown[m.name];
+    const rtrNote=qa&&qa.rtr>0?`<div style="font-size:10px;color:#d97706;margin-top:2px">+${qa.rtr} Ready to Release</div>`:'';
+    const statusPills=qa&&Object.keys(qa.byStatus).length>0?`<div style="margin-top:6px">${renderStatusPills(qa.byStatus)}</div>`:'';
+    html+=`<div class="bw-card ${load}${m.leaving?' departing':''}">
+      <div class="bw-name">${m.name}${m.lead?'👑':''}${m.type==='E'?' (E)':''}</div>
+      <div class="bw-team" style="color:${teamColors[m.team]||'#64748b'}">${m.team}</div>
+      <div class="bw-tickets">${m.jiraTickets} <span style="font-size:13px;font-weight:400">${m.team==='QA'?'active (Linear)':'Linear tickets'}</span></div>
+      ${rtrNote}
+      <div class="bw-projects">${m.projects.length>0?m.projects.join(', '):'No active projects'}</div>
+      ${statusPills}
+    </div>`;
+  });
+
+  html+=`</div>`;
+  return html;
+}
+
+function renderMatrixTab(){
+  const filtered=matrixTeamFilter==='ALL'?teamMembers:teamMembers.filter(m=>m.team===matrixTeamFilter);
+  const cols=["Marketplace","LABS","Harness","APF Media Negotiation Framework","Meridian Support Tool","Connectors","Summit-Bench","Google Workshop","Beacon","Beacon (non-tech)","sme","meridian.dev landing page rebuild","DRIFT HARNESS"];
+
+  let html=`
+  <div class="filter-bar">
+    <select onchange="matrixTeamFilter=this.value;switchTab('matrix')">
+      <option value="ALL">All Teams</option>
+      ${teams.map(t=>`<option value="${t}"${matrixTeamFilter===t?' selected':''}>${t}</option>`).join('')}
+    </select>
+  </div>
+  <div class="matrix-wrap">
+  <table class="matrix-table">
+    <thead><tr>
+      <th>Name</th>
+      ${cols.map(c=>`<th title="${c}">${colLabel[c]||c}</th>`).join('')}
+    </tr></thead>
+    <tbody>`;
+
+  // cols are exact Linear project names — match exactly (substring matching would cross-contaminate
+  // e.g. 'Harness' vs 'DRIFT HARNESS', 'Beacon' vs 'Beacon (non-tech)').
+
+  filtered.forEach(m=>{
+    html+=`<tr>
+      <td>${m.name}${m.lead?'👑':''}${m.type==='E'?' (E)':''} <span style="font-size:10px;color:${teamColors[m.team]||'#64748b'}">${m.team}</span></td>
+      ${cols.map(col=>{
+        const assigned=m.projects.indexOf(col)>=0;
+        return `<td>${assigned?'<span class="dot-assigned">●</span>':''}</td>`;
+      }).join('')}
+    </tr>`;
+  });
+
+  html+=`</tbody></table></div>`;
+  return html;
+}
+
+function renderStructureTab(){
+  const grouped={};
+  teamMembers.forEach(m=>{
+    if(!grouped[m.team])grouped[m.team]=[];
+    grouped[m.team].push(m);
+  });
+
+  let html='';
+  Object.entries(grouped).forEach(([team,members])=>{
+    const color=teamColors[team]||'#64748b';
+    html+=`<div class="team-group">
+      <div class="team-group-hdr" style="background:${color}">
+        <span class="tg-name">${team}</span>
+        <span class="tg-count">${members.length} members</span>
+      </div>
+      <div class="team-members-list">
+        ${members.map(m=>`<div class="tm-item">
+          ${m.lead?'👑 ':''}<strong>${m.name}</strong>
+          ${m.type==='E'?'<span class="tm-ext">(E)</span>':''}
+          ${m.projects.length>0?`<span style="font-size:11px;color:var(--muted)">${m.projects.length} proj</span>`:''}
+        </div>`).join('')}
+      </div>
+    </div>`;
+  });
+  return html;
+}
+
+function renderOrgChart(){
+  const grouped={};
+  teamMembers.forEach(m=>{
+    if(!grouped[m.team])grouped[m.team]=[];
+    grouped[m.team].push(m);
+  });
+
+  let html=`<div class="legend-bar">
+    <span>👑 = Lead</span>
+    <span>(I) = Internal</span>
+    <span>(E) = External</span>
+  </div>
+  <div class="org-grid">`;
+
+  Object.entries(grouped).forEach(([team,members])=>{
+    const color=teamColors[team]||'#64748b';
+    html+=`<div class="org-col">
+      <div class="org-col-hdr" style="background:${color}">${team}</div>
+      ${members.map(m=>`<div class="org-member-box${m.lead?' lead':''}">
+        ${m.lead?'👑 ':''}<strong>${m.name}</strong>
+        ${m.type==='I'?' (I)':m.type==='E'?' (E)':''}
+        ${m.jiraTickets>0?`<span style="font-size:10px;color:var(--muted);float:right" title="Linear tickets">${m.jiraTickets}t</span>`:''}
+      </div>`).join('')}
+    </div>`;
+  });
+
+  html+=`</div>`;
+  return html;
+}
+
+function renderDeepDiveTab(){
+  // ── Selectors ──────────────────────────────────────────────────────────────
+  const teamOpts=teams.map(t=>`<option value="${t}"${ddTeamFilter===t?' selected':''}>${t}</option>`).join('');
+  const teamPeople=ddTeamFilter==='ALL'?teamMembers:teamMembers.filter(m=>m.team===ddTeamFilter);
+  const personOpts=teamPeople.map(m=>`<option value="${m.name}"${ddPersonFilter===m.name?' selected':''}>${m.name}${m.lead?' 👑':''}</option>`).join('');
+
+  let html=`
+  <div class="filter-bar">
+    <select onchange="ddTeamFilter=this.value;ddPersonFilter='';switchTab('deepdive')">
+      <option value="ALL"${ddTeamFilter==='ALL'?' selected':''}>All Teams</option>
+      ${teamOpts}
+    </select>
+    <select onchange="ddPersonFilter=this.value;switchTab('deepdive')" ${ddTeamFilter==='ALL'&&!ddPersonFilter?'disabled':''}>
+      <option value="">— Select Resource —</option>
+      ${personOpts}
+    </select>
+  </div>`;
+
+  // ── Placeholder ─────────────────────────────────────────────────────────────
+  if(!ddPersonFilter){
+    html+=`<div class="dd-placeholder">
+      <div class="ph-icon">🔍</div>
+      <p><strong>Select a team and resource</strong> to see their project × status breakdown.</p>
+    </div>`;
+    return html;
+  }
+
+  // ── Person data ──────────────────────────────────────────────────────────────
+  const member=teamMembers.find(m=>m.name===ddPersonFilter);
+  const bd=personBreakdown[ddPersonFilter]||{};
+  const load=member?getLoad(member.jiraTickets):'available';
+  const loadLabel=member?getLoadLabel(member.jiraTickets):'—';
+  const teamColor=member?(teamColors[member.team]||'#64748b'):'#64748b';
+  const totalTickets=member?member.jiraTickets:0;
+
+  // Collect all statuses this person has
+  const allStatuses=new Set();
+  Object.values(bd).forEach(proj=>Object.keys(proj).forEach(s=>allStatuses.add(s)));
+
+  // Ordered columns — show only those with data
+  const colOrder=['In Progress','In Review','System Testing','Dev Completed','Todo','Backlog','Hold or Blocked','Ready to Release'];
+  const extraCols=[...allStatuses].filter(s=>!colOrder.includes(s)).sort();
+  const cols=[...colOrder,...extraCols].filter(s=>allStatuses.has(s));
+
+  // Column header CSS class
+  const colClass={'In Progress':'th-active','In Review':'th-review','System Testing':'th-testing',
+    'Dev Completed':'th-done','Todo':'th-todo','Backlog':'th-backlog',
+    'Hold or Blocked':'th-blocked','Ready to Release':'th-rtr'};
+  const cellClass={'In Progress':'cell-ip','System Testing':'cell-st',
+    'Hold or Blocked':'cell-bl','Ready to Release':'cell-rtr','Dev Completed':'cell-dc'};
+
+  // Compute active tickets (excl RTR) for header stat
+  let activeCount=0,rtrCount=0,backlogCount=0;
+  Object.values(bd).forEach(proj=>{
+    Object.entries(proj).forEach(([s,c])=>{
+      if(s==='Ready to Release') rtrCount+=c;
+      else if(s==='Backlog') backlogCount+=c;
+      else activeCount+=c;
+    });
+  });
+
+  // Sort projects: No Project last, others by total desc
+  const projects=Object.keys(bd).filter(p=>p!=='No Project').sort((a,b)=>{
+    const ta=Object.values(bd[a]).reduce((s,v)=>s+v,0);
+    const tb=Object.values(bd[b]).reduce((s,v)=>s+v,0);
+    return tb-ta;
+  });
+  if(bd['No Project']) projects.push('No Project');
+
+  // Column totals
+  const colTotals={};
+  cols.forEach(c=>{colTotals[c]=0;});
+  let grandTotal=0;
+
+  // ── Header card ──────────────────────────────────────────────────────────────
+  html+=`<div class="dd-header">
+    <div>
+      <div class="dd-name">${ddPersonFilter}${member&&member.lead?' 👑':''}
+        <span class="dd-team-chip" style="background:${teamColor}">${member?member.team:'—'}</span>
+      </div>
+      <div style="font-size:12px;color:var(--muted);margin-top:4px">${member&&member.projects.length>0?member.projects.join(', '):'No projects assigned'}</div>
+    </div>
+    <div class="dd-stats" style="margin-left:auto;display:flex;gap:0">
+      <div class="dd-stat"><div class="dd-stat-val" style="color:#3b82f6">${activeCount}</div><div class="dd-stat-lbl">Active</div></div>
+      <div class="dd-stat"><div class="dd-stat-val" style="color:#64748b">${backlogCount}</div><div class="dd-stat-lbl">Backlog</div></div>
+      <div class="dd-stat"><div class="dd-stat-val" style="color:#f59e0b">${rtrCount}</div><div class="dd-stat-lbl">Ready to Release</div></div>
+      <div class="dd-stat"><div class="dd-stat-val">${activeCount+backlogCount+rtrCount}</div><div class="dd-stat-lbl">Total</div></div>
+      <div class="dd-stat"><span class="load-badge ${load}">${loadLabel}</span></div>
+    </div>
+  </div>`;
+
+  // ── Matrix table ─────────────────────────────────────────────────────────────
+  html+=`<div class="dd-table-wrap"><table class="dd-table">
+    <thead><tr>
+      <th>Project</th>
+      ${cols.map(c=>`<th class="${colClass[c]||''}">${c}</th>`).join('')}
+      <th>Total</th>
+    </tr></thead>
+    <tbody>`;
+
+  projects.forEach(proj=>{
+    const statuses=bd[proj]||{};
+    const rowTotal=Object.values(statuses).reduce((s,v)=>s+v,0);
+    grandTotal+=rowTotal;
+    const hasActive=(statuses['In Progress']||0)+(statuses['In Review']||0)+(statuses['System Testing']||0)>0;
+    html+=`<tr class="${hasActive?'row-active':''}">
+      <td>${proj==='No Project'?'<em style="color:var(--muted)">— Unassigned —</em>':proj}</td>
+      ${cols.map(c=>{
+        const v=statuses[c]||0;
+        colTotals[c]+=v;
+        const cc=cellClass[c]||'';
+        return `<td class="${v===0?'cell-zero':cc}">${v===0?'·':v}</td>`;
+      }).join('')}
+      <td style="font-weight:700">${rowTotal}</td>
+    </tr>`;
+  });
+
+  html+=`</tbody><tfoot><tr>
+    <td>Total</td>
+    ${cols.map(c=>{
+      const v=colTotals[c]||0;
+      const cc=cellClass[c]||'';
+      return `<td class="${v===0?'cell-zero':cc}">${v===0?'·':v}</td>`;
+    }).join('')}
+    <td>${grandTotal}</td>
+  </tr></tfoot></table></div>`;
+
+  // ── Legend ────────────────────────────────────────────────────────────────────
+  html+=`<div style="font-size:11px;color:var(--muted);display:flex;gap:16px;flex-wrap:wrap">
+    <span style="color:#3b82f6">■ In Progress</span>
+    <span style="color:#6d28d9">■ System Testing</span>
+    <span style="color:#059669">■ Dev Completed</span>
+    <span style="color:#ef4444">■ Hold or Blocked</span>
+    <span style="color:#d97706">■ Ready to Release</span>
+    <span style="background:#eff6ff;border-left:3px solid #3b82f6;padding:0 4px">Highlighted row = has active work</span>
+  </div>`;
+
+  return html;
+}
+
+function switchTab(tab){
+  activeTab=tab;
+  renderAll();
+}
+
+function renderAll(){
+  let content='';
+  content+=renderTabBar();
+
+  switch(activeTab){
+    case 'overview':   content+=renderOverviewTab();   break;
+    case 'workload':   content+=renderWorkloadTab();   break;
+    case 'bandwidth':  content+=renderBandwidthTab();  break;
+    case 'matrix':     content+=renderMatrixTab();     break;
+    case 'structure':  content+=renderStructureTab();  break;
+    case 'orgchart':   content+=renderOrgChart();      break;
+    case 'deepdive':   content+=renderDeepDiveTab();   break;
+  }
+
+  document.getElementById('moduleContent').innerHTML=content;
+
+  // Init charts after DOM update
+  if(activeTab==='overview'){
+    const ctx=document.getElementById('teamBarChart');
+    if(ctx){
+      if(barChartInstance){barChartInstance.destroy();barChartInstance=null;}
+      const teamCounts={};
+      teamMembers.forEach(m=>{teamCounts[m.team]=(teamCounts[m.team]||0)+1;});
+      const labels=Object.keys(teamCounts);
+      const data=Object.values(teamCounts);
+      const colors=labels.map(l=>teamColors[l]||'#64748b');
+      barChartInstance=new Chart(ctx,{type:'bar',data:{labels,datasets:[{data,backgroundColor:colors,borderRadius:6}]},options:{indexAxis:'y',responsive:true,plugins:{legend:{display:false}},scales:{x:{grid:{display:false}},y:{grid:{display:false}}}}});
+    }
+  }
+  if(activeTab==='workload'){
+    const ctx=document.getElementById('workloadBarChart');
+    if(ctx){
+      const filtered=workloadTeamFilter==='ALL'?teamMembers:teamMembers.filter(m=>m.team===workloadTeamFilter);
+      const top20=[...filtered].sort((a,b)=>b.jiraTickets-a.jiraTickets).slice(0,20);
+      const colors=top20.map(m=>{const l=getLoad(m.jiraTickets);return l==='available'?'#10b981':l==='balanced'?'#f59e0b':'#ef4444';});
+      new Chart(ctx,{type:'bar',data:{labels:top20.map(m=>m.name),datasets:[{data:top20.map(m=>m.jiraTickets),backgroundColor:colors,borderRadius:4}]},options:{indexAxis:'y',responsive:true,plugins:{legend:{display:false}},scales:{x:{grid:{display:false}},y:{grid:{display:false},ticks:{font:{size:11}}}}}});
+    }
+  }
+}
+
+function doSync(){
+  if(typeof PJMSync!=='undefined'){
+    PJMSync.setSyncBtnState(true);
+    PJMSync.markLoading(MODULE_ID);
+    setTimeout(()=>{
+      PJMSync.markSynced(MODULE_ID,{team:teamMembers.length,note:'Linear ticket counts — last full sync 30 Sep 2026'});
+      PJMSync.setSyncBtnState(false);
+      renderAll();
+    },600);
+  } else {
+    renderAll();
+  }
+}
+
+document.addEventListener('DOMContentLoaded',function(){
+  PJMNav.render(MODULE_ID);
+  PJMSync.initModule(MODULE_ID,doSync);
+  renderAll();
+});
+</script>
+</body>
+</html>
