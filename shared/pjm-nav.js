@@ -166,11 +166,12 @@
   /* Boot auth for a module page */
   function initAuth(activeModuleId, onReady) {
     // Local dev bypass
-    var isLocal = window.location.protocol === 'file:' ||
+    var isLocal = window.PJM_DEMO === true ||
+                  window.location.protocol === 'file:' ||
                   window.location.hostname === 'localhost' ||
                   window.location.hostname === '127.0.0.1';
     if (isLocal) {
-      var fakeSession = { email: 'local@dev', name: 'Local Dev', picture: '', role: 'admin' };
+      var fakeSession = { email: 'demo@example.com', name: 'Demo User', picture: '', role: 'admin' };
       hideOverlay();
       onReady(fakeSession);
       return;
